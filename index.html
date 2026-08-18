@@ -412,74 +412,103 @@ function runBallistics() {
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-      // Renderiza o Retículo
-      renderReticle(mradElev, mradWind, dist, recommendedZoom);
-    }
-
-    function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
+  // Renderização retículo
+function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('reticleCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const w = canvas.width, h = canvas.height;
       const cx = w / 2, cy = h / 2;
 
       ctx.clearRect(0, 0, w, h);
 
-      // Fundo Óptico da Luneta
-      ctx.fillStyle = "#020617";
-      ctx.fillRect(0, 0, w, h);
+      // 1. Fundo da Lente (Tubo Óptico da Leupold - Claro)
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(cx, cy, cx - 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 6;
+      ctx.stroke();
 
-      const pixelsPerMRAD = 16;
+      const pixelsPerMRAD = 18; // Escala visual ajustada
 
-      // Posição do ponto de impacto compensado
-      const targetX = cx + (mradWind * pixelsPerMRAD);
-      const targetY = cy + (mradElev * pixelsPerMRAD);
+      // Ponto de Impacto Requerido (Holdover) no Canvas
+      const impactX = cx + (mradWind * pixelsPerMRAD);
+      const impactY = cy + (mradElev * pixelsPerMRAD);
 
-      // Renderização da Silhueta Humanóide (1.80m real)
+      // 2. Silhueta Humanóide Tática (Estilo Man Target)
       const targetRealHeight = 1.8;
       const mradHeight = (targetRealHeight / distanceMeters) * 1000;
-      const humanPixels = Math.max(mradHeight * pixelsPerMRAD * (zoomLevel / 10), 12);
+      const humanPixels = Math.max(mradHeight * pixelsPerMRAD * (zoomLevel / 10), 14);
 
-      ctx.fillStyle = "rgba(239, 68, 68, 0.4)";
-      ctx.strokeStyle = "#ef4444";
-      ctx.lineWidth = 1;
+      const headRadius = humanPixels * 0.11;
+      const bodyW = humanPixels * 0.36;
+      const bodyH = humanPixels * 0.68;
+
+      const torsoCenterY = impactY; // Centro de massa no ponto de impacto
+      const headCenterY = torsoCenterY - (bodyH * 0.5) - headRadius;
+
+      // Desenho do Corpo/Membros da Silhueta (Cor Dourada Tática)
+      ctx.fillStyle = "#d97706"; 
+      ctx.strokeStyle = "#451a03";
+      ctx.lineWidth = 1.5;
 
       // Cabeça
       ctx.beginPath();
-      ctx.arc(targetX, targetY - (humanPixels * 0.85), humanPixels * 0.12, 0, Math.PI * 2);
+      ctx.arc(impactX, headCenterY, headRadius, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
 
-      // Corpo
-      const bodyW = humanPixels * 0.35;
-      const bodyH = humanPixels * 0.7;
-      ctx.fillRect(targetX - bodyW/2, targetY - (humanPixels * 0.7), bodyW, bodyH);
-      ctx.strokeRect(targetX - bodyW/2, targetY - (humanPixels * 0.7), bodyW, bodyH);
-
-      // Retículo Iluminado (Verde Tático)
-      ctx.strokeStyle = "#22c55e";
-      ctx.lineWidth = 1.5;
-
-      // Cruzes Centrais
+      // Tronco e Braços
       ctx.beginPath();
-      ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
-      ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+      ctx.fillRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
+      ctx.strokeRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
+
+      // 3. RETÍCULO LEUPOLD MARK 4 ER/T (MIL DOT)
+      ctx.strokeStyle = "#000000";
+      ctx.fillStyle = "#000000";
+
+      // Hastes Finas Centrais
+      ctx.lineWidth = 1.8;
+      const thinEnd = 4.8 * pixelsPerMRAD;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - thinEnd); ctx.lineTo(cx, cy + thinEnd);
+      ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
       ctx.stroke();
 
-      // Marcadores de Subtenção (Mil-Dots)
-      ctx.fillStyle = "#22c55e";
-      for (let i = -8; i <= 8; i++) {
-        if (i !== 0) {
-          ctx.beginPath();
-          ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath();
-          ctx.arc(cx, cy + (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
-        }
+      // Hastes Grossas externas (Duplex Mark 4)
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
+      ctx.moveTo(cx, cy + thinEnd); ctx.lineTo(cx, h);
+      ctx.moveTo(0, cy); ctx.lineTo(cx - thinEnd, cy);
+      ctx.moveTo(cx + thinEnd, cy); ctx.lineTo(w, cy);
+      ctx.stroke();
+
+      // 4 Mil-Dots por haste (1 a 4 MRAD)
+      for (let i = 1; i <= 4; i++) {
+        ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy + (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      // Ponto de Visada Vermelho (Holdover)
-      ctx.fillStyle = "#ef4444";
+      // 4. Ponto de Impacto / Visada Requerida (Amarelo/Válvula Tática)
+      ctx.fillStyle = "#facc15";
+      ctx.strokeStyle = "#854d0e";
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(targetX, targetY, 3.5, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.arc(impactX, impactY, 4, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+
+      // 5. Informações Ópticas na Lente (Top & Bottom Overlay)
+      ctx.font = "bold 11px sans-serif";
+      ctx.fillStyle = "#0284c7";
+      ctx.fillText(`Distância: ${Math.round(distanceMeters)}m`, 20, 30);
+
+      ctx.fillStyle = "#64748b";
+      ctx.fillText(`${zoomLevel}.0x`, w - 50, 30);
     }
 
     // Inicialização Contínua do GPS
