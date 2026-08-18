@@ -24,18 +24,28 @@
     .map { height: 100%; width: 100%; }
 
     /* Estilo dos Rótulos de Distância nos Círculos */
+/* Estilo Base dos Rótulos (Compartilhado pelos dois lados) */
     .radius-label {
-  background: rgba(255, 255, 255, 0.92); /* Fundo branco para sobressair no satélite */
-  border: 1px solid #b91c1c;            /* Borda vermelha escura */
-  color: #dc2626;                       /* Texto vermelho vivo */
-  font-size: 15px;                      /* Fonte maior para celular */
-  font-weight: 800;                     /* Negrito para leitura rápida */
-  padding: 3px 8px;                     /* Espaçamento interno */
-  border-radius: 6px;
-  white-space: nowrap;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.4); /* Sombra para dar destaque */
+      background: rgba(255, 255, 255, 0.95); /* Fundo branco para sobressair no satélite */
+      font-size: 15px;                        /* Tamanho ideal para leitura no celular */
+      font-weight: 800;                       /* Negrito para visualização sob luz solar */
+      padding: 3px 6px;                       /* Espaçamento interno */
+      border-radius: 6px;
+      white-space: nowrap;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);   /* Sombra para dar destaque */
+    }
 
+    /* Estilo do Lado Esquerdo: Distância em Metros (Vermelho) */
+    .label-dist {
+      border: 1px solid #b91c1c;
+      color: #dc2626;
+    }
+
+    /* Estilo do Lado Direito: Número de 1 a 9 (Azul) */
+    .label-num {
+      border: 1px solid #0284c7;
+      color: #0284c7;
     }
 
     /* Painel de Informação da Linha de Distância */
@@ -112,55 +122,54 @@
    let currentHeading = 0; // Armazena a direção do celular (0° = Norte, 90° = Leste, etc.)
 
 // Função atualizada para calcular a posição do rótulo na direção (bearing) que o celular aponta
-function getOffsetPoint(lat, lng, meters, bearingDegrees) {
+// Calcula o ponto diretamente ao Norte do usuário
+function getOffsetPoint(lat, lng, meters) {
   const earthRadius = 6378137;
-  const bearingRad = bearingDegrees * (Math.PI / 180); // Converte graus para radianos
-  const distRad = meters / earthRadius;
-
-  const latRad = lat * (Math.PI / 180);
-  const lngRad = lng * (Math.PI / 180);
-
-  const newLatRad = Math.asin(
-    Math.sin(latRad) * Math.cos(distRad) +
-    Math.cos(latRad) * Math.sin(distRad) * Math.cos(bearingRad)
-  );
-
-  const newLngRad = lngRad + Math.atan2(
-    Math.sin(bearingRad) * Math.sin(distRad) * Math.cos(latRad),
-    Math.cos(distRad) - Math.sin(latRad) * Math.sin(newLatRad)
-  );
-
-  return [newLatRad * (180 / Math.PI), newLngRad * (180 / Math.PI)];
+  const dLat = meters / earthRadius;
+  const newLat = lat + (dLat * 180 / Math.PI);
+  return [newLat, lng];
 }
 
 function updateRaios(lat, lng) {
   circlesAndLabelsGroup.clearLayers();
 
   for (let r = 100; r <= 900; r += 100) {
-    // Desenha o Círculo Con cêntrico
+    const indice = r / 100; // Gera os números de 1 a 9
+
+    // Desenha o círculo concêntrico
     L.circle([lat, lng], {
       radius: r,
-      color: '#dc2626',      // Vermelho
+      color: '#dc2626',
       fillColor: '#ef4444',
       fillOpacity: 0.02,
       weight: 2,
       dashArray: '5, 5'
     }).addTo(circlesAndLabelsGroup);
 
-    // Calcula a posição do Rótulo na direção exata que o celular está apontando
-    const labelPos = getOffsetPoint(lat, lng, r, currentHeading);
+    // Ponto base da borda superior do círculo
+    const labelPos = getOffsetPoint(lat, lng, r);
 
+    // Rótulo da Esquerda: Distância em metros (ex: 100m)
     L.marker(labelPos, {
       icon: L.divIcon({
-        className: 'radius-label',
+        className: 'radius-label label-dist',
         html: `${r}m`,
         iconSize: [60, 26],
-        iconAnchor: [30, 13]
+        iconAnchor: [65, 13] // Deslocado para a esquerda da linha central
+      })
+    }).addTo(circlesAndLabelsGroup);
+
+    // Rótulo da Direita: Número de 1 a 9 (ex: #1)
+    L.marker(labelPos, {
+      icon: L.divIcon({
+        className: 'radius-label label-num',
+        html: `#${indice}`,
+        iconSize: [40, 26],
+        iconAnchor: [-5, 13] // Deslocado para a direita da linha central
       })
     }).addTo(circlesAndLabelsGroup);
   }
 }
-
     function initMaps(lat, lng) {
       currentPos = [lat, lng];
 
