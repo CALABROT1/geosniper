@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Geolocalização & Mapeamento de Terreno</title>
+  <title>Geolocalização & Solucionador Balístico Tático</title>
 
   <!-- Leaflet CSS e JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,60 +11,84 @@
 
   <style>
     * { box-sizing: border-box; }
-    body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; }
 
     /* Barra de Navegação */
-    .tabs { display: flex; background: #1e293b; height: 50px; }
-    .tab-btn { flex: 1; color: #94a3b8; background: none; border: none; font-weight: 600; font-size: 13px; cursor: pointer; border-bottom: 3px solid transparent; }
+    .tabs { display: flex; background: #1e293b; height: 50px; overflow-x: auto; }
+    .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 600; font-size: 12px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
     /* Área de Conteúdo */
-    .tab-content { display: none; height: calc(100vh - 50px); width: 100%; position: relative; }
+    .tab-content { display: none; height: calc(100vh - 50px); width: 100%; position: relative; overflow-y: auto; }
     .tab-content.active { display: block; }
     .map { height: 100%; width: 100%; }
 
-    /* Estilo dos Rótulos de Distância nos Círculos */
-/* Estilo Base dos Rótulos (Compartilhado pelos dois lados) */
+    /* Estilo dos Rótulos no Mapa */
     .radius-label {
-      background: rgba(255, 255, 255, 0.95); /* Fundo branco para sobressair no satélite */
-      font-size: 15px;                        /* Tamanho ideal para leitura no celular */
-      font-weight: 800;                       /* Negrito para visualização sob luz solar */
-      padding: 3px 6px;                       /* Espaçamento interno */
+      background: rgba(255, 255, 255, 0.95);
+      font-size: 15px;
+      font-weight: 800;
+      padding: 3px 6px;
       border-radius: 6px;
       white-space: nowrap;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);   /* Sombra para dar destaque */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     }
+    .label-dist { border: 1px solid #b91c1c; color: #dc2626; }
+    .label-num { border: 1px solid #0284c7; color: #0284c7; }
 
-    /* Estilo do Lado Esquerdo: Distância em Metros (Vermelho) */
-    .label-dist {
-      border: 1px solid #b91c1c;
-      color: #dc2626;
-    }
-
-    /* Estilo do Lado Direito: Número de 1 a 9 (Azul) */
-    .label-num {
-      border: 1px solid #0284c7;
-      color: #0284c7;
-    }
-
-    /* Painel de Informação da Linha de Distância */
     .dist-info-panel {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      background: rgba(15, 23, 42, 0.9);
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
+      background: rgba(15, 23, 42, 0.9); color: white; padding: 13px 18px; border-radius: 20px;
+      font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid #334155; text-align: center; pointer-events: none;
+    }
+
+    /* CSS da Aba Balística */
+    .ballistics-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      padding: 15px;
       color: white;
-      padding: 13px 18px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    @media(min-width: 768px) {
+      .ballistics-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 10px;
       border: 1px solid #334155;
-      text-align: center;
-      pointer-events: none;
+    }
+    .card h3 { margin-top: 0; color: #38bdf8; font-size: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; font-size: 14px;
+    }
+
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    .btn-calc {
+      width: 100%; padding: 12px; background: #0284c7; color: white; border: none; font-weight: bold; border-radius: 6px; font-size: 15px; cursor: pointer; margin-top: 10px;
+    }
+    .btn-calc:active { background: #0369a1; }
+
+    .results-box {
+      display: flex; justify-content: space-around; text-align: center; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 15px;
+    }
+    .res-item .val { font-size: 22px; font-weight: 900; color: #ef4444; }
+    .res-item .lbl { font-size: 11px; color: #94a3b8; }
+
+    .reticle-container { text-align: center; }
+    #reticleCanvas {
+      background: #000; border-radius: 50%; border: 4px solid #334155; margin-top: 10px; max-width: 100%; height: auto;
+    }
+    .zoom-badge {
+      display: inline-block; background: #0284c7; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 5px;
     }
   </style>
 </head>
@@ -74,7 +98,8 @@
     <button class="tab-btn active" onclick="openTab(event, 'tabRaios')">Raios (900m)</button>
     <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
     <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
-    <button class="tab-btn" onclick="openTab(event, 'tabMedir')">Medir Distância</button>
+    <button class="tab-btn" onclick="openTab(event, 'tabMedir')">Medir</button>
+    <button class="tab-btn" onclick="openTab(event, 'tabBalistica')">Balística</button>
   </div>
 
   <div id="tabRaios" class="tab-content active"><div id="mapRaios" class="map"></div></div>
@@ -85,36 +110,130 @@
     <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
   </div>
 
+  <!-- ABA BALÍSTICA -->
+  <div id="tabBalistica" class="tab-content">
+    <div class="ballistics-grid">
+      
+      <!-- PAINEL DE ENTRADA DE DADOS -->
+      <div class="card">
+        <h3>Configurações de Tiro & Projétil</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Peso Projétil (Grains):</label>
+            <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
+          </div>
+          <div class="form-group">
+            <label>Torre / Graduação:</label>
+            <select id="balTurret">
+              <option value="MRAD">0.1 MRAD (1cm / 100m)</option>
+              <option value="MOA">1/4 MOA (0.73cm / 100m)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Velocidade de Boca (FPS):</label>
+          <select id="balPresetSpeed" onchange="document.getElementById('balSpeed').value = this.value !== 'custom' ? this.value : document.getElementById('balSpeed').value">
+            <option value="custom">Personalizada (Digite abaixo)</option>
+            <option value="2600">Carga 1 - Média: 2600 FPS</option>
+            <option value="2680" selected>Carga 2 - Média: 2680 FPS</option>
+            <option value="2750">Carga 3 - Média: 2750 FPS</option>
+          </select>
+          <input type="number" id="balSpeed" value="2680" style="margin-top: 5px;">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Perfil Drag:</label>
+            <select id="balDragProfile">
+              <option value="G1">G1 (Padrão)</option>
+              <option value="G7">G7 (VLD/Boat Tail)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Coef. Balístico (CB):</label>
+            <input type="number" step="0.001" id="balBC" value="0.447">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Distância do Alvo (Metros) - Zeragem: 100m:</label>
+          <input type="number" id="balDistance" value="600" step="25">
+        </div>
+
+        <h3>Condição de Vento (Opcional)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Velocidade Vento (km/h):</label>
+            <input type="number" id="balWindSpeed" value="0" placeholder="0 se sem vento">
+          </div>
+          <div class="form-group">
+            <label>Direção (Horas 1-12):</label>
+            <select id="balWindDir">
+              <option value="3">3 Horas (Direita -> Esquerda)</option>
+              <option value="9">9 Horas (Esquerda -> Direita)</option>
+              <option value="12">12 Horas (Frontal)</option>
+              <option value="6">6 Horas (Traseiro)</option>
+              <option value="1">1 Hora</option>
+              <option value="2">2 Horas</option>
+              <option value="4">4 Horas</option>
+              <option value="5">5 Horas</option>
+              <option value="7">7 Horas</option>
+              <option value="8">8 Horas</option>
+              <option value="10">10 Horas</option>
+              <option value="11">11 Horas</option>
+            </select>
+          </div>
+        </div>
+
+        <button onclick="runBallistics()" class="btn-calc">CALCULAR SOLUÇÃO & RETÍCULO</button>
+      </div>
+
+      <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
+      <div class="card">
+        <h3>Solução Tática & Retículo</h3>
+
+        <div class="results-box">
+          <div class="res-item">
+            <div id="resEle
+vation" class="val">0</div>
+            <div class="lbl">ELEVAÇÃO (CLIQUES)</div>
+          </div>
+          <div class="res-item">
+            <div id="resWindage" class="val" style="color: #38bdf8;">0</div>
+            <div class="lbl">DERIVA VENTO (CLIQUES)</div>
+          </div>
+        </div>
+
+        <div id="resDetails" style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 10px;">
+          Aguardando cálculo...
+        </div>
+
+        <div class="reticle-container">
+          <div id="zoomBadge" class="zoom-badge">Zoom Sugerido: 12x</div>
+          <br>
+          <canvas id="reticleCanvas" width="300" height="300"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script>
+    let currentPos = null;
     let mapRaios, mapNormal, mapRelevo, mapMedir;
     let markers = {};
     let circlesAndLabelsGroup = L.layerGroup();
-    
-    // Objetos para a aba de Medição
-    let measureMarker = null;
-    let measureLine = null;
+    let measureMarker = null, measureLine = null;
 
-    // Provedores de Mapas (Camadas)
-function createTileLayers() {
-  return {
-    "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-      maxZoom: 19, 
-      attribution: 'OSM' 
-    }),
-    "Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { 
-      maxZoom: 18, 
-      attribution: 'Esri' 
-    }),
-    "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { 
-      maxZoom: 17, 
-      attribution: 'OpenTopoMap' 
-    }),
-    "Topográfico Altas": L.tileLayer('https://a.tile.opentopomap.org/{z}/{x}/{y}.png', { 
-      maxZoom: 17, 
-      attribution: 'OpenTopo' 
-    })
-  };
-}
+    function createTileLayers() {
+      return {
+        "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
+        "Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri' }),
+        "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' })
+      };
+    }
 
     function openTab(evt, tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -128,126 +247,220 @@ function createTileLayers() {
         if (mapNormal) mapNormal.invalidateSize();
         if (mapRelevo) mapRelevo.invalidateSize();
         if (mapMedir) mapMedir.invalidateSize();
+        if (tabName === 'tabBalistica') runBallistics();
       }, 200);
     }
 
-   let currentHeading = 0; // Armazena a direção do celular (0° = Norte, 90° = Leste, etc.)
+    function getOffsetPoint(lat, lng, meters) {
+      const earthRadius = 6378137;
+      const dLat = meters / earthRadius;
+      return [lat + (dLat * 180 / Math.PI), lng];
+    }
 
-// Função atualizada para calcular a posição do rótulo na direção (bearing) que o celular aponta
-// Calcula o ponto diretamente ao Norte do usuário
-function getOffsetPoint(lat, lng, meters) {
-  const earthRadius = 6378137;
-  const dLat = meters / earthRadius;
-  const newLat = lat + (dLat * 180 / Math.PI);
-  return [newLat, lng];
-}
+    function updateRaios(lat, lng) {
+      circlesAndLabelsGroup.clearLayers();
 
-function updateRaios(lat, lng) {
-  circlesAndLabelsGroup.clearLayers();
+      for (let r = 100; r <= 900; r += 100) {
+        const indice = r / 100;
 
-  for (let r = 100; r <= 900; r += 100) {
-    const indice = r / 100; // Gera os números de 1 a 9
+        L.circle([lat, lng], {
+          radius: r, color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.02, weight: 2, dashArray: '5, 5'
+        }).addTo(circlesAndLabelsGroup);
 
-    // Desenha o círculo concêntrico
-    L.circle([lat, lng], {
-      radius: r,
-      color: '#dc2626',
-      fillColor: '#ef4444',
-      fillOpacity: 0.02,
-      weight: 2,
-      dashArray: '5, 5'
-    }).addTo(circlesAndLabelsGroup);
+        const labelPosNorte = getOffsetPoint(lat, lng, r);
+        const labelPosSul = getOffsetPoint(lat, lng, -r);
 
-    // 1. Ponto ao Norte (para distâncias em metros)
-    const labelPosNorte = getOffsetPoint(lat, lng, r);
+        L.marker(labelPosNorte, {
+          icon: L.divIcon({ className: 'radius-label label-dist', html: `${r}m`, iconSize: [60, 26], iconAnchor: [30, 13] })
+        }).addTo(circlesAndLabelsGroup);
 
-    // 2. Ponto ao Sul / 180° oposto (para a numeração de #1 a #9)
-    const labelPosSul = getOffsetPoint(lat, lng, -r);
+        L.marker(labelPosSul, {
+          icon: L.divIcon({ className: 'radius-label label-num', html: `#${indice}`, iconSize: [40, 26], iconAnchor: [20, 13] })
+        }).addTo(circlesAndLabelsGroup);
+      }
+    }
 
-    // Rótulo de Distância (Norte)
-    L.marker(labelPosNorte, {
-      icon: L.divIcon({
-        className: 'radius-label label-dist',
-        html: `${r}m`,
-        iconSize: [60, 26],
-        iconAnchor: [30, 13] // Centralizado na linha do topo
-      })
-    }).addTo(circlesAndLabelsGroup);
-
-    // Rótulo Numérico #1 a #9 (Sul / 180° Oposto)
-    L.marker(labelPosSul, {
-      icon: L.divIcon({
-        className: 'radius-label label-num',
-        html: `#${indice}`,
-        iconSize: [40, 26],
-        iconAnchor: [20, 13] // Centralizado na linha de baixo
-      })
-    }).addTo(circlesAndLabelsGroup);
-  }
-}
     function initMaps(lat, lng) {
       currentPos = [lat, lng];
 
-      // 1. Aba Raios (Padronizado no Satélite)
       const layersRaios = createTileLayers();
       mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite"]] }).setView(currentPos, 15);
       L.control.layers(layersRaios).addTo(mapRaios);
-      markers.raios = L.marker(currentPos).addTo(mapRaios).bindPopup("Você está aqui");
+      markers.raios = L.marker(currentPos).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
       updateRaios(lat, lng);
 
-      // 2. Aba Normal (Padronizado no Mapa)
       const layersNormal = createTileLayers();
       mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa"]] }).setView(currentPos, 16);
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos).addTo(mapNormal);
 
-   // 3. Aba Relevo
-const layersRelevo = createTileLayers();
-mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 15);
-L.control.layers(layersRelevo).addTo(mapRelevo);
+      const layersRelevo = createTileLayers();
+      mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 15);
+      L.control.layers(layersRelevo).addTo(mapRelevo);
+      L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
+      markers.relevo = L.marker(currentPos).addTo(mapRelevo);
 
-// Mantém a escala métrica no canto inferior
-L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
-
-markers.relevo = L.marker(currentPos).addTo(mapRelevo);
-
-      // 4. Aba Medir Distância (Padronizado no Satélite)
       const layersMedir = createTileLayers();
       mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite"]] }).setView(currentPos, 16);
       L.control.layers(layersMedir).addTo(mapMedir);
-      markers.medir = L.marker(currentPos).addTo(mapMedir).bindPopup("Sua Localização");
+      markers.medir = L.marker(currentPos).addTo(mapMedir);
 
-      // Evento de Clique para Medir Distância
       mapMedir.on('click', function(e) {
         const targetLat = e.latlng.lat;
         const targetLng = e.latlng.lng;
 
-        // Limpa marcação/linha anterior
         if (measureMarker) mapMedir.removeLayer(measureMarker);
         if (measureLine) mapMedir.removeLayer(measureLine);
 
-        // Marcador do destino
         measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
+        measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
 
-        // Linha reta
-        measureLine = L.polyline([currentPos, [targetLat, targetLng]], {
-          color: '#ef4444',
-          weight: 3,
-          dashArray: '6, 6'
-        }).addTo(mapMedir);
-
-        // Cálculo da distância em metros
         const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
-        let distText = distanceMeters >= 1000 
-          ? (distanceMeters / 1000).toFixed(2) + " km" 
-          : Math.round(distanceMeters) + " metros";
-
+        let distText = distanceMeters >= 1000 ? (distanceMeters / 1000).toFixed(2) + " km" : Math.round(distanceMeters) + " metros";
         document.getElementById('distPanel').innerText = `Distância: ${distText}`;
       });
     }
 
-    // Atualização contínua do GPS
+    // ==========================================
+    // CÓDIGO DO MOTOR BALÍSTICO & RETÍCULO
+    // ==========================================
+    function runBallistics() {
+      const weightGrains = parseFloat(document.getElementById('balWeight').value) || 168;
+      const fps = parseFloat(document.getElementById('balSpeed').value) || 2680;
+      const bc = parseFloat(document.getElementById('balBC').value) || 0.447;
+      const profile = document.getElementById('balDragProfile').value;
+      const dist = parseFloat(document.getElementById('balDistance').value) || 100;
+      const turret = document.getElementById('balTurret').value;
+      
+      const windKmh = parseFloat(document.getElementById('balWindSpeed').value) || 0;
+      const windClock = parseInt(document.getElementById('balWindDir').value) || 3;
+
+      // 1. Cálculos Físicos Básicos
+      const v0_ms = fps * 0.3048;
+      const zeroDist = 100;
+      const g = 9.81;
+
+      // Coeficiente de arrasto ajustado por perfil G1/G7
+      const bcFactor = profile === "G7" ? bc * 1.95 : bc;
+      const k = 0.000135 / bcFactor;
+
+      const t_flight = (Math.exp(k * dist) - 1) / (k * v0_ms);
+      const v_target = v0_ms * Math.exp(-k * dist);
+
+      // Queda (Drop) zerada a 100m
+      const dropMeters = 0.5 * g * Math.pow(t_flight, 2);
+      const t_zero = zeroDist / v0_ms;
+      const dropZero = 0.5 * g * Math.pow(t_zero, 2);
+      const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
+
+      // Ângulo de Elevação em MRAD
+      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
+
+      // 2. Cálculo do Vento (Deriva Lateral)
+      const windMs = windKmh / 3.6;
+      // Componente Seno da Direção do Vento (Horas)
+      const windAngleRad = (windClock * 30) * (Math.PI / 180);
+      const crossWindMs = windMs * Math.sin(windAngleRad);
+      
+      // Deflexão em CM
+      const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
+      let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
+
+      // Conversão para Cliques
+      let clicksElev = 0, clicksWind = 0;
+      if (turret === "MRAD") {
+        clicksElev = Math.round(mradElev * 10);
+        clicksWind = Math.round(mradWind * 10);
+      } else {
+        clicksElev = Math.round((mradElev * 3.43775) * 4);
+        clicksWind = Math.round((mradWind * 3.43775) * 4);
+      }
+
+      // Atualiza Interface
+      document.getElementById('resElevation').innerText = `${clicksElev} UP`;
+      document.getElementById('resWindage').innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
+      
+      document.getElementById('resDetails').innerHTML = `
+        Queda: <b>${netDropCm.toFixed(1)} cm</b> | Deriva Vento: <b>${windDriftCm.toFixed(1)} cm</b><br>
+        Velocidade no Alvo: <b>${Math.round(v_target * 3.28084)} FPS</b> | Tempo Vôo: <b>${t_flight.toFixed(2)}s</b>
+      `;
+
+      // Zoom ideal na luneta para o enquadramento
+      let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
+      document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
+
+      // Desenha a Imagem do Retículo Tático
+      renderReticle(mradElev, mradWind, dist, recommendedZoom);
+    }
+
+    function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
+      const canvas = document.getElementById('reticleCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Fundo Óptico da Luneta
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, w, h);
+
+      const pixelsPerMRAD = 16;
+
+      // Posição do ponto de impacto compensado
+      const targetX = cx + (mradWind * pixelsPerMRAD);
+      const targetY = cy + (mradElev * pixelsPerMRAD);
+
+      // Renderização da Silhueta Humanóide (1.80m real)
+      const targetRealHeight = 1.8;
+      const mradHeight = (targetRealHeight / distanceMeters) * 1000;
+      const humanPixels = Math.max(mradHeight * pixelsPerMRAD * (zoomLevel / 10), 12);
+
+      ctx.fillStyle = "rgba(239, 68, 68, 0.4)";
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 1;
+
+      // Cabeça
+      ctx.beginPath();
+      ctx.arc(targetX, targetY - (humanPixels * 0.85), humanPixels * 0.12, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+
+      // Corpo
+      const bodyW = humanPixels * 0.35;
+      const bodyH = humanPixels * 0.7;
+      ctx.fillRect(targetX - bodyW/2, targetY - (humanPixels * 0.7), bodyW, bodyH);
+      ctx.strokeRect(targetX - bodyW/2, targetY - (humanPixels * 0.7), bodyW, bodyH);
+
+      // Retículo Iluminado (Verde Tático)
+      ctx.strokeStyle = "#22c55e";
+      ctx.lineWidth = 1.5;
+
+      // Cruzes Centrais
+      ctx.beginPath();
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+      ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+      ctx.stroke();
+
+      // Marcadores de Subtenção (Mil-Dots)
+      ctx.fillStyle = "#22c55e";
+      for (let i = -8; i <= 8; i++) {
+        if (i !== 0) {
+          ctx.beginPath();
+          ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath();
+          ctx.arc(cx, cy + (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      // Ponto de Visada Vermelho (Holdover)
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Inicialização Contínua do GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
         (position) => {
@@ -259,17 +472,13 @@ markers.relevo = L.marker(currentPos).addTo(mapRelevo);
             initMaps(lat, lng);
           } else {
             currentPos = newPos;
-
-            // Atualiza marcadores
             markers.raios.setLatLng(newPos);
             markers.normal.setLatLng(newPos);
             markers.relevo.setLatLng(newPos);
             markers.medir.setLatLng(newPos);
 
-            // Recalcula círculos concentricos para a nova posição do GPS
             updateRaios(lat, lng);
 
-            // Se houver uma medição ativa, redesenha a linha a partir dos passos atuais
             if (measureLine && measureMarker) {
               const targetLatLng = measureMarker.getLatLng();
               measureLine.setLatLngs([currentPos, targetLatLng]);
@@ -278,15 +487,12 @@ markers.relevo = L.marker(currentPos).addTo(mapRelevo);
             }
           }
         },
-        (err) => {
-          document.getElementById('distPanel').innerText = "Erro ao obter GPS: " + err.message;
-        },
+        (err) => { document.getElementById('distPanel').innerText = "Erro ao obter GPS: " + err.message; },
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
       );
     } else {
-      alert("Seu dispositivo/navegador não suporta geolocalização.");
+      alert("Seu dispositivo não suporta geolocalização.");
     }
-
   </script>
 </body>
 </html>
