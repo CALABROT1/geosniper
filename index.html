@@ -145,35 +145,29 @@ function updateRaios(lat, lng) {
       dashArray: '5, 5'
     }).addTo(circlesAndLabelsGroup);
 
-    // Ponto base da borda superior do círculo
-    const labelPos = getOffsetPoint(lat, lng, r);
+    // 1. Ponto ao Norte (para distâncias em metros)
+    const labelPosNorte = getOffsetPoint(lat, lng, r);
 
-    // Rótulo da Esquerda: Distância em metros (ex: 100m)
-    L.marker(labelPos, {
+    // 2. Ponto ao Sul / 180° oposto (para a numeração de #1 a #9)
+    const labelPosSul = getOffsetPoint(lat, lng, -r);
+
+    // Rótulo de Distância (Norte)
+    L.marker(labelPosNorte, {
       icon: L.divIcon({
         className: 'radius-label label-dist',
         html: `${r}m`,
         iconSize: [60, 26],
-        iconAnchor: [65, 13] // Deslocado para a esquerda da linha central
+        iconAnchor: [30, 13] // Centralizado na linha do topo
       })
     }).addTo(circlesAndLabelsGroup);
 
-    // Linha eixo central conectando do ponto central até o círculo de 900m (ao Norte)
-const maxPoint = getOffsetPoint(lat, lng, 900);
-L.polyline([[lat, lng], maxPoint], {
-  color: '#dc2626',
-  weight: 1.5,
-  dashArray: '3, 3',
-  opacity: 0.6
-}).addTo(circlesAndLabelsGroup);
-
-    // Rótulo da Direita: Número de 1 a 9 (ex: #1)
-    L.marker(labelPos, {
+    // Rótulo Numérico #1 a #9 (Sul / 180° Oposto)
+    L.marker(labelPosSul, {
       icon: L.divIcon({
         className: 'radius-label label-num',
         html: `#${indice}`,
         iconSize: [40, 26],
-        iconAnchor: [-5, 13] // Deslocado para a direita da linha central
+        iconAnchor: [20, 13] // Centralizado na linha de baixo
       })
     }).addTo(circlesAndLabelsGroup);
   }
