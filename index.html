@@ -335,10 +335,10 @@
       });
     }
 
-  // ==========================================
-    // MOTOR BALÍSTICO (VERSÃO CORRIGIDA)
     // ==========================================
-   function runBallistics() {
+    // MOTOR BALÍSTICO (CORRIGIDO PARA HOlDOVER)
+    // ==========================================
+    function runBallistics() {
       const parseVal = (id, defaultVal) => {
         const el = document.getElementById(id);
         if (!el) return defaultVal;
@@ -353,14 +353,13 @@
       const profile = document.getElementById('balDragProfile').value;
       const dist = parseVal('balDistance', 100);
       
-      // TRATAMENTO DE SEGURANÇA PARA A TORRE:
       const rawTurret = document.getElementById('balTurret').value;
       const turret = rawTurret.toUpperCase().includes("MOA") ? "MOA" : "MRAD";
 
       const windKmh = parseVal('balWindSpeed', 0);
       const windClock = parseInt(document.getElementById('balWindDir').value) || 3;
 
-      // 1. Cálculos Físicos
+      // 1. Cálculos Físicos Básicos
       const v0_ms = fps * 0.3048;
       const zeroDist = 100;
       const g = 9.81;
@@ -377,9 +376,9 @@
       const dropZero = 0.5 * g * Math.pow(t_zero, 2);
       const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
 
-      // Ângulos de Elevação (MRAD & MOA)
-      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
-      let moaElev = mradElev * 3.43775;
+      // Ângulo de Elevação Real da Queda
+      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0; // MRAD exato da queda
+      let moaElev = mradElev * 3.43775;                          // MOA exato da queda
 
       // 2. Vento (Deriva)
       const windMs = windKmh / 3.6;
@@ -388,25 +387,24 @@
       
       const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
       let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
-      let moaWind = mradWind * 3.43775;
 
-      // Conversão para Cliques
+      // Conversão de Cliques para a Torre
       let clicksElev = 0, clicksWind = 0;
       if (turret === "MRAD") {
         clicksElev = Math.round(mradElev * 10);
         clicksWind = Math.round(mradWind * 10);
       } else {
         clicksElev = Math.round(moaElev * 4);
-        clicksWind = Math.round(moaWind * 4);
+        clicksWind = Math.round(mradWind * 3.43775 * 4);
       }
 
-      // Atualiza os contadores das Caixas do Painel
+      // Painéis dos Contadores
       const elElev = document.getElementById('resElevation');
       const elWind = document.getElementById('resWindage');
       if (elElev) elElev.innerText = `${clicksElev} UP`;
       if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
 
-      // 3. Montagem do Resumo Explicativo do Cálculo
+      // 3. Resumo do Cálculo
       const cmPerMoaAtDist = (dist / 100) * 2.908;
       let summaryHTML = `
         <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #334155; color: #38bdf8;">
@@ -435,20 +433,19 @@
         `;
       }
 
-      // Injeta o resumo formatado no elemento da tela
       document.getElementById('resDetails').innerHTML = summaryHTML;
 
-      // Calcula zoom e atualiza badge
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-      // Executa a renderização da luneta Leupold Mark 4 ER/T
+      // CHAMADA CORRIGIDA: Passa mradElev (ângulo em MILs) para desenhar o Hold-over no canvas
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
-// ====================================================
-    // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T (CORRIGIDA)
+
     // ====================================================
-    function renderReticle(moaElev, mradWind, distanceMeters, zoomLevel) {
+    // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T
+    // ====================================================
+    function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('reticleCanvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -457,7 +454,7 @@
 
       ctx.clearRect(0, 0, w, h);
 
-      // 1. Fundo da Lente (Tubo Óptico da Leupold - Claro)
+      // 1. Fundo da Lente
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.arc(cx, cy, cx - 4, 0, Math.PI * 2);
@@ -466,20 +463,14 @@
       ctx.lineWidth = 6;
       ctx.stroke();
 
-      const pixelsPerMRAD = 18; // Escala visual Leupold 4-Mil
+      // Escala visual: 1 MIL = 18 Pixels no Canvas
+      const pixelsPerMRAD = 18; 
 
-      // ====================================================
-      // SOLUÇÃO DEFINITIVA: CONVERSÃO DE MOA PARA MRAD VISUAL
-      // ====================================================
-      // Convertemos a elevação de MOA (turret) para MRAD (visão do retículo).
-      // Isso garante coerência tática em qualquer distância.
-      const mradElevVisual = moaElev / 3.43775; 
-
-      // Ponto de Impacto Requerido (Holdover) no Canvas (em MRAD)
+      // Ponto de Impacto (Holdover) em MRAD
       const impactX = cx + (mradWind * pixelsPerMRAD);
-      const impactY = cy + (mradElevVisual * pixelsPerMRAD);
+      const impactY = cy + (mradElev * pixelsPerMRAD);
 
-      // 2. Silhueta Humanóide Tática (Estilo Man Target)
+      // 2. Silhueta Humanóide Tática
       const targetRealHeight = 1.8;
       const mradHeight = (targetRealHeight / distanceMeters) * 1000;
       const humanPixels = Math.max(mradHeight * pixelsPerMRAD * (zoomLevel / 10), 14);
@@ -491,7 +482,7 @@
       const torsoCenterY = impactY;
       const headCenterY = torsoCenterY - (bodyH * 0.5) - headRadius;
 
-      // Desenho do Corpo (Dourado Tático)
+      // Desenho do Corpo
       ctx.fillStyle = "#d97706"; 
       ctx.strokeStyle = "#451a03";
       ctx.lineWidth = 1.5;
@@ -506,7 +497,7 @@
       ctx.fillRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
       ctx.strokeRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
 
-      // 3. RETÍCULO LEUPOLD MARK 4 ER/T (MIL DOT PADRÃO 4-MIL)
+      // 3. RETÍCULO LEUPOLD MARK 4 ER/T (MIL DOT)
       ctx.strokeStyle = "#000000";
       ctx.fillStyle = "#000000";
 
@@ -519,7 +510,7 @@
       ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
       ctx.stroke();
 
-      // Hastes Grossas externas (Duplex Mark 4)
+      // Hastes Grossas
       ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
@@ -536,7 +527,7 @@
         ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      // 4. Ponto de Impacto / Visada Requerida (Amarelo)
+      // 4. Ponto Amarelo no Centro de Massa / Impacto
       ctx.fillStyle = "#facc15";
       ctx.strokeStyle = "#854d0e";
       ctx.lineWidth = 1;
@@ -544,7 +535,7 @@
       ctx.arc(impactX, impactY, 4, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
 
-      // 5. Overlay Tático de Informações
+      // 5. Overlay
       ctx.font = "bold 11px sans-serif";
       ctx.fillStyle = "#0284c7";
       ctx.fillText(`Distância: ${Math.round(distanceMeters)}m`, 20, 30);
@@ -552,6 +543,7 @@
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, w - 50, 30);
     }
+  
     // Inicialização do GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
