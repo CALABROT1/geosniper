@@ -235,7 +235,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     let currentPos = null;
     let mapRaios, mapNormal, mapRelevo, mapMedir;
     let markers = {};
@@ -338,12 +338,13 @@
     }
 
     // ==========================================
-    // CÓDIGO DO MOTOR BALÍSTICO & RETÍCULO
+    // MOTOR BALÍSTICO
     // ==========================================
-function runBallistics() {
-      // Função auxiliar para converter texto com vírgula ou ponto em número válido
+    function runBallistics() {
       const parseVal = (id, defaultVal) => {
-        const raw = document.getElementById(id).value.toString().replace(',', '.');
+        const el = document.getElementById(id);
+        if (!el) return defaultVal;
+        const raw = el.value.toString().replace(',', '.');
         const parsed = parseFloat(raw);
         return isNaN(parsed) ? defaultVal : parsed;
       };
@@ -358,12 +359,11 @@ function runBallistics() {
       const windKmh = parseVal('balWindSpeed', 0);
       const windClock = parseInt(document.getElementById('balWindDir').value) || 3;
 
-      // 1. Cálculos Físicos Básicos
+      // 1. Cálculos Físicos
       const v0_ms = fps * 0.3048;
       const zeroDist = 100;
       const g = 9.81;
 
-      // Coeficiente de arrasto ajustado por perfil G1/G7
       const bcFactor = profile === "G7" ? bc * 1.95 : bc;
       const k = 0.000135 / bcFactor;
 
@@ -376,10 +376,10 @@ function runBallistics() {
       const dropZero = 0.5 * g * Math.pow(t_zero, 2);
       const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
 
-      // Ângulo de Elevação em MRAD
+      // Elevação em MRAD
       let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
 
-      // 2. Cálculo do Vento (Deriva Lateral)
+      // 2. Vento
       const windMs = windKmh / 3.6;
       const windAngleRad = (windClock * 30) * (Math.PI / 180);
       const crossWindMs = windMs * Math.sin(windAngleRad);
@@ -397,10 +397,9 @@ function runBallistics() {
         clicksWind = Math.round((mradWind * 3.43775) * 4);
       }
 
-      // Atualiza Interface (Verificando se os elementos existem na tela)
+      // Atualiza Interface
       const elElev = document.getElementById('resElevation');
       const elWind = document.getElementById('resWindage');
-      
       if (elElev) elElev.innerText = `${clicksElev} UP`;
       if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
       
@@ -412,8 +411,14 @@ function runBallistics() {
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-  // Renderização retículo
-function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
+      // Executa o desenho do retículo
+      renderReticle(mradElev, mradWind, dist, recommendedZoom);
+    }
+
+    // ==========================================
+    // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T
+    // ==========================================
+    function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('reticleCanvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -431,9 +436,8 @@ function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       ctx.lineWidth = 6;
       ctx.stroke();
 
-      const pixelsPerMRAD = 18; // Escala visual ajustada
+      const pixelsPerMRAD = 18;
 
-      // Ponto de Impacto Requerido (Holdover) no Canvas
       const impactX = cx + (mradWind * pixelsPerMRAD);
       const impactY = cy + (mradElev * pixelsPerMRAD);
 
@@ -446,10 +450,10 @@ function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const bodyW = humanPixels * 0.36;
       const bodyH = humanPixels * 0.68;
 
-      const torsoCenterY = impactY; // Centro de massa no ponto de impacto
+      const torsoCenterY = impactY;
       const headCenterY = torsoCenterY - (bodyH * 0.5) - headRadius;
 
-      // Desenho do Corpo/Membros da Silhueta (Cor Dourada Tática)
+      // Desenho do Corpo (Dourado Tático)
       ctx.fillStyle = "#d97706"; 
       ctx.strokeStyle = "#451a03";
       ctx.lineWidth = 1.5;
@@ -459,7 +463,7 @@ function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       ctx.arc(impactX, headCenterY, headRadius, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
 
-      // Tronco e Braços
+      // Tronco
       ctx.beginPath();
       ctx.fillRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
       ctx.strokeRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
@@ -494,7 +498,7 @@ function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
         ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      // 4. Ponto de Impacto / Visada Requerida (Amarelo/Válvula Tática)
+      // 4. Ponto de Impacto (Amarelo)
       ctx.fillStyle = "#facc15";
       ctx.strokeStyle = "#854d0e";
       ctx.lineWidth = 1;
@@ -502,7 +506,7 @@ function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       ctx.arc(impactX, impactY, 4, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
 
-      // 5. Informações Ópticas na Lente (Top & Bottom Overlay)
+      // 5. Overlay na Lente
       ctx.font = "bold 11px sans-serif";
       ctx.fillStyle = "#0284c7";
       ctx.fillText(`Distância: ${Math.round(distanceMeters)}m`, 20, 30);
@@ -511,7 +515,7 @@ function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       ctx.fillText(`${zoomLevel}.0x`, w - 50, 30);
     }
 
-    // Inicialização Contínua do GPS
+    // Inicialização do GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
         (position) => {
