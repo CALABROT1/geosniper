@@ -442,8 +442,8 @@
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
 
-    // ====================================================
-    // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T
+   // ====================================================
+    // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T (MARCADOR LIMPO)
     // ====================================================
     function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('reticleCanvas');
@@ -454,7 +454,7 @@
 
       ctx.clearRect(0, 0, w, h);
 
-      // 1. Fundo da Lente
+      // 1. Fundo da Lente (Tubo Óptico da Leupold)
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.arc(cx, cy, cx - 4, 0, Math.PI * 2);
@@ -466,38 +466,11 @@
       // Escala visual: 1 MIL = 18 Pixels no Canvas
       const pixelsPerMRAD = 18; 
 
-      // Ponto de Impacto (Holdover) em MRAD
+      // Ponto de Impacto (Holdover) Requerido em MRAD
       const impactX = cx + (mradWind * pixelsPerMRAD);
       const impactY = cy + (mradElev * pixelsPerMRAD);
 
-      // 2. Silhueta Humanóide Tática
-      const targetRealHeight = 1.8;
-      const mradHeight = (targetRealHeight / distanceMeters) * 1000;
-      const humanPixels = Math.max(mradHeight * pixelsPerMRAD * (zoomLevel / 10), 14);
-
-      const headRadius = humanPixels * 0.11;
-      const bodyW = humanPixels * 0.36;
-      const bodyH = humanPixels * 0.68;
-
-      const torsoCenterY = impactY;
-      const headCenterY = torsoCenterY - (bodyH * 0.5) - headRadius;
-
-      // Desenho do Corpo
-      ctx.fillStyle = "#d97706"; 
-      ctx.strokeStyle = "#451a03";
-      ctx.lineWidth = 1.5;
-
-      // Cabeça
-      ctx.beginPath();
-      ctx.arc(impactX, headCenterY, headRadius, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-
-      // Tronco
-      ctx.beginPath();
-      ctx.fillRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
-      ctx.strokeRect(impactX - bodyW / 2, torsoCenterY - bodyH / 2, bodyW, bodyH);
-
-      // 3. RETÍCULO LEUPOLD MARK 4 ER/T (MIL DOT)
+      // 2. RETÍCULO LEUPOLD MARK 4 ER/T (MIL DOT PADRÃO)
       ctx.strokeStyle = "#000000";
       ctx.fillStyle = "#000000";
 
@@ -510,7 +483,7 @@
       ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
       ctx.stroke();
 
-      // Hastes Grossas
+      // Hastes Grossas externas (Duplex Mark 4)
       ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
@@ -527,15 +500,31 @@
         ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      // 4. Ponto Amarelo no Centro de Massa / Impacto
-      ctx.fillStyle = "#facc15";
-      ctx.strokeStyle = "#854d0e";
+      // 3. MARCADOR VERMELHO TÁTICO DE IMPACTO / VISADA (TARGET MARKER)
+      // Anel externo translúcido
+      ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+      ctx.beginPath();
+      ctx.arc(impactX, impactY, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ponto vermelho central de alta precisão
+      ctx.fillStyle = "#ef4444";
+      ctx.strokeStyle = "#991b1b";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(impactX, impactY, 3.5, 0, Math.PI * 2);
+      ctx.fill(); 
+      ctx.stroke();
+
+      // Crosshair micro no ponto vermelho
+      ctx.strokeStyle = "#ef4444";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(impactX, impactY, 4, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
+      ctx.moveTo(impactX - 6, impactY); ctx.lineTo(impactX + 6, impactY);
+      ctx.moveTo(impactX, impactY - 6); ctx.lineTo(impactX, impactY + 6);
+      ctx.stroke();
 
-      // 5. Overlay
+      // 4. Overlay de Informações Ópticas
       ctx.font = "bold 11px sans-serif";
       ctx.fillStyle = "#0284c7";
       ctx.fillText(`Distância: ${Math.round(distanceMeters)}m`, 20, 30);
