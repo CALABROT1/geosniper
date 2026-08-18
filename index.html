@@ -95,7 +95,6 @@
     let measureLine = null;
 
     // Provedores de Mapas (Camadas)
-   // Provedores de Mapas (Camadas)
 function createTileLayers() {
   return {
     "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
@@ -106,11 +105,11 @@ function createTileLayers() {
       maxZoom: 18, 
       attribution: 'Esri' 
     }),
-    "Relevo 3D": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Hillshade/MapServer/tile/{z}/{y}/{x}', { 
-      maxZoom: 16, 
-      attribution: 'Esri Hillshade' 
+    "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { 
+      maxZoom: 17, 
+      attribution: 'OpenTopoMap' 
     }),
-    "Topográfico": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { 
+    "Topográfico Altas": L.tileLayer('https://a.tile.opentopomap.org/{z}/{x}/{y}.png', { 
       maxZoom: 17, 
       attribution: 'OpenTopo' 
     })
@@ -203,12 +202,12 @@ function updateRaios(lat, lng) {
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos).addTo(mapNormal);
 
-     // 3. Aba Relevo (Padronizado no Relevo Sombreado 3D)
+   // 3. Aba Relevo
 const layersRelevo = createTileLayers();
-mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo 3D"]] }).setView(currentPos, 15);
+mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 15);
 L.control.layers(layersRelevo).addTo(mapRelevo);
 
-// Adiciona barra de escala métrica para ajudar na leitura do terreno
+// Mantém a escala métrica no canto inferior
 L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
 
 markers.relevo = L.marker(currentPos).addTo(mapRelevo);
