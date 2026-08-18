@@ -190,14 +190,13 @@
         <button onclick="runBallistics()" class="btn-calc">CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
 
-      <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
+    <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
       <div class="card">
         <h3>Solução Tática & Retículo</h3>
 
         <div class="results-box">
           <div class="res-item">
-            <div id="resEle
-vation" class="val">0</div>
+            <div id="resElevation" class="val">0</div>
             <div class="lbl">ELEVAÇÃO (CLIQUES)</div>
           </div>
           <div class="res-item">
@@ -325,15 +324,22 @@ vation" class="val">0</div>
     // ==========================================
     // CÓDIGO DO MOTOR BALÍSTICO & RETÍCULO
     // ==========================================
-    function runBallistics() {
-      const weightGrains = parseFloat(document.getElementById('balWeight').value) || 168;
-      const fps = parseFloat(document.getElementById('balSpeed').value) || 2680;
-      const bc = parseFloat(document.getElementById('balBC').value) || 0.447;
+function runBallistics() {
+      // Função auxiliar para converter texto com vírgula ou ponto em número válido
+      const parseVal = (id, defaultVal) => {
+        const raw = document.getElementById(id).value.toString().replace(',', '.');
+        const parsed = parseFloat(raw);
+        return isNaN(parsed) ? defaultVal : parsed;
+      };
+
+      const weightGrains = parseVal('balWeight', 168);
+      const fps = parseVal('balSpeed', 2680);
+      const bc = parseVal('balBC', 0.447);
       const profile = document.getElementById('balDragProfile').value;
-      const dist = parseFloat(document.getElementById('balDistance').value) || 100;
+      const dist = parseVal('balDistance', 100);
       const turret = document.getElementById('balTurret').value;
       
-      const windKmh = parseFloat(document.getElementById('balWindSpeed').value) || 0;
+      const windKmh = parseVal('balWindSpeed', 0);
       const windClock = parseInt(document.getElementById('balWindDir').value) || 3;
 
       // 1. Cálculos Físicos Básicos
@@ -359,11 +365,9 @@ vation" class="val">0</div>
 
       // 2. Cálculo do Vento (Deriva Lateral)
       const windMs = windKmh / 3.6;
-      // Componente Seno da Direção do Vento (Horas)
       const windAngleRad = (windClock * 30) * (Math.PI / 180);
       const crossWindMs = windMs * Math.sin(windAngleRad);
       
-      // Deflexão em CM
       const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
       let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
 
@@ -377,20 +381,22 @@ vation" class="val">0</div>
         clicksWind = Math.round((mradWind * 3.43775) * 4);
       }
 
-      // Atualiza Interface
-      document.getElementById('resElevation').innerText = `${clicksElev} UP`;
-      document.getElementById('resWindage').innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
+      // Atualiza Interface (Verificando se os elementos existem na tela)
+      const elElev = document.getElementById('resElevation');
+      const elWind = document.getElementById('resWindage');
+      
+      if (elElev) elElev.innerText = `${clicksElev} UP`;
+      if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
       
       document.getElementById('resDetails').innerHTML = `
         Queda: <b>${netDropCm.toFixed(1)} cm</b> | Deriva Vento: <b>${windDriftCm.toFixed(1)} cm</b><br>
         Velocidade no Alvo: <b>${Math.round(v_target * 3.28084)} FPS</b> | Tempo Vôo: <b>${t_flight.toFixed(2)}s</b>
       `;
 
-      // Zoom ideal na luneta para o enquadramento
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-      // Desenha a Imagem do Retículo Tático
+      // Renderiza o Retículo
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
 
