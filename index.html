@@ -206,7 +206,7 @@
         <button onclick="runBallistics()" class="btn-calc">CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
 
-    <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
+  <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
       <div class="card">
         <h3>Solução Tática & Retículo</h3>
 
@@ -221,20 +221,18 @@
           </div>
         </div>
 
-        <div id="resDetails" style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 10px;">
+        <!-- RESUMO DETALHADO DO CÁLCULO BALÍSTICO -->
+        <div id="resDetails" style="font-size: 12px; color: #cbd5e1; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px; text-align: left; line-height: 1.6;">
           Aguardando cálculo...
         </div>
 
         <div class="reticle-container">
-          <div id="zoomBadge" class="zoom-badge">Zoom Sugerido: 12x</div>
+          <div id="zoomBadge" class="zoom-badge">Zoom Sugerido: --</div>
           <br>
           <canvas id="reticleCanvas" width="300" height="300"></canvas>
         </div>
       </div>
-
-    </div>
-  </div>
-
+      
 <script>
     let currentPos = null;
     let mapRaios, mapNormal, mapRelevo, mapMedir;
@@ -408,10 +406,41 @@
         Velocidade no Alvo: <b>${Math.round(v_target * 3.28084)} FPS</b> | Tempo Vôo: <b>${t_flight.toFixed(2)}s</b>
       `;
 
+     // ====================================================
+      // MONTAGEM DO RESUMO EXPLICATIVO DO CÁLCULO (MOA/MRAD)
+      // ====================================================
+      const cmPerMoaAtDist = (dist / 100) * 2.908;
+      let summaryHTML = "";
+
+      if (turret === "MOA") {
+        summaryHTML = `
+          <b>Queda Real do Projétil (Drop):</b> aprox. <b>${netDropCm.toFixed(1)} cm</b> (${(netDropCm/100).toFixed(2)} m)<br>
+          <b>Cálculo em MOA:</b><br>
+          • A ${dist}m, 1 MOA = ${(dist/100)} × 2,908 cm ≈ <b>${cmPerMoaAtDist.toFixed(2)} cm</b><br>
+          • Ângulo necessário: ${netDropCm.toFixed(1)} cm / ${cmPerMoaAtDist.toFixed(2)} cm/MOA ≈ <b>${moaElev.toFixed(1)} MOA</b><br>
+          <b>Cálculo em CLIQUES (Torre de 1/4 MOA):</b><br>
+          • Cliques = ${moaElev.toFixed(1)} MOA × 4 = <b style="color: #ef4444;">${clicksElev} CLIQUES UP</b>
+        `;
+      } else {
+        const cmPerMradAtDist = dist / 10;
+        summaryHTML = `
+          <b>Queda Real do Projétil (Drop):</b> aprox. <b>${netDropCm.toFixed(1)} cm</b> (${(netDropCm/100).toFixed(2)} m)<br>
+          <b>Cálculo em MRAD:</b><br>
+          • A ${dist}m, 1 MRAD = <b>${cmPerMradAtDist.toFixed(1)} cm</b><br>
+          • Ângulo necessário: ${netDropCm.toFixed(1)} cm / ${cmPerMradAtDist.toFixed(1)} cm/MRAD ≈ <b>${mradElev.toFixed(1)} MRAD</b><br>
+          <b>Cálculo em CLIQUES (Torre de 0.1 MRAD):</b><br>
+          • Cliques = ${mradElev.toFixed(1)} MRAD × 10 = <b style="color: #ef4444;">${clicksElev} CLIQUES UP</b>
+        `;
+      }
+
+      // Injeta o resumo no elemento da tela
+      document.getElementById('resDetails').innerHTML = summaryHTML;
+
+      // Calcula zoom e atualiza badge
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-      // Executa o desenho do retículo
+      // Executa o desenho do retículo na lente Leupold
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
 
