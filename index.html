@@ -86,7 +86,6 @@
   </div>
 
   <script>
-    let currentPos = null;
     let mapRaios, mapNormal, mapRelevo, mapMedir;
     let markers = {};
     let circlesAndLabelsGroup = L.layerGroup();
@@ -158,6 +157,15 @@ function updateRaios(lat, lng) {
         iconAnchor: [65, 13] // Deslocado para a esquerda da linha central
       })
     }).addTo(circlesAndLabelsGroup);
+
+    // Linha eixo central conectando do ponto central até o círculo de 900m (ao Norte)
+const maxPoint = getOffsetPoint(lat, lng, 900);
+L.polyline([[lat, lng], maxPoint], {
+  color: '#dc2626',
+  weight: 1.5,
+  dashArray: '3, 3',
+  opacity: 0.6
+}).addTo(circlesAndLabelsGroup);
 
     // Rótulo da Direita: Número de 1 a 9 (ex: #1)
     L.marker(labelPos, {
@@ -267,48 +275,7 @@ function updateRaios(lat, lng) {
     } else {
       alert("Seu dispositivo/navegador não suporta geolocalização.");
     }
-// Captura a orientação (bússola) do dispositivo móvel
-// Substitua a função handleOrientation por esta versão:
-function handleOrientation(event) {
-  let heading = null;
 
-  if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
-    heading = event.webkitCompassHeading;
-  } else if (event.alpha !== null) {
-    heading = 360 - event.alpha;
-  }
-
-  if (heading !== null) {
-    // Arredonda para o passo de 45° mais próximo (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°)
-    const step = 45;
-    const roundedHeading = Math.round(heading / step) * step;
-
-    // Só atualiza o mapa se a mudança for de pelo menos um bloco completo (45°)
-    if (Math.abs(roundedHeading - currentHeading) >= step) {
-      currentHeading = roundedHeading;
-      if (currentPos) {
-        updateRaios(currentPos[0], currentPos[1]);
-      }
-    }
-  }
-}
-// Ativa o sensor no navegador
-if (window.DeviceOrientationEvent) {
-  // Para iOS 13+ é necessário pedir permissão do sensor ao usuário
-  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission()
-      .then(permissionState => {
-        if (permissionState === 'granted') {
-          window.addEventListener('deviceorientation', handleOrientation, true);
-        }
-      })
-      .catch(console.error);
-  } else {
-    // Android e navegadores padrão
-    window.addEventListener('deviceorientationabsolute', handleOrientation, true) ||
-    window.addEventListener('deviceorientation', handleOrientation, true);
-  }
-}
   </script>
 </body>
 </html>
