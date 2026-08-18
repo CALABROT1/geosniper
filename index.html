@@ -259,27 +259,30 @@ function updateRaios(lat, lng) {
       alert("Seu dispositivo/navegador não suporta geolocalização.");
     }
 // Captura a orientação (bússola) do dispositivo móvel
+// Substitua a função handleOrientation por esta versão:
 function handleOrientation(event) {
   let heading = null;
 
-  // iOS (Safari) usa webkitCompassHeading
   if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
     heading = event.webkitCompassHeading;
-  } 
-  // Android (Chrome/Firefox) calcula via alpha
-  else if (event.alpha !== null) {
-    heading = 360 - event.alpha; 
+  } else if (event.alpha !== null) {
+    heading = 360 - event.alpha;
   }
 
-  // Se conseguimos ler a bússola e houve uma mudança significativa de direção
-  if (heading !== null && Math.abs(heading - currentHeading) > 2) {
-    currentHeading = heading;
-    if (currentPos) {
-      updateRaios(currentPos[0], currentPos[1]); // Redesenha os rótulos na nova direção
+  if (heading !== null) {
+    // Arredonda para o passo de 45° mais próximo (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°)
+    const step = 45;
+    const roundedHeading = Math.round(heading / step) * step;
+
+    // Só atualiza o mapa se a mudança for de pelo menos um bloco completo (45°)
+    if (Math.abs(roundedHeading - currentHeading) >= step) {
+      currentHeading = roundedHeading;
+      if (currentPos) {
+        updateRaios(currentPos[0], currentPos[1]);
+      }
     }
   }
 }
-
 // Ativa o sensor no navegador
 if (window.DeviceOrientationEvent) {
   // Para iOS 13+ é necessário pedir permissão do sensor ao usuário
