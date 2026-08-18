@@ -335,8 +335,8 @@
       });
     }
 
-    // ==========================================
-    // MOTOR BALÍSTICO
+  // ==========================================
+    // MOTOR BALÍSTICO (VERSÃO CORRIGIDA)
     // ==========================================
     function runBallistics() {
       const parseVal = (id, defaultVal) => {
@@ -374,16 +374,18 @@
       const dropZero = 0.5 * g * Math.pow(t_zero, 2);
       const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
 
-      // Elevação em MRAD
+      // Ângulos de Elevação (MRAD & MOA)
       let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
+      let moaElev = mradElev * 3.43775; // <<-- DECLARADO AQUI PARA NÃO DAR ERRO
 
-      // 2. Vento
+      // 2. Vento (Deriva)
       const windMs = windKmh / 3.6;
       const windAngleRad = (windClock * 30) * (Math.PI / 180);
       const crossWindMs = windMs * Math.sin(windAngleRad);
       
       const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
       let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
+      let moaWind = mradWind * 3.43775;
 
       // Conversão para Cliques
       let clicksElev = 0, clicksWind = 0;
@@ -391,29 +393,26 @@
         clicksElev = Math.round(mradElev * 10);
         clicksWind = Math.round(mradWind * 10);
       } else {
-        clicksElev = Math.round((mradElev * 3.43775) * 4);
-        clicksWind = Math.round((mradWind * 3.43775) * 4);
+        clicksElev = Math.round(moaElev * 4);
+        clicksWind = Math.round(moaWind * 4);
       }
 
-      // Atualiza Interface
+      // Atualiza os contadores das Caixas do Painel
       const elElev = document.getElementById('resElevation');
       const elWind = document.getElementById('resWindage');
       if (elElev) elElev.innerText = `${clicksElev} UP`;
       if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
-      
-      document.getElementById('resDetails').innerHTML = `
-        Queda: <b>${netDropCm.toFixed(1)} cm</b> | Deriva Vento: <b>${windDriftCm.toFixed(1)} cm</b><br>
-        Velocidade no Alvo: <b>${Math.round(v_target * 3.28084)} FPS</b> | Tempo Vôo: <b>${t_flight.toFixed(2)}s</b>
+
+      // 3. Montagem do Resumo Explicativo do Cálculo
+      const cmPerMoaAtDist = (dist / 100) * 2.908;
+      let summaryHTML = `
+        <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #334155; color: #38bdf8;">
+          Velocidade no Alvo: <b>${Math.round(v_target * 3.28084)} FPS</b> | Tempo Vôo: <b>${t_flight.toFixed(2)}s</b>
+        </div>
       `;
 
-     // ====================================================
-      // MONTAGEM DO RESUMO EXPLICATIVO DO CÁLCULO (MOA/MRAD)
-      // ====================================================
-      const cmPerMoaAtDist = (dist / 100) * 2.908;
-      let summaryHTML = "";
-
       if (turret === "MOA") {
-        summaryHTML = `
+        summaryHTML += `
           <b>Queda Real do Projétil (Drop):</b> aprox. <b>${netDropCm.toFixed(1)} cm</b> (${(netDropCm/100).toFixed(2)} m)<br>
           <b>Cálculo em MOA:</b><br>
           • A ${dist}m, 1 MOA = ${(dist/100)} × 2,908 cm ≈ <b>${cmPerMoaAtDist.toFixed(2)} cm</b><br>
@@ -423,7 +422,7 @@
         `;
       } else {
         const cmPerMradAtDist = dist / 10;
-        summaryHTML = `
+        summaryHTML += `
           <b>Queda Real do Projétil (Drop):</b> aprox. <b>${netDropCm.toFixed(1)} cm</b> (${(netDropCm/100).toFixed(2)} m)<br>
           <b>Cálculo em MRAD:</b><br>
           • A ${dist}m, 1 MRAD = <b>${cmPerMradAtDist.toFixed(1)} cm</b><br>
@@ -433,17 +432,16 @@
         `;
       }
 
-      // Injeta o resumo no elemento da tela
+      // Injeta o resumo formatado no elemento da tela
       document.getElementById('resDetails').innerHTML = summaryHTML;
 
       // Calcula zoom e atualiza badge
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-      // Executa o desenho do retículo na lente Leupold
+      // Executa a renderização da luneta Leupold Mark 4 ER/T
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
-
     // ==========================================
     // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T
     // ==========================================
