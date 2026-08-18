@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Geolocalização & Mapeamento de Terreno</title>
+
+  <!-- Leaflet CSS e JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    /* Barra de Navegação */
+    .tabs { display: flex; background: #1e293b; height: 50px; }
+    .tab-btn { flex: 1; color: #94a3b8; background: none; border: none; font-weight: 600; font-size: 13px; cursor: pointer; border-bottom: 3px solid transparent; }
+    .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
+
+    /* Área de Conteúdo */
+    .tab-content { display: none; height: calc(100vh - 50px); width: 100%; position: relative; }
+    .tab-content.active { display: block; }
+    .map { height: 100%; width: 100%; }
+
+    /* Estilo dos Rótulos de Distância nos Círculos */
+    .radius-label {
+  background: rgba(255, 255, 255, 0.92); /* Fundo branco para sobressair no satélite */
+  border: 1px solid #b91c1c;            /* Borda vermelha escura */
+  color: #dc2626;                       /* Texto vermelho vivo */
+  font-size: 15px;                      /* Fonte maior para celular */
+  font-weight: 800;                     /* Negrito para leitura rápida */
+  padding: 3px 8px;                     /* Espaçamento interno */
+  border-radius: 6px;
+  white-space: nowrap;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4); /* Sombra para dar destaque */
+
+    }
+
+    /* Painel de Informação da Linha de Distância */
+    .dist-info-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.9);
+      color: white;
+      padding: 13px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid #334155;
+      text-align: center;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab(event, 'tabRaios')">Raios (900m)</button>
+    <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
+    <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
+    <button class="tab-btn" onclick="openTab(event, 'tabMedir')">Medir Distância</button>
+  </div>
+
+  <div id="tabRaios" class="tab-content active"><div id="mapRaios" class="map"></div></div>
+  <div id="tabNormal" class="tab-content"><div id="mapNormal" class="map"></div></div>
+  <div id="tabRelevo" class="tab-content"><div id="mapRelevo" class="map"></div></div>
+  <div id="tabMedir" class="tab-content">
+    <div id="mapMedir" class="map"></div>
+    <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
+  </div>
+
+  <script>
+    let currentPos = null;
+    let mapRaios, mapNormal, mapRelevo, mapMedir;
+    let markers = {};
+    let circlesAndLabelsGroup = L.layerGroup();
+    
+    // Objetos para a aba de Medição
+    let measureMarker = null;
+    let measureLine = null;
+
+    // Provedores de Mapas (Camadas)
+    function createTileLayers() {
+      return {
+        "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
+        "Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri' }),
+        "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' })
+      };
+    }
+
+    function openTab(evt, tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(tabName).classList.add('active');
+      evt.currentTarget.classList.add('active');
+
+      setTimeout(() => {
+        if (mapRaios) mapRaios.invalidateSize();
+        if (mapNormal) mapNormal.invalidateSize();
+        if (mapRelevo) mapRelevo.invalidateSize();
+        if (mapMedir) mapMedir.invalidateSize();
+      }, 200);
+    }
+
+   let currentHeading = 0; // Armazena a direção do celular (0° = Norte, 90° = Leste, etc.)
+
+// Função atualizada para calcular a posição do rótulo na direção (bearing) que o celular aponta
+function getOffsetPoint(lat, lng, meters, bearingDegrees) {
+  const earthRadius = 6378137;
+  const bearingRad = bearingDegrees * (Math.PI / 180); // Converte graus para radianos
+  const distRad = meters / earthRadius;
+
+  const latRad = lat * (Math.PI / 180);
+  const lngRad = lng * (Math.PI / 180);
+
+  const newLatRad = Math.asin(
+    Math.sin(latRad) * Math.cos(distRad) +
+    Math.cos(latRad) * Math.sin(distRad) * Math.cos(bearingRad)
+  );
+
+  const newLngRad = lngRad + Math.atan2(
+    Math.sin(bearingRad) * Math.sin(distRad) * Math.cos(latRad),
+    Math.cos(distRad) - Math.sin(latRad) * Math.sin(newLatRad)
+  );
+
+  return [newLatRad * (180 / Math.PI), newLngRad * (180 / Math.PI)];
+}
+
+function updateRaios(lat, lng) {
+  circlesAndLabelsGroup.clearLayers();
+
+  for (let r = 100; r <= 900; r += 100) {
+    // Desenha o Círculo Con cêntrico
+    L.circle([lat, lng], {
+      radius: r,
+      color: '#dc2626',      // Vermelho
+      fillColor: '#ef4444',
+      fillOpacity: 0.02,
+      weight: 2,
+      dashArray: '5, 5'
+    }).addTo(circlesAndLabelsGroup);
+
+    // Calcula a posição do Rótulo na direção exata que o celular está apontando
+    const labelPos = getOffsetPoint(lat, lng, r, currentHeading);
+
+    L.marker(labelPos, {
+      icon: L.divIcon({
+        className: 'radius-label',
+        html: `${r}m`,
+        iconSize: [60, 26],
+        iconAnchor: [30, 13]
+      })
+    }).addTo(circlesAndLabelsGroup);
+  }
+}
+
+    function initMaps(lat, lng) {
+      currentPos = [lat, lng];
+
+      // 1. Aba Raios (Padronizado no Satélite)
+      const layersRaios = createTileLayers();
+      mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite"]] }).setView(currentPos, 15);
+      L.control.layers(layersRaios).addTo(mapRaios);
+      markers.raios = L.marker(currentPos).addTo(mapRaios).bindPopup("Você está aqui");
+      circlesAndLabelsGroup.addTo(mapRaios);
+      updateRaios(lat, lng);
+
+      // 2. Aba Normal (Padronizado no Mapa)
+      const layersNormal = createTileLayers();
+      mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa"]] }).setView(currentPos, 16);
+      L.control.layers(layersNormal).addTo(mapNormal);
+      markers.normal = L.marker(currentPos).addTo(mapNormal);
+
+      // 3. Aba Relevo (Padronizado no Relevo)
+      const layersRelevo = createTileLayers();
+      mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 15);
+      L.control.layers(layersRelevo).addTo(mapRelevo);
+      markers.relevo = L.marker(currentPos).addTo(mapRelevo);
+
+      // 4. Aba Medir Distância (Padronizado no Satélite)
+      const layersMedir = createTileLayers();
+      mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite"]] }).setView(currentPos, 16);
+      L.control.layers(layersMedir).addTo(mapMedir);
+      markers.medir = L.marker(currentPos).addTo(mapMedir).bindPopup("Sua Localização");
+
+      // Evento de Clique para Medir Distância
+      mapMedir.on('click', function(e) {
+        const targetLat = e.latlng.lat;
+        const targetLng = e.latlng.lng;
+
+        // Limpa marcação/linha anterior
+        if (measureMarker) mapMedir.removeLayer(measureMarker);
+        if (measureLine) mapMedir.removeLayer(measureLine);
+
+        // Marcador do destino
+        measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
+
+        // Linha reta
+        measureLine = L.polyline([currentPos, [targetLat, targetLng]], {
+          color: '#ef4444',
+          weight: 3,
+          dashArray: '6, 6'
+        }).addTo(mapMedir);
+
+        // Cálculo da distância em metros
+        const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
+        let distText = distanceMeters >= 1000 
+          ? (distanceMeters / 1000).toFixed(2) + " km" 
+          : Math.round(distanceMeters) + " metros";
+
+        document.getElementById('distPanel').innerText = `Distância: ${distText}`;
+      });
+    }
+
+    // Atualização contínua do GPS
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const newPos = [lat, lng];
+
+          if (!mapRaios) {
+            initMaps(lat, lng);
+          } else {
+            currentPos = newPos;
+
+            // Atualiza marcadores
+            markers.raios.setLatLng(newPos);
+            markers.normal.setLatLng(newPos);
+            markers.relevo.setLatLng(newPos);
+            markers.medir.setLatLng(newPos);
+
+            // Recalcula círculos concentricos para a nova posição do GPS
+            updateRaios(lat, lng);
+
+            // Se houver uma medição ativa, redesenha a linha a partir dos passos atuais
+            if (measureLine && measureMarker) {
+              const targetLatLng = measureMarker.getLatLng();
+              measureLine.setLatLngs([currentPos, targetLatLng]);
+              const d = L.latLng(currentPos).distanceTo(targetLatLng);
+              document.getElementById('distPanel').innerText = `Distância: ${d >= 1000 ? (d/1000).toFixed(2)+' km' : Math.round(d)+' metros'}`;
+            }
+          }
+        },
+        (err) => {
+          document.getElementById('distPanel').innerText = "Erro ao obter GPS: " + err.message;
+        },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+      );
+    } else {
+      alert("Seu dispositivo/navegador não suporta geolocalização.");
+    }
+// Captura a orientação (bússola) do dispositivo móvel
+function handleOrientation(event) {
+  let heading = null;
+
+  // iOS (Safari) usa webkitCompassHeading
+  if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
+    heading = event.webkitCompassHeading;
+  } 
+  // Android (Chrome/Firefox) calcula via alpha
+  else if (event.alpha !== null) {
+    heading = 360 - event.alpha; 
+  }
+
+  // Se conseguimos ler a bússola e houve uma mudança significativa de direção
+  if (heading !== null && Math.abs(heading - currentHeading) > 2) {
+    currentHeading = heading;
+    if (currentPos) {
+      updateRaios(currentPos[0], currentPos[1]); // Redesenha os rótulos na nova direção
+    }
+  }
+}
+
+// Ativa o sensor no navegador
+if (window.DeviceOrientationEvent) {
+  // Para iOS 13+ é necessário pedir permissão do sensor ao usuário
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(permissionState => {
+        if (permissionState === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+      })
+      .catch(console.error);
+  } else {
+    // Android e navegadores padrão
+    window.addEventListener('deviceorientationabsolute', handleOrientation, true) ||
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+}
+  </script>
+</body>
+</html>
