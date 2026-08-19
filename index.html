@@ -322,7 +322,7 @@
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos).addTo(mapMedir);
 
-      // EVENTO DE CLIQUE NA ABA MEDIR INTEGRADO COM RETÍCULO E BALÍSTICA
+      // EVENTO DE CLIQUE NA ABA MEDIR (PERSISTENTE E COM VISIBILIDADE MELHORADA)
       mapMedir.on('click', function(e) {
         const targetLat = e.latlng.lat;
         const targetLng = e.latlng.lng;
@@ -338,13 +338,13 @@
 
         const panelEl = document.getElementById('distPanel');
         panelEl.innerHTML = `
-          <div style="font-size: 13px; color: #38bdf8; margin-bottom: 2px;">
+          <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
             Distância: <b>${Math.round(distanceMeters)}m</b>
           </div>
-          <div style="font-size: 12px; color: #f8fafc; margin-bottom: 6px;">
+          <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
             <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
           </div>
-          <canvas id="mapReticleCanvas" width="140" height="140" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto;"></canvas>
+          <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
         `;
 
         renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
@@ -403,6 +403,7 @@
       return { netDropCm, mradElev, moaElev, mradWind, clicksElev, recommendedZoom };
     }
 
+    // RENDERIZAÇÃO DO MINI-RETÍCULO COM BARRAS DUPLEX E PONTO VERMELHO EXPANDIDO (+2px)
     function renderMiniReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('mapReticleCanvas');
       if (!canvas) return;
@@ -412,34 +413,54 @@
 
       ctx.clearRect(0, 0, w, h);
 
+      // Fundo do Tubo Óptico
       ctx.fillStyle = "#ffffff";
-      ctx.beginPath(); ctx.arc(cx, cy, cx - 2, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, cx - 3, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4; ctx.stroke();
 
-      const pixelsPerMRAD = 9;
+      const pixelsPerMRAD = 11; // Escala proporcional ajustada para o canvas 180px
       const impactX = cx + (mradWind * pixelsPerMRAD);
       const impactY = cy + (mradElev * pixelsPerMRAD);
 
-      ctx.strokeStyle = "#000000"; ctx.fillStyle = "#000000"; ctx.lineWidth = 1;
-      const thinEnd = 4.5 * pixelsPerMRAD;
+      const thinEnd = 4.8 * pixelsPerMRAD;
 
+      // 1. Hastes Finas Centrais
+      ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(cx, cy - thinEnd); ctx.lineTo(cx, cy + thinEnd);
       ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
       ctx.stroke();
 
+      // 2. Hastes Grossas Externas (Duplex Leupold Visible)
+      ctx.lineWidth = 5.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
+      ctx.moveTo(cx, cy + thinEnd); ctx.lineTo(cx, h);
+      ctx.moveTo(0, cy); ctx.lineTo(cx - thinEnd, cy);
+      ctx.moveTo(cx + thinEnd, cy); ctx.lineTo(w, cy);
+      ctx.stroke();
+
+      // 3. Mil-Dots
+      ctx.fillStyle = "#000000";
       for (let i = 1; i <= 4; i++) {
-        ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 1.2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy + (i * pixelsPerMRAD), 1.2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy + (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
       }
 
-      ctx.fillStyle = "rgba(239, 68, 68, 0.3)";
-      ctx.beginPath(); ctx.arc(impactX, impactY, 5, 0, Math.PI * 2); ctx.fill();
+      // 4. PONTO VERMELHO AUMENTADO EM +2px (Aura + Ponto Central + Micro Crosshair)
+      ctx.fillStyle = "rgba(239, 68, 68, 0.35)";
+      ctx.beginPath(); ctx.arc(impactX, impactY, 9, 0, Math.PI * 2); ctx.fill(); // Aura ampliada
 
-      ctx.fillStyle = "#ef4444"; ctx.strokeStyle = "#991b1b"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(impactX, impactY, 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ef4444"; ctx.strokeStyle = "#7f1d1d"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(impactX, impactY, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); // Raio de 2.5px para 4.5px (+2 pontos)
+
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(impactX - 5, impactY); ctx.lineTo(impactX + 5, impactY);
+      ctx.moveTo(impactX, impactY - 5); ctx.lineTo(impactX, impactY + 5);
+      ctx.stroke();
     }
 
     // ==========================================
