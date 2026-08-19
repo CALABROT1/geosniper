@@ -10,23 +10,22 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    
     * { box-sizing: border-box; }
     body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; }
 
     .brand-title {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 12px;
-  font-weight: 900;
-  font-size: 13px;
-  color: #f8fafc;
-  letter-spacing: 1px;
-  border-right: 1px solid #334155;
-  background: #0f172a;
-  white-space: nowrap;
-}
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 12px;
+      font-weight: 900;
+      font-size: 13px;
+      color: #f8fafc;
+      letter-spacing: 1px;
+      border-right: 1px solid #334155;
+      background: #0f172a;
+      white-space: nowrap;
+    }
     
     /* Barra de Navegação */
     .tabs { display: flex; background: #1e293b; height: 50px; overflow-x: auto; }
@@ -54,8 +53,9 @@
 
     .dist-info-panel {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
-      background: rgba(15, 23, 42, 0.9); color: white; padding: 13px 18px; border-radius: 20px;
-      font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid #334155; text-align: center; pointer-events: none;
+      background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 16px; border-radius: 16px;
+      font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid #334155; text-align: center;
+      pointer-events: auto; max-width: 320px; width: 90%;
     }
 
     /* CSS da Aba Balística */
@@ -141,10 +141,10 @@
           </div>
           <div class="form-group">
             <label>Torre / Graduação:</label>
-           <select id="balTurret">
-  <option value="MOA" selected>1/4 MOA (0.73cm / 100m)</option>
-  <option value="MRAD">0.1 MRAD (1cm / 100m)</option>
-</select>
+            <select id="balTurret">
+              <option value="MOA" selected>1/4 MOA (0.73cm / 100m)</option>
+              <option value="MRAD">0.1 MRAD (1cm / 100m)</option>
+            </select>
           </div>
         </div>
 
@@ -206,7 +206,7 @@
         <button onclick="runBallistics()" class="btn-calc">CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
 
-  <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
+      <!-- PAINEL DE EXIBIÇÃO DE RESULTADOS & RETÍCULO -->
       <div class="card">
         <h3>Solução Tática & Retículo</h3>
 
@@ -232,7 +232,10 @@
           <canvas id="reticleCanvas" width="300" height="300"></canvas>
         </div>
       </div>
-      
+
+    </div>
+  </div>
+
 <script>
     let currentPos = null;
     let mapRaios, mapNormal, mapRelevo, mapMedir;
@@ -319,6 +322,7 @@
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos).addTo(mapMedir);
 
+      // EVENTO DE CLIQUE NA ABA MEDIR INTEGRADO COM RETÍCULO E BALÍSTICA
       mapMedir.on('click', function(e) {
         const targetLat = e.latlng.lat;
         const targetLng = e.latlng.lng;
@@ -330,13 +334,116 @@
         measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
 
         const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
-        let distText = distanceMeters >= 1000 ? (distanceMeters / 1000).toFixed(2) + " km" : Math.round(distanceMeters) + " metros";
-        document.getElementById('distPanel').innerText = `Distância: ${distText}`;
+        const sol = getBallisticSolutionForDistance(distanceMeters);
+
+        const panelEl = document.getElementById('distPanel');
+        panelEl.innerHTML = `
+          <div style="font-size: 13px; color: #38bdf8; margin-bottom: 2px;">
+            Distância: <b>${Math.round(distanceMeters)}m</b>
+          </div>
+          <div style="font-size: 12px; color: #f8fafc; margin-bottom: 6px;">
+            <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
+          </div>
+          <canvas id="mapReticleCanvas" width="140" height="140" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto;"></canvas>
+        `;
+
+        renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
       });
     }
 
     // ==========================================
-    // MOTOR BALÍSTICO (CORRIGIDO PARA HOlDOVER)
+    // FUNÇÕES AUXILIARES DE INTEGRAÇÃO
+    // ==========================================
+    function getBallisticSolutionForDistance(dist) {
+      const parseVal = (id, defaultVal) => {
+        const el = document.getElementById(id);
+        if (!el) return defaultVal;
+        const raw = el.value.toString().replace(',', '.');
+        const parsed = parseFloat(raw);
+        return isNaN(parsed) ? defaultVal : parsed;
+      };
+
+      const fps = parseVal('balSpeed', 2680);
+      const bc = parseVal('balBC', 0.447);
+      const profileEl = document.getElementById('balDragProfile');
+      const profile = profileEl ? profileEl.value : "G1";
+      const turretEl = document.getElementById('balTurret');
+      const rawTurret = turretEl ? turretEl.value : "MOA";
+      const turret = rawTurret.toUpperCase().includes("MOA") ? "MOA" : "MRAD";
+
+      const windKmh = parseVal('balWindSpeed', 0);
+      const windClockEl = document.getElementById('balWindDir');
+      const windClock = windClockEl ? parseInt(windClockEl.value) || 3 : 3;
+
+      const v0_ms = fps * 0.3048;
+      const zeroDist = 100;
+      const g = 9.81;
+
+      const bcFactor = profile === "G7" ? bc * 1.95 : bc;
+      const k = 0.000135 / bcFactor;
+
+      const t_flight = (Math.exp(k * dist) - 1) / (k * v0_ms);
+      const dropMeters = 0.5 * g * Math.pow(t_flight, 2);
+      const t_zero = zeroDist / v0_ms;
+      const dropZero = 0.5 * g * Math.pow(t_zero, 2);
+      const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
+
+      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
+      let moaElev = mradElev * 3.43775;
+
+      const windMs = windKmh / 3.6;
+      const windAngleRad = (windClock * 30) * (Math.PI / 180);
+      const crossWindMs = windMs * Math.sin(windAngleRad);
+      const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
+      let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
+
+      let clicksElev = turret === "MOA" ? Math.round(moaElev * 4) : Math.round(mradElev * 10);
+      let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
+
+      return { netDropCm, mradElev, moaElev, mradWind, clicksElev, recommendedZoom };
+    }
+
+    function renderMiniReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
+      const canvas = document.getElementById('mapReticleCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(cx, cy, cx - 2, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 3; ctx.stroke();
+
+      const pixelsPerMRAD = 9;
+      const impactX = cx + (mradWind * pixelsPerMRAD);
+      const impactY = cy + (mradElev * pixelsPerMRAD);
+
+      ctx.strokeStyle = "#000000"; ctx.fillStyle = "#000000"; ctx.lineWidth = 1;
+      const thinEnd = 4.5 * pixelsPerMRAD;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - thinEnd); ctx.lineTo(cx, cy + thinEnd);
+      ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
+      ctx.stroke();
+
+      for (let i = 1; i <= 4; i++) {
+        ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy + (i * pixelsPerMRAD), 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 1.2, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.fillStyle = "rgba(239, 68, 68, 0.3)";
+      ctx.beginPath(); ctx.arc(impactX, impactY, 5, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = "#ef4444"; ctx.strokeStyle = "#991b1b"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(impactX, impactY, 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+
+    // ==========================================
+    // MOTOR BALÍSTICO (CORRIGIDO PARA HOLDOVER)
     // ==========================================
     function runBallistics() {
       const parseVal = (id, defaultVal) => {
@@ -377,8 +484,8 @@
       const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
 
       // Ângulo de Elevação Real da Queda
-      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0; // MRAD exato da queda
-      let moaElev = mradElev * 3.43775;                          // MOA exato da queda
+      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
+      let moaElev = mradElev * 3.43775;
 
       // 2. Vento (Deriva)
       const windMs = windKmh / 3.6;
@@ -438,11 +545,10 @@
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
-      // CHAMADA CORRIGIDA: Passa mradElev (ângulo em MILs) para desenhar o Hold-over no canvas
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
 
-   // ====================================================
+    // ====================================================
     // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T (MARCADOR LIMPO)
     // ====================================================
     function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
@@ -463,7 +569,6 @@
       ctx.lineWidth = 6;
       ctx.stroke();
 
-      // Escala visual: 1 MIL = 18 Pixels no Canvas
       const pixelsPerMRAD = 18; 
 
       // Ponto de Impacto (Holdover) Requerido em MRAD
@@ -501,13 +606,11 @@
       }
 
       // 3. MARCADOR VERMELHO TÁTICO DE IMPACTO / VISADA (TARGET MARKER)
-      // Anel externo translúcido
       ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
       ctx.beginPath();
       ctx.arc(impactX, impactY, 8, 0, Math.PI * 2);
       ctx.fill();
 
-      // Ponto vermelho central de alta precisão
       ctx.fillStyle = "#ef4444";
       ctx.strokeStyle = "#991b1b";
       ctx.lineWidth = 1.5;
@@ -516,7 +619,6 @@
       ctx.fill(); 
       ctx.stroke();
 
-      // Crosshair micro no ponto vermelho
       ctx.strokeStyle = "#ef4444";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -532,7 +634,7 @@
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, w - 50, 30);
     }
-  
+
     // Inicialização do GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
