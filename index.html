@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
-  <!-- Leaflet CSS e JS -->
+ <!-- Leaflet CSS e JS com suporte a Rotação -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -182,33 +183,37 @@
       height: 18px !important;
       cursor: pointer !important;
     }
-/* Botão Flutuante da Bússola - Canto Inferior Esquerdo */
-    .btn-compass {
+/* Controles de Rotação Manual Tática */
+    .rotate-controls {
       position: fixed;
       bottom: 20px;
-      left: 12px;
+      right: 12px;
       z-index: 1000;
-      background: #0f172a;
-      color: #38bdf8;
+      display: flex;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 6px;
+      border-radius: 10px;
       border: 1px solid #334155;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: 13px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
-/* Estado quando a Bússola está Ligada */
-    .btn-compass.active {
-      background: #0284c7 !important;
-      color: #ffffff !important;
-      border-color: #38bdf8 !important;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5) !important;
+    .rotate-controls button {
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
     }
-    
-    
+
+    .rotate-controls button:active {
+      background: #0284c7;
+      color: #fff;
+    }
+        
   </style>
 </head>
 <body>
@@ -221,11 +226,13 @@
   <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
   <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
 </div>
-
-  <!-- BOTÃO DA BÚSSOLA FLUTUANTE (Adicionar Aqui) -->
-<button onclick="toggleCompass()" class="btn-compass">
-  🧭 ATIVAR BÚSSOLA
-</button>
+  
+<!-- PAINEL DE CONTROLE DE ROTAÇÃO MANUAL -->
+<div class="rotate-controls">
+  <button onclick="rotateMap(-30)" title="Girar 30° para Esquerda">↩️ -30°</button>
+  <button onclick="resetNorth()" title="Resetar para o Norte">🧭 NORTE</button>
+  <button onclick="rotateMap(30)" title="Girar 30° para Direita">↪️ +30°</button>
+</div>
 
   <!-- DIVS DOS MAPAS -->
   <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map"></div></div>
@@ -359,91 +366,33 @@
     let measureMarker = null, measureLine = null;
     let currentHeading = 0;
     let compassActive = false;
-    let lastHeading = 0; // Trava para eliminar o ruído do sensor
+    let mapBearing = 0; // Ângulo atual do mapa
 
-    // Cria o Ícone de Seta Tática para o Operador
-    function createOperatorIcon() {
-      return L.divIcon({
-        className: 'user-operator-marker',
-        html: `<div class="operator-arrow" style="width:24px; height:24px; background:#ef4444; border:2px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(239, 68, 68, 0.8); transition: transform 0.2s ease-out;">
-                 <div style="width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-bottom:10px solid #ffffff; margin-bottom:2px;"></div>
-               </div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
+    // Função para Girar o Mapa Manualmente
+    function rotateMap(degrees) {
+      mapBearing = (mapBearing + degrees) % 360;
+      applyMapRotation(mapBearing);
     }
 
-    function toggleCompass() {
-      if (compassActive) {
-        window.removeEventListener('deviceorientation', handleOrientation, true);
-        window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
-        compassActive = false;
-        updateCompassButtonStatus(false);
-        return;
-      }
-
-      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(response => {
-            if (response === 'granted') {
-              window.addEventListener('deviceorientation', handleOrientation, true);
-              compassActive = true;
-              updateCompassButtonStatus(true);
-            } else {
-              alert('Permissão de bússola negada.');
-            }
-          })
-          .catch(console.error);
-      } else {
-        window.addEventListener('deviceorientationabsolute', handleOrientation, true) ||
-        window.addEventListener('deviceorientation', handleOrientation, true);
-        compassActive = true;
-        updateCompassButtonStatus(true);
-      }
+    // Resetar Orientação ao Norte
+    function resetNorth() {
+      mapBearing = 0;
+      applyMapRotation(0);
     }
 
-    function updateCompassButtonStatus(active) {
-      const btn = document.querySelector('.btn-compass');
-      if (!btn) return;
-
-      if (active) {
-        btn.classList.add('active');
-        btn.innerHTML = '🟢 BÚSSOLA ATIVA';
-      } else {
-        btn.classList.remove('active');
-        btn.innerHTML = '🧭 ATIVAR BÚSSOLA';
-      }
-    }
-
-    function handleOrientation(event) {
-      let heading = null;
-
-      if (event.webkitCompassHeading) {
-        heading = event.webkitCompassHeading; // iOS
-      } else if (event.alpha !== null) {
-        heading = 360 - event.alpha; // Android
+    function applyMapRotation(bearing) {
+      // Aplica a rotação nos contêineres de mapa ativos
+      const activeMap = document.querySelector('.tab-content.active .leaflet-map-pane');
+      if (activeMap) {
+        activeMap.style.transition = 'transform 0.25s ease-out';
+        activeMap.style.transformOrigin = 'center center';
+        activeMap.style.transform = `rotate(${bearing}deg)`;
       }
 
-      if (heading !== null) {
-        currentHeading = Math.round(heading);
-        updateUserBearing(currentHeading);
-      }
-    }
-
-    // FUNÇÃO QUE ESTABILIZA A BÚSSOLA E GIRA APENAS A SETA DO OPERADOR
-    function updateUserBearing(bearing) {
-      // 1. FILTRO ANTIRRUÍDO: Ignora variações menores que 3 graus
-      if (Math.abs(bearing - lastHeading) < 3) return;
-      lastHeading = bearing;
-
-      // 2. Mantém o mapa fixo ao Norte (evita bordas cinzas)
-      document.querySelectorAll('.leaflet-map-pane').forEach(container => {
-        container.style.transform = 'none';
-      });
-
-      // 3. Rotaciona APENAS a seta interna do operador
-      document.querySelectorAll('.operator-arrow').forEach(arrow => {
-        arrow.style.transform = `rotate(${bearing}deg)`;
+      // Compensação: Mantém os rótulos de metros legíveis na vertical
+      document.querySelectorAll('.radius-label').forEach(label => {
+        label.style.transition = 'transform 0.25s ease-out';
+        label.style.transform = `rotate(${-bearing}deg)`;
       });
     }
 
