@@ -359,9 +359,21 @@
     let measureMarker = null, measureLine = null;
     let currentHeading = 0;
     let compassActive = false;
+    let lastHeading = 0; // Trava para eliminar o ruído do sensor
 
-   function toggleCompass() {
-      // Se já estiver ativa, desliga
+    // Cria o Ícone de Seta Tática para o Operador
+    function createOperatorIcon() {
+      return L.divIcon({
+        className: 'user-operator-marker',
+        html: `<div class="operator-arrow" style="width:24px; height:24px; background:#ef4444; border:2px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(239, 68, 68, 0.8); transition: transform 0.2s ease-out;">
+                 <div style="width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-bottom:10px solid #ffffff; margin-bottom:2px;"></div>
+               </div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+    }
+
+    function toggleCompass() {
       if (compassActive) {
         window.removeEventListener('deviceorientation', handleOrientation, true);
         window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
@@ -370,7 +382,6 @@
         return;
       }
 
-      // Se estiver desligada, solicita permissão e liga
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
           .then(response => {
@@ -391,7 +402,6 @@
       }
     }
 
-    // Função que altera o texto e a cor do botão visualmente
     function updateCompassButtonStatus(active) {
       const btn = document.querySelector('.btn-compass');
       if (!btn) return;
@@ -404,16 +414,14 @@
         btn.innerHTML = '🧭 ATIVAR BÚSSOLA';
       }
     }
+
     function handleOrientation(event) {
       let heading = null;
 
-      // Leitura para iOS (webkitCompassHeading)
       if (event.webkitCompassHeading) {
-        heading = event.webkitCompassHeading;
-      } 
-      // Leitura para Android
-      else if (event.alpha !== null) {
-        heading = 360 - event.alpha;
+        heading = event.webkitCompassHeading; // iOS
+      } else if (event.alpha !== null) {
+        heading = 360 - event.alpha; // Android
       }
 
       if (heading !== null) {
@@ -422,32 +430,23 @@
       }
     }
 
-let lastHeading = 0;
-
+    // FUNÇÃO QUE ESTABILIZA A BÚSSOLA E GIRA APENAS A SETA DO OPERADOR
     function updateUserBearing(bearing) {
-      // 1. FILTRO DE SUAVIZAÇÃO: Ignora oscilações menores que 3 graus para acabar com a instabilidade
+      // 1. FILTRO ANTIRRUÍDO: Ignora variações menores que 3 graus
       if (Math.abs(bearing - lastHeading) < 3) return;
       lastHeading = bearing;
 
-      // 2. Mantém o mapa fixo ao Norte (Remove o rotate do mapa que gerava as bordas cinzas)
-      const mapContainers = document.querySelectorAll('.leaflet-map-pane');
-      mapContainers.forEach(container => {
+      // 2. Mantém o mapa fixo ao Norte (evita bordas cinzas)
+      document.querySelectorAll('.leaflet-map-pane').forEach(container => {
         container.style.transform = 'none';
       });
 
-      // 3. Gira APENAS o ícone do operador/seta em vez do mapa inteiro
-      const userMarkerIcon = document.querySelector('.user-location-icon, .leaflet-marker-icon');
-      if (userMarkerIcon) {
-        userMarkerIcon.style.transformOrigin = 'center center';
-        userMarkerIcon.style.transition = 'transform 0.2s ease-out';
-        userMarkerIcon.style.transform = `rotate(${bearing}deg)`;
-      }
-
-      // 4. Mantém os rótulos de distância na posição normal
-      document.querySelectorAll('.radius-label').forEach(label => {
-        label.style.transform = 'none';
+      // 3. Rotaciona APENAS a seta interna do operador
+      document.querySelectorAll('.operator-arrow').forEach(arrow => {
+        arrow.style.transform = `rotate(${bearing}deg)`;
       });
     }
+
     function createTileLayers() {
       return {
         "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
@@ -503,31 +502,31 @@ let lastHeading = 0;
 
     function initMaps(lat, lng) {
       currentPos = [lat, lng];
+      const opIcon = createOperatorIcon();
 
       const layersRaios = createTileLayers();
       mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite"]] }).setView(currentPos, 15);
       L.control.layers(layersRaios).addTo(mapRaios);
-      markers.raios = L.marker(currentPos).addTo(mapRaios).bindPopup("Sua Localização");
+      markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
       updateRaios(lat, lng);
 
       const layersNormal = createTileLayers();
       mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa"]] }).setView(currentPos, 16);
       L.control.layers(layersNormal).addTo(mapNormal);
-      markers.normal = L.marker(currentPos).addTo(mapNormal);
+      markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
       const layersRelevo = createTileLayers();
       mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 15);
       L.control.layers(layersRelevo).addTo(mapRelevo);
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
-      markers.relevo = L.marker(currentPos).addTo(mapRelevo);
+      markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
       const layersMedir = createTileLayers();
       mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite"]] }).setView(currentPos, 16);
       L.control.layers(layersMedir).addTo(mapMedir);
-      markers.medir = L.marker(currentPos).addTo(mapMedir);
+      markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
-      // EVENTO DE CLIQUE NA ABA MEDIR (PERSISTENTE E COM VISIBILIDADE MELHORADA)
       mapMedir.on('click', function(e) {
         const targetLat = e.latlng.lat;
         const targetLng = e.latlng.lng;
@@ -556,9 +555,6 @@ let lastHeading = 0;
       });
     }
 
-    // ==========================================
-    // FUNÇÕES AUXILIARES DE INTEGRAÇÃO
-    // ==========================================
     function getBallisticSolutionForDistance(dist) {
       const parseVal = (id, defaultVal) => {
         const el = document.getElementById(id);
@@ -608,7 +604,6 @@ let lastHeading = 0;
       return { netDropCm, mradElev, moaElev, mradWind, clicksElev, recommendedZoom };
     }
 
-    // RENDERIZAÇÃO DO MINI-RETÍCULO COM BARRAS DUPLEX E PONTO VERMELHO EXPANDIDO (+2px)
     function renderMiniReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('mapReticleCanvas');
       if (!canvas) return;
@@ -618,25 +613,22 @@ let lastHeading = 0;
 
       ctx.clearRect(0, 0, w, h);
 
-      // Fundo do Tubo Óptico
       ctx.fillStyle = "#ffffff";
       ctx.beginPath(); ctx.arc(cx, cy, cx - 3, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4; ctx.stroke();
 
-      const pixelsPerMRAD = 11; // Escala proporcional ajustada para o canvas 180px
+      const pixelsPerMRAD = 11;
       const impactX = cx + (mradWind * pixelsPerMRAD);
       const impactY = cy + (mradElev * pixelsPerMRAD);
 
       const thinEnd = 4.8 * pixelsPerMRAD;
 
-      // 1. Hastes Finas Centrais
       ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(cx, cy - thinEnd); ctx.lineTo(cx, cy + thinEnd);
       ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
       ctx.stroke();
 
-      // 2. Hastes Grossas Externas (Duplex Leupold Visible)
       ctx.lineWidth = 5.5;
       ctx.beginPath();
       ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
@@ -645,7 +637,6 @@ let lastHeading = 0;
       ctx.moveTo(cx + thinEnd, cy); ctx.lineTo(w, cy);
       ctx.stroke();
 
-      // 3. Mil-Dots
       ctx.fillStyle = "#000000";
       for (let i = 1; i <= 4; i++) {
         ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
@@ -654,36 +645,28 @@ let lastHeading = 0;
         ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
       }
 
-      // 4. PONTO VERMELHO AUMENTADO EM +2px (Aura + Ponto Central + Micro Crosshair)
       ctx.fillStyle = "rgba(239, 68, 68, 0.35)";
-      ctx.beginPath(); ctx.arc(impactX, impactY, 9, 0, Math.PI * 2); ctx.fill(); // Aura ampliada
+      ctx.beginPath(); ctx.arc(impactX, impactY, 9, 0, Math.PI * 2); ctx.fill();
 
       ctx.fillStyle = "#ef4444"; ctx.strokeStyle = "#7f1d1d"; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(impactX, impactY, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); // Raio de 2.5px para 4.5px (+2 pontos)
+      ctx.beginPath(); ctx.arc(impactX, impactY, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
       ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(impactX - 5, impactY); ctx.lineTo(impactX + 5, impactY);
       ctx.moveTo(impactX, impactY - 5); ctx.lineTo(impactX, impactY + 5);
       ctx.stroke();
-    
-     // 4. Overlay de Informações Ópticas (Alinhado à Esquerda e Visível)
-      ctx.textAlign = "left"; // Define o alinhamento para a esquerda
-      
-      // Distância: Canto superior esquerdo, dentro do círculo (X = 25, Y = 60)
+
+      ctx.textAlign = "left";
       ctx.font = "bold 15px sans-serif";
       ctx.fillStyle = "#0284c7";
       ctx.fillText(`D: ${Math.round(distanceMeters)}m`, 25, 60);
 
-      // Zoom: Logo abaixo da distância (X = 25, Y = 76)
       ctx.font = "bold 15px sans-serif";
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, 25, 76);
     }
 
-    // ==========================================
-    // MOTOR BALÍSTICO (CORRIGIDO PARA HOLDOVER)
-    // ==========================================
     function runBallistics() {
       const parseVal = (id, defaultVal) => {
         const el = document.getElementById(id);
@@ -693,7 +676,6 @@ let lastHeading = 0;
         return isNaN(parsed) ? defaultVal : parsed;
       };
 
-      const weightGrains = parseVal('balWeight', 168);
       const fps = parseVal('balSpeed', 2680);
       const bc = parseVal('balBC', 0.447);
       const profile = document.getElementById('balDragProfile').value;
@@ -705,7 +687,6 @@ let lastHeading = 0;
       const windKmh = parseVal('balWindSpeed', 0);
       const windClock = parseInt(document.getElementById('balWindDir').value) || 3;
 
-      // 1. Cálculos Físicos Básicos
       const v0_ms = fps * 0.3048;
       const zeroDist = 100;
       const g = 9.81;
@@ -716,17 +697,14 @@ let lastHeading = 0;
       const t_flight = (Math.exp(k * dist) - 1) / (k * v0_ms);
       const v_target = v0_ms * Math.exp(-k * dist);
 
-      // Queda (Drop) zerada a 100m
       const dropMeters = 0.5 * g * Math.pow(t_flight, 2);
       const t_zero = zeroDist / v0_ms;
       const dropZero = 0.5 * g * Math.pow(t_zero, 2);
       const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
 
-      // Ângulo de Elevação Real da Queda
       let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
       let moaElev = mradElev * 3.43775;
 
-      // 2. Vento (Deriva)
       const windMs = windKmh / 3.6;
       const windAngleRad = (windClock * 30) * (Math.PI / 180);
       const crossWindMs = windMs * Math.sin(windAngleRad);
@@ -734,7 +712,6 @@ let lastHeading = 0;
       const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
       let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
 
-      // Conversão de Cliques para a Torre
       let clicksElev = 0, clicksWind = 0;
       if (turret === "MRAD") {
         clicksElev = Math.round(mradElev * 10);
@@ -744,13 +721,11 @@ let lastHeading = 0;
         clicksWind = Math.round(mradWind * 3.43775 * 4);
       }
 
-      // Painéis dos Contadores
       const elElev = document.getElementById('resElevation');
       const elWind = document.getElementById('resWindage');
       if (elElev) elElev.innerText = `${clicksElev} UP`;
       if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
 
-      // 3. Resumo do Cálculo
       const cmPerMoaAtDist = (dist / 100) * 2.908;
       let summaryHTML = `
         <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #334155; color: #38bdf8;">
@@ -787,9 +762,6 @@ let lastHeading = 0;
       renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
 
-    // ====================================================
-    // RENDERIZAÇÃO DA LUNETA LEUPOLD MARK 4 ER/T (MARCADOR LIMPO)
-    // ====================================================
     function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
       const canvas = document.getElementById('reticleCanvas');
       if (!canvas) return;
@@ -799,7 +771,6 @@ let lastHeading = 0;
 
       ctx.clearRect(0, 0, w, h);
 
-      // 1. Fundo da Lente (Tubo Óptico da Leupold)
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.arc(cx, cy, cx - 4, 0, Math.PI * 2);
@@ -810,15 +781,12 @@ let lastHeading = 0;
 
       const pixelsPerMRAD = 18; 
 
-      // Ponto de Impacto (Holdover) Requerido em MRAD
       const impactX = cx + (mradWind * pixelsPerMRAD);
       const impactY = cy + (mradElev * pixelsPerMRAD);
 
-      // 2. RETÍCULO LEUPOLD MARK 4 ER/T (MIL DOT PADRÃO)
       ctx.strokeStyle = "#000000";
       ctx.fillStyle = "#000000";
 
-      // Hastes Finas Centrais
       ctx.lineWidth = 1.8;
       const thinEnd = 4.8 * pixelsPerMRAD;
 
@@ -827,7 +795,6 @@ let lastHeading = 0;
       ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
       ctx.stroke();
 
-      // Hastes Grossas externas (Duplex Mark 4)
       ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
@@ -836,7 +803,6 @@ let lastHeading = 0;
       ctx.moveTo(cx + thinEnd, cy); ctx.lineTo(w, cy);
       ctx.stroke();
 
-      // 4 Mil-Dots por haste (1 a 4 MRAD)
       for (let i = 1; i <= 4; i++) {
         ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 2.5, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 2.5, 0, Math.PI * 2); ctx.fill();
@@ -844,7 +810,6 @@ let lastHeading = 0;
         ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      // 3. MARCADOR VERMELHO TÁTICO DE IMPACTO / VISADA (TARGET MARKER)
       ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
       ctx.beginPath();
       ctx.arc(impactX, impactY, 8, 0, Math.PI * 2);
@@ -865,21 +830,16 @@ let lastHeading = 0;
       ctx.moveTo(impactX, impactY - 6); ctx.lineTo(impactX, impactY + 6);
       ctx.stroke();
 
-      // 4. Overlay de Informações Ópticas (Alinhado à Esquerda e Visível)
-      ctx.textAlign = "left"; // Define o alinhamento para a esquerda
-      
-      // Distância: Canto superior esquerdo, dentro do círculo (X = 55, Y = 60)
+      ctx.textAlign = "left";
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#0284c7";
       ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 55, 60);
 
-      // Zoom: Logo abaixo da distância (X = 55, Y = 76)
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, 55, 76);
     }
 
-    // Inicialização do GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
         (position) => {
@@ -912,6 +872,6 @@ let lastHeading = 0;
     } else {
       alert("Seu dispositivo não suporta geolocalização.");
     }
-  </script>
+</script>
 </body>
 </html>
