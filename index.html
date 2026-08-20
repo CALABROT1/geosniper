@@ -647,17 +647,18 @@
       ctx.moveTo(impactX, impactY - 6); ctx.lineTo(impactX, impactY + 6);
       ctx.stroke();
 
-      // 4. Overlay de Informações Ópticas
-     
-      ctx.textAlign = "center";
+      // 4. Overlay de Informações Ópticas (Alinhado à Esquerda e Visível)
+      ctx.textAlign = "left"; // Define o alinhamento para a esquerda
+      
+      // Distância: Canto superior esquerdo, dentro do círculo (X = 35, Y = 45)
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, cx, - 50);
+      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 35, 45);
 
+      // Zoom: Logo abaixo da distância (X = 35, Y = 65)
+      ctx.font = "bold 11px sans-serif";
       ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, cx, h - 15);
-      ctx.textAlign = "left"; // Restaura o alinhamento padrão do canvas
-    }
+      ctx.fillText(`${zoomLevel}.0x`, 35, 65);
 
     // Inicialização do GPS
     if ("geolocation" in navigator) {
