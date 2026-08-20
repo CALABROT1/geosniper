@@ -32,10 +32,23 @@
     .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 700; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
-    /* Área de Conteúdo */
-    .tab-content { display: none; height: calc(100vh - 50px); width: 100%; position: relative; overflow-y: auto; }
+  /* Área de Conteúdo e Ajuste de Mapeamento sem bordas cinzas */
+    .tab-content { 
+      display: none; 
+      height: calc(100vh - 50px); 
+      width: 100%; 
+      position: relative; 
+      overflow: hidden; 
+    }
     .tab-content.active { display: block; }
-    .map { height: 100%; width: 100%; }
+
+    .map { 
+      height: 100%; 
+      width: 100%; 
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
 
     /* Estilo dos Rótulos no Mapa (Com efeito flutuante) */
     .radius-label {
@@ -373,26 +386,54 @@
       });
     }
 
-    // Função para Girar o Mapa Manualmente
+   let mapBearing = 0; // Ângulo atual do mapa
+
     function rotateMap(degrees) {
       mapBearing = (mapBearing + degrees) % 360;
       applyMapRotation(mapBearing);
     }
 
-    // Resetar Orientação ao Norte
     function resetNorth() {
       mapBearing = 0;
       applyMapRotation(0);
+      
+      const activeTabMap = getActiveMapInstance();
+      if (activeTabMap && currentPos) {
+        activeTabMap.setView(currentPos, activeTabMap.getZoom(), { animate: true });
+      }
     }
 
     function applyMapRotation(bearing) {
-      // Aplica a rotação nos contêineres de mapa
       document.querySelectorAll('.leaflet-map-pane').forEach(container => {
-        container.style.transition = 'transform 0.25s ease-out';
+        container.style.transition = 'transform 0.3s ease-out';
         container.style.transformOrigin = 'center center';
-        container.style.transform = `rotate(${bearing}deg)`;
+        
+        if (bearing === 0) {
+          container.style.transform = 'none';
+        } else {
+          // Expande 1.4x para preencher os cantos sem mostrar fundo cinza
+          container.style.transform = `rotate(${bearing}deg) scale(1.4)`;
+        }
       });
 
+      const activeTabMap = getActiveMapInstance();
+      if (activeTabMap && currentPos) {
+        activeTabMap.setView(currentPos, activeTabMap.getZoom(), { animate: false });
+      }
+
+      document.querySelectorAll('.radius-label').forEach(label => {
+        label.style.transition = 'transform 0.3s ease-out';
+        label.style.transform = `rotate(${-bearing}deg)`;
+      });
+    }
+
+    function getActiveMapInstance() {
+      if (document.getElementById('tabRaios').classList.contains('active')) return mapRaios;
+      if (document.getElementById('tabNormal').classList.contains('active')) return mapNormal;
+      if (document.getElementById('tabRelevo').classList.contains('active')) return mapRelevo;
+      if (document.getElementById('tabMedir').classList.contains('active')) return mapMedir;
+      return null;
+    }
       // Compensação: Mantém os rótulos de metros legíveis na vertical
       document.querySelectorAll('.radius-label').forEach(label => {
         label.style.transition = 'transform 0.25s ease-out';
