@@ -32,7 +32,7 @@
     .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 700; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
-    /* Área de Conteúdo */
+/* Área de Conteúdo Padrão (Sem deslocamentos artificiais) */
     .tab-content { 
       display: none; 
       height: calc(100vh - 50px); 
@@ -45,11 +45,8 @@
     .map { 
       height: 100%; 
       width: 100%; 
-      position: absolute;
-      top: 0;
-      left: 0;
     }
-
+    
     /* Estilo dos Rótulos no Mapa */
     .radius-label {
       background: rgba(255, 255, 255, 0.95);
@@ -440,23 +437,27 @@
       }
     }
 
-    function applyMapRotation(bearing) {
+   function applyMapRotation(bearing) {
+      const activeTabMap = getActiveMapInstance();
+      if (!activeTabMap || !currentPos) return;
+
+      // 1. Descobre os pixels exatos onde o marcador do usuário está desenhado na tela
+      const userPoint = activeTabMap.latLngToContainerPoint(currentPos);
+      
+      // 2. Aplica a rotação do container usando as coordenadas do operador como pivô central
       document.querySelectorAll('.leaflet-map-pane').forEach(container => {
         container.style.transition = 'transform 0.3s ease-out';
-        container.style.transformOrigin = 'center center';
+        container.style.transformOrigin = `${userPoint.x}px ${userPoint.y}px`;
         
         if (bearing === 0) {
           container.style.transform = 'none';
         } else {
+          // Mantém a rotação perfeita no eixo do operador e escala suave para cobrir as quinas
           container.style.transform = `rotate(${bearing}deg) scale(1.4)`;
         }
       });
 
-      const activeTabMap = getActiveMapInstance();
-      if (activeTabMap && currentPos) {
-        activeTabMap.setView(currentPos, activeTabMap.getZoom(), { animate: false });
-      }
-
+      // 3. Compensa os rótulos de distância para continuarem na vertical e legíveis
       document.querySelectorAll('.radius-label').forEach(label => {
         label.style.transition = 'transform 0.3s ease-out';
         label.style.transform = `rotate(${-bearing}deg)`;
