@@ -136,20 +136,25 @@
 <body>
 
 <div class="tabs">
-  <div class="brand-title">GEOSNIPER <span style="color: #38bdf8; font-size: 10px;">by Calabrot</span></div>
-  <button class="tab-btn active" onclick="openTab(event, 'tabRaios')">Raios (900m)</button>
-  <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
-  <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
+  <div class="brand-title">GEOSNIPER <span style="color: #38bdf8; font-size: 12px;">by Calabrot</span></div>
+  <button class="tab-btn active" onclick="openTab(event, 'tabBalistica')">Balística</button>
   <button class="tab-btn" onclick="openTab(event, 'tabMedir')">Medir</button>
-  <button class="tab-btn" onclick="openTab(event, 'tabBalistica')">Balística</button>
+  <button class="tab-btn" onclick="openTab(event, 'tabRaios')">Raios</button>
+  <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
+  <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
 </div>
 
-  <div id="tabRaios" class="tab-content active"><div id="mapRaios" class="map"></div></div>
+<div id="tabRaios" class="tab-content"><div id="mapRaios" class="map"></div></div>
   <div id="tabNormal" class="tab-content"><div id="mapNormal" class="map"></div></div>
   <div id="tabRelevo" class="tab-content"><div id="mapRelevo" class="map"></div></div>
   <div id="tabMedir" class="tab-content">
     <div id="mapMedir" class="map"></div>
     <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
+  </div>
+
+  <!-- ABA BALÍSTICA (Agora começa como active) -->
+  <div id="tabBalistica" class="tab-content active">
+    <!-- Conteúdo da balística... -->
   </div>
 
   <!-- ABA BALÍSTICA -->
