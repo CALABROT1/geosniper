@@ -76,34 +76,82 @@
       border-radius: 10px;
       border: 1px solid #334155;
     }
-    .card h3 { margin-top: 0; color: #38bdf8; font-size: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-
-    .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
-    .form-group input, .form-group select {
-      width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; font-size: 14px;
+    /* MELHORIAS VISUAIS NA ENTRADA DE DADOS */
+    .card h3 { 
+      margin-top: 0; 
+      color: #38bdf8; 
+      font-size: 15px; 
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #334155; 
+      padding-bottom: 8px; 
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .form-row { display: flex; gap: 10px; }
+    .section-divider {
+      border-top: 1px dashed #334155;
+      margin: 18px 0 12px 0;
+      padding-top: 12px;
+    }
+
+    .form-group { margin-bottom: 12px; }
+    
+    .form-group label { 
+      display: block; 
+      font-size: 11px; 
+      font-weight: 700;
+      color: #cbd5e1; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px; 
+    }
+
+    .form-group input, .form-group select {
+      width: 100%; 
+      padding: 10px 12px; 
+      background: #0f172a; 
+      border: 1px solid #334155; 
+      color: #f8fafc; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    /* Destaque nos campos ao clicar/focar */
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+    }
+
+    .form-row { display: flex; gap: 12px; }
     .form-row .form-group { flex: 1; }
 
+    /* Botão Tático de Ação */
     .btn-calc {
-      width: 100%; padding: 12px; background: #0284c7; color: white; border: none; font-weight: bold; border-radius: 6px; font-size: 15px; cursor: pointer; margin-top: 10px;
+      width: 100%; 
+      padding: 14px; 
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
+      color: #ffffff; 
+      border: none; 
+      font-weight: 800; 
+      border-radius: 8px; 
+      font-size: 15px; 
+      letter-spacing: 0.5px;
+      cursor: pointer; 
+      margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      transition: all 0.2s;
     }
-    .btn-calc:active { background: #0369a1; }
 
-    .results-box {
-      display: flex; justify-content: space-around; text-align: center; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 15px;
-    }
-    .res-item .val { font-size: 22px; font-weight: 900; color: #ef4444; }
-    .res-item .lbl { font-size: 11px; color: #94a3b8; }
-
-    .reticle-container { text-align: center; }
-    #reticleCanvas {
-      background: #000; border-radius: 50%; border: 4px solid #334155; margin-top: 10px; max-width: 100%; height: auto;
-    }
-    .zoom-badge {
-      display: inline-block; background: #0284c7; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 5px;
+    .btn-calc:active { 
+      transform: scale(0.98);
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2);
     }
     /* Aumenta a fonte e os botões do seletor de camadas do Leaflet */
     .leaflet-control-layers-toggle {
@@ -159,17 +207,17 @@
   <div id="tabBalistica" class="tab-content active">
     <div class="ballistics-grid">
       
-      <!-- PAINEL DE ENTRADA DE DADOS -->
+      <!-- PAINEL DE ENTRADA DE DADOS ORGANIZADO -->
       <div class="card">
-        <h3>Configurações de Tiro & Projétil</h3>
+        <h3>🎯 Configurações de Tiro & Projétil</h3>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Peso Projétil (Grains):</label>
+            <label>Peso Projétil (Grains)</label>
             <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
           </div>
           <div class="form-group">
-            <label>Torre / Graduação:</label>
+            <label>Torre / Graduação</label>
             <select id="balTurret">
               <option value="MOA" selected>1/4 MOA (0.73cm / 100m)</option>
               <option value="MRAD">0.1 MRAD (1cm / 100m)</option>
@@ -178,46 +226,50 @@
         </div>
 
         <div class="form-group">
-          <label>Velocidade de Boca (FPS):</label>
+          <label>Velocidade de Boca (FPS)</label>
           <select id="balPresetSpeed" onchange="document.getElementById('balSpeed').value = this.value !== 'custom' ? this.value : document.getElementById('balSpeed').value">
             <option value="custom">Personalizada (Digite abaixo)</option>
             <option value="2600">Carga 1 - Média: 2600 FPS</option>
             <option value="2680" selected>Carga 2 - Média: 2680 FPS</option>
             <option value="2750">Carga 3 - Média: 2750 FPS</option>
           </select>
-          <input type="number" id="balSpeed" value="2680" style="margin-top: 5px;">
+          <input type="number" id="balSpeed" value="2680" style="margin-top: 6px;">
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Perfil Drag:</label>
+            <label>Perfil Drag</label>
             <select id="balDragProfile">
               <option value="G1">G1 (Padrão)</option>
               <option value="G7">G7 (VLD/Boat Tail)</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Coef. Balístico (CB):</label>
+            <label>Coef. Balístico (CB)</label>
             <input type="number" step="0.001" id="balBC" value="0.447">
           </div>
         </div>
 
         <div class="form-group">
-          <label>Distância do Alvo (Metros) - Zeragem: 100m:</label>
+          <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
           <input type="number" id="balDistance" value="600" step="25">
         </div>
 
-        <h3>Condição de Vento (Opcional)</h3>
+        <!-- DIVISOR TÁTICO: VENTO -->
+        <div class="section-divider">
+          <h3 style="border-bottom:none; margin-bottom: 8px;">💨 Condição de Vento (Opcional)</h3>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
-            <label>Velocidade Vento (km/h):</label>
-            <input type="number" id="balWindSpeed" value="0" placeholder="0 se sem vento">
+            <label>Velocidade (km/h)</label>
+            <input type="number" id="balWindSpeed" value="0" placeholder="0 = Sem Vento">
           </div>
           <div class="form-group">
-            <label>Direção (Horas 1-12):</label>
+            <label>Direção do Vento</label>
             <select id="balWindDir">
-              <option value="3">3 Horas (Direita -> Esquerda)</option>
-              <option value="9">9 Horas (Esquerda -> Direita)</option>
+              <option value="3">3 Horas (Direita ➔ Esquerda)</option>
+              <option value="9">9 Horas (Esquerda ➔ Direita)</option>
               <option value="12">12 Horas (Frontal)</option>
               <option value="6">6 Horas (Traseiro)</option>
               <option value="1">1 Hora</option>
@@ -232,9 +284,9 @@
           </div>
         </div>
 
-        <button onclick="runBallistics()" class="btn-calc">CALCULAR SOLUÇÃO & RETÍCULO</button>
+        <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
-
+       
       <!-- PAINEL DE RESULTADOS & CANVAS DO RETÍCULO -->
       <div class="card">
         <h3>Solução Tática & Retículo</h3>
