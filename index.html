@@ -652,10 +652,10 @@
       ctx.textAlign = "center";
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, cx, - 32);
+      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, cx, - 50);
 
       ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, cx, h + 15);
+      ctx.fillText(`${zoomLevel}.0x`, cx, h - 15);
       ctx.textAlign = "left"; // Restaura o alinhamento padrão do canvas
     }
 
