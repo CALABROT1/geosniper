@@ -461,7 +461,7 @@
       ctx.moveTo(impactX - 5, impactY); ctx.lineTo(impactX + 5, impactY);
       ctx.moveTo(impactX, impactY - 5); ctx.lineTo(impactX, impactY + 5);
       ctx.stroke();
-    }
+    
      // 4. Overlay de Informações Ópticas (Alinhado à Esquerda e Visível)
       ctx.textAlign = "left"; // Define o alinhamento para a esquerda
       
@@ -474,6 +474,7 @@
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, 55, 76);
+    }
 
     // ==========================================
     // MOTOR BALÍSTICO (CORRIGIDO PARA HOLDOVER)
