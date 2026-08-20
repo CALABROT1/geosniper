@@ -200,10 +200,14 @@
       letter-spacing: 0.5px;
     }
 
-    .btn-compass:active {
-      transform: scale(0.95);
-      background: #1e293b;
+/* Estado quando a Bússola está Ligada */
+    .btn-compass.active {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5) !important;
     }
+    
     
   </style>
 </head>
@@ -219,7 +223,7 @@
 </div>
 
   <!-- BOTÃO DA BÚSSOLA FLUTUANTE (Adicionar Aqui) -->
-<button onclick="enableCompass()" class="btn-compass">
+<button onclick="toggleCompass()" class="btn-compass">
   🧭 ATIVAR BÚSSOLA
 </button>
 
@@ -356,27 +360,50 @@
     let currentHeading = 0;
     let compassActive = false;
 
-    // Função para solicitar permissão de sensores (especialmente iOS)
-    function enableCompass() {
+   function toggleCompass() {
+      // Se já estiver ativa, desliga
+      if (compassActive) {
+        window.removeEventListener('deviceorientation', handleOrientation, true);
+        window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+        compassActive = false;
+        updateCompassButtonStatus(false);
+        return;
+      }
+
+      // Se estiver desligada, solicita permissão e liga
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
           .then(response => {
             if (response === 'granted') {
               window.addEventListener('deviceorientation', handleOrientation, true);
               compassActive = true;
+              updateCompassButtonStatus(true);
             } else {
               alert('Permissão de bússola negada.');
             }
           })
           .catch(console.error);
       } else {
-        // Android / Navegadores Padrão
         window.addEventListener('deviceorientationabsolute', handleOrientation, true) ||
         window.addEventListener('deviceorientation', handleOrientation, true);
         compassActive = true;
+        updateCompassButtonStatus(true);
       }
     }
 
+    // Função que altera o texto e a cor do botão visualmente
+    function updateCompassButtonStatus(active) {
+      const btn = document.querySelector('.btn-compass');
+      if (!btn) return;
+
+      if (active) {
+        btn.classList.add('active');
+        btn.innerHTML = '🟢 BÚSSOLA ATIVA';
+      } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '🧭 ATIVAR BÚSSOLA';
+      }
+    }
     function handleOrientation(event) {
       let heading = null;
 
@@ -395,20 +422,32 @@
       }
     }
 
-   function updateUserBearing(bearing) {
-      // 1. Gira a visualização do mapa conforme a bússola
+let lastHeading = 0;
+
+    function updateUserBearing(bearing) {
+      // 1. FILTRO DE SUAVIZAÇÃO: Ignora oscilações menores que 3 graus para acabar com a instabilidade
+      if (Math.abs(bearing - lastHeading) < 3) return;
+      lastHeading = bearing;
+
+      // 2. Mantém o mapa fixo ao Norte (Remove o rotate do mapa que gerava as bordas cinzas)
       const mapContainers = document.querySelectorAll('.leaflet-map-pane');
       mapContainers.forEach(container => {
-        container.style.transformOrigin = 'center center';
-        container.style.transform = `rotate(${-bearing}deg)`;
+        container.style.transform = 'none';
       });
 
-      // 2. AQUI ENTRA A COMPENSAÇÃO: Gira os rótulos no sentido oposto para ficarem legíveis
+      // 3. Gira APENAS o ícone do operador/seta em vez do mapa inteiro
+      const userMarkerIcon = document.querySelector('.user-location-icon, .leaflet-marker-icon');
+      if (userMarkerIcon) {
+        userMarkerIcon.style.transformOrigin = 'center center';
+        userMarkerIcon.style.transition = 'transform 0.2s ease-out';
+        userMarkerIcon.style.transform = `rotate(${bearing}deg)`;
+      }
+
+      // 4. Mantém os rótulos de distância na posição normal
       document.querySelectorAll('.radius-label').forEach(label => {
-        label.style.transform = `rotate(${bearing}deg)`;
+        label.style.transform = 'none';
       });
     }
-
     function createTileLayers() {
       return {
         "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
