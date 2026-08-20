@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
-  <!-- Leaflet CSS e JS -->
+  <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -32,13 +33,13 @@
     .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 700; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
-/* Limita o mapa ao tamanho exato da aba */
+    /* Área de Conteúdo */
     .tab-content { 
       display: none; 
       height: calc(100vh - 50px); 
       width: 100%; 
       position: relative; 
-      overflow: hidden !important; 
+      overflow: hidden; 
     }
     .tab-content.active { display: block; }
 
@@ -47,13 +48,6 @@
       width: 100%; 
     }
 
-    /* Expande a camada de imagens (Tiles) para não faltar mapa ao girar */
-    .leaflet-tile-container {
-      width: 200% !important;
-      height: 200% !important;
-      top: -50% !important;
-      left: -50% !important;
-    }
     /* Estilo dos Rótulos no Mapa */
     .radius-label {
       background: rgba(255, 255, 255, 0.95);
@@ -444,39 +438,22 @@
       }
     }
 
- function applyMapRotation(bearing) {
+    function applyMapRotation(bearing) {
       const activeMap = getActiveMapInstance();
       if (!activeMap) return;
 
-      // Se tivermos a posição do GPS, pega os pixels exatos do operador na tela como pivô
-      let originX = '50%';
-      let originY = '50%';
-
-      if (currentPos) {
-        const userPoint = activeMap.latLngToContainerPoint(currentPos);
-        originX = `${userPoint.x}px`;
-        originY = `${userPoint.y}px`;
+      // Usa a biblioteca de Rotação Nativa do Leaflet
+      if (typeof activeMap.setBearing === 'function') {
+        activeMap.setBearing(bearing);
       }
 
-      // Rotaciona a camada do mapa ancorada NO MARCADOR DO OPERADOR
-      document.querySelectorAll('.leaflet-map-pane').forEach(container => {
-        container.style.transition = 'transform 0.3s ease-out';
-        container.style.transformOrigin = `${originX} ${originY}`;
-        
-        if (bearing === 0) {
-          container.style.transform = 'none';
-        } else {
-          // Escala 1.5x expandida para garantir cobrir toda a área visível
-          container.style.transform = `rotate(${bearing}deg) scale(1.5)`;
-        }
-      });
-
-      // Mantém os rótulos de metros legíveis na vertical
+      // Mantém os rótulos de metros sempre legíveis na vertical
       document.querySelectorAll('.radius-label').forEach(label => {
-        label.style.transition = 'transform 0.3s ease-out';
+        label.style.transition = 'transform 0.25s ease-out';
         label.style.transform = `rotate(${-bearing}deg)`;
       });
     }
+
     function getActiveMapInstance() {
       if (document.getElementById('tabRaios').classList.contains('active')) return mapRaios;
       if (document.getElementById('tabNormal').classList.contains('active')) return mapNormal;
@@ -545,25 +522,41 @@
       const opIcon = createOperatorIcon();
 
       const layersRaios = createTileLayers();
-      mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite"]] }).setView(currentPos, 15);
+      mapRaios = L.map('mapRaios', { 
+        layers: [layersRaios["Satélite"]], 
+        rotate: true, 
+        touchRotate: true 
+      }).setView(currentPos, 15);
       L.control.layers(layersRaios).addTo(mapRaios);
       markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
       updateRaios(lat, lng);
 
       const layersNormal = createTileLayers();
-      mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa"]] }).setView(currentPos, 16);
+      mapNormal = L.map('mapNormal', { 
+        layers: [layersNormal["Mapa"]], 
+        rotate: true, 
+        touchRotate: true 
+      }).setView(currentPos, 16);
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
       const layersRelevo = createTileLayers();
-      mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 15);
+      mapRelevo = L.map('mapRelevo', { 
+        layers: [layersRelevo["Relevo"]], 
+        rotate: true, 
+        touchRotate: true 
+      }).setView(currentPos, 15);
       L.control.layers(layersRelevo).addTo(mapRelevo);
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
       const layersMedir = createTileLayers();
-      mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite"]] }).setView(currentPos, 16);
+      mapMedir = L.map('mapMedir', { 
+        layers: [layersMedir["Satélite"]], 
+        rotate: true, 
+        touchRotate: true 
+      }).setView(currentPos, 16);
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
@@ -867,7 +860,7 @@
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(impactX - 6, impactY); ctx.lineTo(impactX + 6, impactY);
-      ctx.moveTo(impactX, impactY - 6); ctx.lineTo(impactX, impactY + 6);
+      ctx.moveTo(impactX, impactY - 6); ctx.lineTo(impactX, impactY + 5);
       ctx.stroke();
 
       ctx.textAlign = "left";
