@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
-  <!-- Leaflet CSS e JS com suporte a Rotação -->
+  <!-- Leaflet CSS e JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -32,7 +32,7 @@
     .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 700; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
-  /* Área de Conteúdo e Ajuste de Mapeamento sem bordas cinzas */
+    /* Área de Conteúdo */
     .tab-content { 
       display: none; 
       height: calc(100vh - 50px); 
@@ -50,7 +50,7 @@
       left: 0;
     }
 
-    /* Estilo dos Rótulos no Mapa (Com efeito flutuante) */
+    /* Estilo dos Rótulos no Mapa */
     .radius-label {
       background: rgba(255, 255, 255, 0.95);
       font-size: 15px;
@@ -224,6 +224,45 @@
       background: #0284c7;
       color: #fff;
     }
+
+    .results-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .res-item {
+      flex: 1;
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+    .res-item .val {
+      font-size: 20px;
+      font-weight: 900;
+      color: #ef4444;
+    }
+    .res-item .lbl {
+      font-size: 10px;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .reticle-container {
+      text-align: center;
+    }
+    .zoom-badge {
+      display: inline-block;
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #334155;
+    }
   </style>
 </head>
 <body>
@@ -374,7 +413,7 @@
     let markers = {};
     let circlesAndLabelsGroup = L.layerGroup();
     let measureMarker = null, measureLine = null;
-    let mapBearing = 0; // Ângulo de rotação manual do mapa
+    let mapBearing = 0; // Ângulo atual do mapa
 
     // Ícone Tático do Operador
     function createOperatorIcon() {
@@ -385,8 +424,6 @@
         iconAnchor: [11, 11]
       });
     }
-
-   let mapBearing = 0; // Ângulo atual do mapa
 
     function rotateMap(degrees) {
       mapBearing = (mapBearing + degrees) % 360;
@@ -411,7 +448,6 @@
         if (bearing === 0) {
           container.style.transform = 'none';
         } else {
-          // Expande 1.4x para preencher os cantos sem mostrar fundo cinza
           container.style.transform = `rotate(${bearing}deg) scale(1.4)`;
         }
       });
@@ -433,12 +469,6 @@
       if (document.getElementById('tabRelevo').classList.contains('active')) return mapRelevo;
       if (document.getElementById('tabMedir').classList.contains('active')) return mapMedir;
       return null;
-    }
-      // Compensação: Mantém os rótulos de metros legíveis na vertical
-      document.querySelectorAll('.radius-label').forEach(label => {
-        label.style.transition = 'transform 0.25s ease-out';
-        label.style.transform = `rotate(${-bearing}deg)`;
-      });
     }
 
     function createTileLayers() {
@@ -463,7 +493,6 @@
         if (mapMedir) mapMedir.invalidateSize();
         if (tabName === 'tabBalistica') runBallistics();
         
-        // Mantém a rotação ao trocar de aba
         applyMapRotation(mapBearing);
       }, 200);
     }
@@ -836,6 +865,11 @@
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, 55, 76);
     }
+
+    // Inicializa a balística logo na abertura da página
+    window.addEventListener('DOMContentLoaded', () => {
+      runBallistics();
+    });
 
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
