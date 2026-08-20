@@ -648,12 +648,14 @@
       ctx.stroke();
 
       // 4. Overlay de Informações Ópticas
+      ctx.textAlign = "center";
+      ctx.textAlign = "center";
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, cx, 80);
+      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, cx, 42);
 
       ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, cx, h - 60);
+      ctx.fillText(`${zoomLevel}.0x`, cx, h - 25);
       ctx.textAlign = "left"; // Restaura o alinhamento padrão do canvas
     }
 
