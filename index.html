@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
- <!-- Leaflet CSS e JS com suporte a Rotação -->
+  <!-- Leaflet CSS e JS com suporte a Rotação -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -38,7 +37,7 @@
     .tab-content.active { display: block; }
     .map { height: 100%; width: 100%; }
 
-  /* Estilo dos Rótulos no Mapa (Com efeito flutuante) */
+    /* Estilo dos Rótulos no Mapa (Com efeito flutuante) */
     .radius-label {
       background: rgba(255, 255, 255, 0.95);
       font-size: 15px;
@@ -48,7 +47,7 @@
       white-space: nowrap;
       text-align: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-      transition: transform 0.1s linear;
+      transition: transform 0.25s ease-out;
       transform-origin: center center;
       z-index: 500 !important;
     }
@@ -80,7 +79,7 @@
       border-radius: 10px;
       border: 1px solid #334155;
     }
-    /* MELHORIAS VISUAIS NA ENTRADA DE DADOS */
+
     .card h3 { 
       margin-top: 0; 
       color: #38bdf8; 
@@ -126,7 +125,6 @@
       transition: all 0.2s ease;
     }
 
-    /* Destaque nos campos ao clicar/focar */
     .form-group input:focus, .form-group select:focus {
       outline: none;
       border-color: #38bdf8;
@@ -136,7 +134,6 @@
     .form-row { display: flex; gap: 12px; }
     .form-row .form-group { flex: 1; }
 
-    /* Botão Tático de Ação */
     .btn-calc {
       width: 100%; 
       padding: 14px; 
@@ -157,14 +154,14 @@
       transform: scale(0.98);
       box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2);
     }
-    /* Aumenta a fonte e os botões do seletor de camadas do Leaflet */
+
     .leaflet-control-layers-toggle {
       width: 44px !important;
       height: 44px !important;
     }
 
     .leaflet-control-layers-list {
-      font-size: 16px !important; /* Tamanho da fonte dos textos */
+      font-size: 16px !important;
       font-weight: 700 !important;
       padding: 6px 10px !important;
       color: #0f172a !important;
@@ -179,11 +176,12 @@
     }
 
     .leaflet-control-layers-base input[type="radio"] {
-      width: 18px !important; /* Aumenta o tamanho da bolinha de seleção */
+      width: 18px !important;
       height: 18px !important;
       cursor: pointer !important;
     }
-/* Controles de Rotação Manual Tática */
+
+    /* Controles de Rotação Manual Tática */
     .rotate-controls {
       position: fixed;
       bottom: 20px;
@@ -213,11 +211,10 @@
       background: #0284c7;
       color: #fff;
     }
-        
   </style>
 </head>
 <body>
-  
+
 <div class="tabs">
   <div class="brand-title">GEOSNIPER <span style="color: #38bdf8; font-size: 12px;">by Calabrot</span></div>
   <button class="tab-btn active" onclick="openTab(event, 'tabBalistica')">Balística</button>
@@ -245,11 +242,11 @@
     <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
   </div>
 
-  <!-- DIV DA ABA BALÍSTICA (FALTAVA ESTE BLOCO COMPLETO DENTRO DO HTML) -->
+  <!-- DIV DA ABA BALÍSTICA -->
   <div id="tabBalistica" class="tab-content active">
     <div class="ballistics-grid">
       
-      <!-- PAINEL DE ENTRADA DE DADOS ORGANIZADO -->
+      <!-- PAINEL DE ENTRADA DE DADOS -->
       <div class="card">
         <h3>🎯 Configurações de Tiro & Projétil</h3>
         
@@ -328,7 +325,7 @@
 
         <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
-       
+        
       <!-- PAINEL DE RESULTADOS & CANVAS DO RETÍCULO -->
       <div class="card">
         <h3>Solução Tática & Retículo</h3>
@@ -364,9 +361,17 @@
     let markers = {};
     let circlesAndLabelsGroup = L.layerGroup();
     let measureMarker = null, measureLine = null;
-    let currentHeading = 0;
-    let compassActive = false;
-    let mapBearing = 0; // Ângulo atual do mapa
+    let mapBearing = 0; // Ângulo de rotação manual do mapa
+
+    // Ícone Tático do Operador
+    function createOperatorIcon() {
+      return L.divIcon({
+        className: 'user-operator-marker',
+        html: `<div style="width:22px; height:22px; background:#ef4444; border:2px solid #ffffff; border-radius:50%; box-shadow:0 0 8px rgba(239,68,68,0.8);"></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+      });
+    }
 
     // Função para Girar o Mapa Manualmente
     function rotateMap(degrees) {
@@ -381,13 +386,12 @@
     }
 
     function applyMapRotation(bearing) {
-      // Aplica a rotação nos contêineres de mapa ativos
-      const activeMap = document.querySelector('.tab-content.active .leaflet-map-pane');
-      if (activeMap) {
-        activeMap.style.transition = 'transform 0.25s ease-out';
-        activeMap.style.transformOrigin = 'center center';
-        activeMap.style.transform = `rotate(${bearing}deg)`;
-      }
+      // Aplica a rotação nos contêineres de mapa
+      document.querySelectorAll('.leaflet-map-pane').forEach(container => {
+        container.style.transition = 'transform 0.25s ease-out';
+        container.style.transformOrigin = 'center center';
+        container.style.transform = `rotate(${bearing}deg)`;
+      });
 
       // Compensação: Mantém os rótulos de metros legíveis na vertical
       document.querySelectorAll('.radius-label').forEach(label => {
@@ -417,6 +421,9 @@
         if (mapRelevo) mapRelevo.invalidateSize();
         if (mapMedir) mapMedir.invalidateSize();
         if (tabName === 'tabBalistica') runBallistics();
+        
+        // Mantém a rotação ao trocar de aba
+        applyMapRotation(mapBearing);
       }, 200);
     }
 
