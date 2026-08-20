@@ -648,12 +648,13 @@
       ctx.stroke();
 
       // 4. Overlay de Informações Ópticas
-      ctx.font = "bold 11px sans-serif";
+      ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Distância: ${Math.round(distanceMeters)}m`, 20, 30);
+      ctx.fillText(`Distância: ${Math.round(distanceMeters)}m`, cx, 50);
 
       ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, w - 50, 30);
+      ctx.fillText(`${zoomLevel}.0x`, cx, h - 35);
+      ctx.textAlign = "left"; // Restaura o alinhamento padrão do canvas
     }
 
     // Inicialização do GPS
