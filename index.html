@@ -43,6 +43,12 @@
     }
     .tab-content.active { display: block; }
 
+    /* Permite rolagem vertical apenas na aba Balística */
+    #tabBalistica {
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .map { 
       height: 100%; 
       width: 100%; 
@@ -78,6 +84,7 @@
       grid-template-columns: 1fr;
       gap: 15px;
       padding: 15px;
+      padding-bottom: 40px;
       color: white;
     }
     @media(min-width: 768px) {
@@ -198,7 +205,7 @@
       bottom: 20px;
       right: 12px;
       z-index: 1000;
-      display: none;
+      display: none; /* Escondido por padrão para não aparecer na Balística */
       gap: 6px;
       background: rgba(15, 23, 42, 0.9);
       padding: 6px;
@@ -257,11 +264,12 @@
       color: #38bdf8;
       padding: 4px 10px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       border: 1px solid #334155;
     }
-/* Estilização do Resumo Balístico (Dashboard Tático) */
+
+    /* Estilização do Resumo Balístico (Dashboard Tático) */
     .bal-summary-card {
       background: #0f172a;
       border: 1px solid #334155;
@@ -329,7 +337,6 @@
       font-weight: 800 !important;
       font-size: 13px !important;
     }
-    
   </style>
 </head>
 <body>
@@ -460,7 +467,7 @@
           </div>
         </div>
 
-        <div id="resDetails" style="font-size: 13px; color: #cbd5e1; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px; text-align: left; line-height: 1.6;">
+        <div id="resDetails">
           Aguardando cálculo...
         </div>
 
@@ -511,12 +518,10 @@
       const activeMap = getActiveMapInstance();
       if (!activeMap) return;
 
-      // Usa a biblioteca de Rotação Nativa do Leaflet
       if (typeof activeMap.setBearing === 'function') {
         activeMap.setBearing(bearing);
       }
 
-      // Mantém os rótulos de metros sempre legíveis na vertical
       document.querySelectorAll('.radius-label').forEach(label => {
         label.style.transition = 'transform 0.25s ease-out';
         label.style.transform = `rotate(${-bearing}deg)`;
@@ -545,8 +550,8 @@
 
       document.getElementById(tabName).classList.add('active');
       evt.currentTarget.classList.add('active');
-      
-// Controla a exibição dos botões de rotação (Esconde na Balística)
+
+      // Exibe os controles de rotação apenas se a aba for de mapa
       const rotateControls = document.querySelector('.rotate-controls');
       if (rotateControls) {
         if (tabName === 'tabBalistica') {
@@ -555,6 +560,7 @@
           rotateControls.style.display = 'flex';
         }
       }
+
       setTimeout(() => {
         if (mapRaios) mapRaios.invalidateSize();
         if (mapNormal) mapNormal.invalidateSize();
@@ -656,7 +662,7 @@
           <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
             Distância: <b>${Math.round(distanceMeters)}m</b>
           </div>
-          <div style="font-size: 15px; color: #f8fafc; margin-bottom: 8px;">
+          <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
             <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
           </div>
           <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
@@ -838,6 +844,7 @@
       if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
 
       const cmPerMoaAtDist = (dist / 100) * 2.908;
+
       let summaryHTML = `
         <div class="bal-summary-card">
           <!-- Métricas Principais -->
@@ -899,7 +906,7 @@
       `;
 
       document.getElementById('resDetails').innerHTML = summaryHTML;
-      
+
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
