@@ -489,6 +489,9 @@
     let measureMarker = null, measureLine = null;
     let mapBearing = 0;
 
+    // URL DA SUA API NO RENDER
+    const API_URL = 'https://geosniper-api.onrender.com/api/calculate-ballistics';
+
     function createOperatorIcon() {
       return L.divIcon({
         className: 'user-operator-marker',
@@ -644,7 +647,7 @@
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
-      mapMedir.on('click', function(e) {
+      mapMedir.on('click', async function(e) {
         const targetLat = e.latlng.lat;
         const targetLng = e.latlng.lng;
 
@@ -655,7 +658,9 @@
         measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
 
         const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
-        const sol = getBallisticSolutionForDistance(distanceMeters);
+        const sol = await getBallisticSolutionForDistance(distanceMeters);
+
+        if (!sol) return;
 
         const panelEl = document.getElementById('distPanel');
         panelEl.innerHTML = `
@@ -663,7 +668,7 @@
             Distância: <b>${Math.round(distanceMeters)}m</b>
           </div>
           <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
-            <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
+            <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
           </div>
           <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
           <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -692,7 +697,7 @@
         const btnMedir = document.querySelectorAll('.tab-btn')[1];
         openTab({ currentTarget: btnMedir }, 'tabMedir');
 
-        const checkMapLoaded = setInterval(() => {
+        const checkMapLoaded = setInterval(async () => {
           if (mapMedir) {
             clearInterval(checkMapLoaded);
 
@@ -705,14 +710,16 @@
               measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
 
               const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
-              const sol = getBallisticSolutionForDistance(distanceMeters);
+              const sol = await getBallisticSolutionForDistance(distanceMeters);
+
+              if (!sol) return;
 
               document.getElementById('distPanel').innerHTML = `
                 <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
                   Distância até o Alvo Recebido: <b>${Math.round(distanceMeters)}m</b>
                 </div>
                 <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
-                  <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
+                  <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
                 </div>
                 <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
                 <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -726,7 +733,32 @@
       }
     }
 
-    function getBallisticSolutionForDistance(dist) {
+    // CHAMADA ASSÍNCRONA PARA O SERVIDOR RENDER
+    async function getBallisticSolutionForDistance(dist) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dist: dist,
+            fps: parseFloat(document.getElementById('balSpeed')?.value) || 2680,
+            bc: parseFloat(document.getElementById('balBC')?.value) || 0.447,
+            profile: document.getElementById('balDragProfile')?.value || 'G1',
+            turret: document.getElementById('balTurret')?.value || 'MOA',
+            windKmh: parseFloat(document.getElementById('balWindSpeed')?.value) || 0,
+            windClock: parseInt(document.getElementById('balWindDir')?.value) || 3
+          })
+        });
+
+        if (!response.ok) throw new Error('Erro no servidor da API');
+        return await response.json();
+      } catch (err) {
+        console.error('Falha de conexão com a API:', err);
+        return null;
+      }
+    }
+
+    async function runBallistics() {
       const parseVal = (id, defaultVal) => {
         const el = document.getElementById(id);
         if (!el) return defaultVal;
@@ -735,44 +767,72 @@
         return isNaN(parsed) ? defaultVal : parsed;
       };
 
-      const fps = parseVal('balSpeed', 2680);
-      const bc = parseVal('balBC', 0.447);
-      const profileEl = document.getElementById('balDragProfile');
-      const profile = profileEl ? profileEl.value : "G1";
-      const turretEl = document.getElementById('balTurret');
-      const rawTurret = turretEl ? turretEl.value : "MOA";
+      const dist = parseVal('balDistance', 100);
+      const data = await getBallisticSolutionForDistance(dist);
+
+      if (!data) return;
+
+      const elElev = document.getElementById('resElevation');
+      const elWind = document.getElementById('resWindage');
+      if (elElev) elElev.innerText = `${data.clicksElev} UP`;
+      if (elWind) elWind.innerText = `${Math.abs(data.clicksWind)} ${data.clicksWind >= 0 ? 'R' : 'L'}`;
+
+      const rawTurret = document.getElementById('balTurret')?.value || 'MOA';
       const turret = rawTurret.toUpperCase().includes("MOA") ? "MOA" : "MRAD";
 
-      const windKmh = parseVal('balWindSpeed', 0);
-      const windClockEl = document.getElementById('balWindDir');
-      const windClock = windClockEl ? parseInt(windClockEl.value) || 3 : 3;
+      let summaryHTML = `
+        <div class="bal-summary-card">
+          <div class="bal-metrics-grid">
+            <div class="metric-box">
+              <div class="label">Velocidade no Alvo</div>
+              <div class="value" style="color: #38bdf8;">${data.v_target_fps} <span style="font-size:10px;">FPS</span></div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Tempo de Vôo</div>
+              <div class="value" style="color: #38bdf8;">${data.t_flight} <span style="font-size:10px;">s</span></div>
+            </div>
+            <div class="metric-box" style="grid-column: span 2;">
+              <div class="label">Queda Real (Drop)</div>
+              <div class="value" style="color: #f59e0b;">${data.netDropCm} cm <span style="font-size:11px; color:#94a3b8;">(${(data.netDropCm/100).toFixed(2)} m)</span></div>
+            </div>
+          </div>
 
-      const v0_ms = fps * 0.3048;
-      const zeroDist = 100;
-      const g = 9.81;
+          <table class="bal-calc-table">
+      `;
 
-      const bcFactor = profile === "G7" ? bc * 1.95 : bc;
-      const k = 0.000135 / bcFactor;
+      if (turret === "MOA") {
+        summaryHTML += `
+            <tr>
+              <td>Ângulo Correção</td>
+              <td>${data.moaElev} MOA</td>
+            </tr>
+            <tr class="bal-final-row">
+              <td>Torre (1/4 MOA)</td>
+              <td>${data.clicksElev} CLIQUES UP</td>
+            </tr>
+        `;
+      } else {
+        summaryHTML += `
+            <tr>
+              <td>Ângulo Correção</td>
+              <td>${data.mradElev} MRAD</td>
+            </tr>
+            <tr class="bal-final-row">
+              <td>Torre (0.1 MRAD)</td>
+              <td>${data.clicksElev} CLIQUES UP</td>
+            </tr>
+        `;
+      }
 
-      const t_flight = (Math.exp(k * dist) - 1) / (k * v0_ms);
-      const dropMeters = 0.5 * g * Math.pow(t_flight, 2);
-      const t_zero = zeroDist / v0_ms;
-      const dropZero = 0.5 * g * Math.pow(t_zero, 2);
-      const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
+      summaryHTML += `
+          </table>
+        </div>
+      `;
 
-      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
-      let moaElev = mradElev * 3.43775;
+      document.getElementById('resDetails').innerHTML = summaryHTML;
+      document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${data.recommendedZoom}x`;
 
-      const windMs = windKmh / 3.6;
-      const windAngleRad = (windClock * 30) * (Math.PI / 180);
-      const crossWindMs = windMs * Math.sin(windAngleRad);
-      const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
-      let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
-
-      let clicksElev = turret === "MOA" ? Math.round(moaElev * 4) : Math.round(mradElev * 10);
-      let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
-
-      return { netDropCm, mradElev, moaElev, mradWind, clicksElev, recommendedZoom };
+      renderReticle(data.mradElev, data.mradWind, dist, data.recommendedZoom);
     }
 
     function renderMiniReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
@@ -836,133 +896,6 @@
       ctx.font = "bold 15px sans-serif";
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, 25, 76);
-    }
-
-    function runBallistics() {
-      const parseVal = (id, defaultVal) => {
-        const el = document.getElementById(id);
-        if (!el) return defaultVal;
-        const raw = el.value.toString().replace(',', '.');
-        const parsed = parseFloat(raw);
-        return isNaN(parsed) ? defaultVal : parsed;
-      };
-
-      const fps = parseVal('balSpeed', 2680);
-      const bc = parseVal('balBC', 0.447);
-      const profile = document.getElementById('balDragProfile').value;
-      const dist = parseVal('balDistance', 100);
-      
-      const rawTurret = document.getElementById('balTurret').value;
-      const turret = rawTurret.toUpperCase().includes("MOA") ? "MOA" : "MRAD";
-
-      const windKmh = parseVal('balWindSpeed', 0);
-      const windClock = parseInt(document.getElementById('balWindDir').value) || 3;
-
-      const v0_ms = fps * 0.3048;
-      const zeroDist = 100;
-      const g = 9.81;
-
-      const bcFactor = profile === "G7" ? bc * 1.95 : bc;
-      const k = 0.000135 / bcFactor;
-
-      const t_flight = (Math.exp(k * dist) - 1) / (k * v0_ms);
-      const v_target = v0_ms * Math.exp(-k * dist);
-
-      const dropMeters = 0.5 * g * Math.pow(t_flight, 2);
-      const t_zero = zeroDist / v0_ms;
-      const dropZero = 0.5 * g * Math.pow(t_zero, 2);
-      const netDropCm = (dropMeters - (dropZero * (dist / zeroDist))) * 100;
-
-      let mradElev = dist > 100 ? (netDropCm / (dist / 10)) : 0;
-      let moaElev = mradElev * 3.43775;
-
-      const windMs = windKmh / 3.6;
-      const windAngleRad = (windClock * 30) * (Math.PI / 180);
-      const crossWindMs = windMs * Math.sin(windAngleRad);
-      
-      const windDriftCm = crossWindMs * (t_flight - (dist / v0_ms)) * 100;
-      let mradWind = dist > 0 ? (windDriftCm / (dist / 10)) : 0;
-
-      let clicksElev = 0, clicksWind = 0;
-      if (turret === "MRAD") {
-        clicksElev = Math.round(mradElev * 10);
-        clicksWind = Math.round(mradWind * 10);
-      } else {
-        clicksElev = Math.round(moaElev * 4);
-        clicksWind = Math.round(mradWind * 3.43775 * 4);
-      }
-
-      const elElev = document.getElementById('resElevation');
-      const elWind = document.getElementById('resWindage');
-      if (elElev) elElev.innerText = `${clicksElev} UP`;
-      if (elWind) elWind.innerText = `${Math.abs(clicksWind)} ${clicksWind >= 0 ? 'R' : 'L'}`;
-
-      const cmPerMoaAtDist = (dist / 100) * 2.908;
-
-      let summaryHTML = `
-        <div class="bal-summary-card">
-          <div class="bal-metrics-grid">
-            <div class="metric-box">
-              <div class="label">Velocidade no Alvo</div>
-              <div class="value" style="color: #38bdf8;">${Math.round(v_target * 3.28084)} <span style="font-size:10px;">FPS</span></div>
-            </div>
-            <div class="metric-box">
-              <div class="label">Tempo de Vôo</div>
-              <div class="value" style="color: #38bdf8;">${t_flight.toFixed(2)} <span style="font-size:10px;">s</span></div>
-            </div>
-            <div class="metric-box" style="grid-column: span 2;">
-              <div class="label">Queda Real (Drop)</div>
-              <div class="value" style="color: #f59e0b;">${netDropCm.toFixed(1)} cm <span style="font-size:11px; color:#94a3b8;">(${(netDropCm/100).toFixed(2)} m)</span></div>
-            </div>
-          </div>
-
-          <table class="bal-calc-table">
-      `;
-
-      if (turret === "MOA") {
-        summaryHTML += `
-            <tr>
-              <td>1 MOA a ${dist}m</td>
-              <td>${cmPerMoaAtDist.toFixed(2)} cm</td>
-            </tr>
-            <tr>
-              <td>Ângulo Correção</td>
-              <td>${moaElev.toFixed(1)} MOA</td>
-            </tr>
-            <tr class="bal-final-row">
-              <td>Torre (1/4 MOA)</td>
-              <td>${clicksElev} CLIQUES UP</td>
-            </tr>
-        `;
-      } else {
-        const cmPerMradAtDist = dist / 10;
-        summaryHTML += `
-            <tr>
-              <td>1 MRAD a ${dist}m</td>
-              <td>${cmPerMradAtDist.toFixed(1)} cm</td>
-            </tr>
-            <tr>
-              <td>Ângulo Correção</td>
-              <td>${mradElev.toFixed(1)} MRAD</td>
-            </tr>
-            <tr class="bal-final-row">
-              <td>Torre (0.1 MRAD)</td>
-              <td>${clicksElev} CLIQUES UP</td>
-            </tr>
-        `;
-      }
-
-      summaryHTML += `
-          </table>
-        </div>
-      `;
-
-      document.getElementById('resDetails').innerHTML = summaryHTML;
-
-      let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
-      document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
-
-      renderReticle(mradElev, mradWind, dist, recommendedZoom);
     }
 
     function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
