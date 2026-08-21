@@ -261,6 +261,75 @@
       font-weight: 700;
       border: 1px solid #334155;
     }
+/* Estilização do Resumo Balístico (Dashboard Tático) */
+    .bal-summary-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+
+    .bal-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .metric-box {
+      background: #1e293b;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+
+    .metric-box .label {
+      font-size: 10px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .metric-box .value {
+      font-size: 15px;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-top: 2px;
+    }
+
+    .bal-calc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .bal-calc-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #1e293b;
+      color: #cbd5e1;
+    }
+
+    .bal-calc-table td:last-child {
+      text-align: right;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .bal-final-row {
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 6px;
+    }
+
+    .bal-final-row td {
+      border-bottom: none !important;
+      color: #ef4444 !important;
+      font-weight: 800 !important;
+      font-size: 13px !important;
+    }
+    
   </style>
 </head>
 <body>
@@ -770,34 +839,67 @@
 
       const cmPerMoaAtDist = (dist / 100) * 2.908;
       let summaryHTML = `
-        <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #334155; color: #38bdf8;">
-          Velocidade no Alvo: <b>${Math.round(v_target * 3.28084)} FPS</b> | Tempo Vôo: <b>${t_flight.toFixed(2)}s</b>
-        </div>
+        <div class="bal-summary-card">
+          <!-- Métricas Principais -->
+          <div class="bal-metrics-grid">
+            <div class="metric-box">
+              <div class="label">Velocidade no Alvo</div>
+              <div class="value" style="color: #38bdf8;">${Math.round(v_target * 3.28084)} <span style="font-size:10px;">FPS</span></div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Tempo de Vôo</div>
+              <div class="value" style="color: #38bdf8;">${t_flight.toFixed(2)} <span style="font-size:10px;">s</span></div>
+            </div>
+            <div class="metric-box" style="grid-column: span 2;">
+              <div class="label">Queda Real (Drop)</div>
+              <div class="value" style="color: #f59e0b;">${netDropCm.toFixed(1)} cm <span style="font-size:11px; color:#94a3b8;">(${(netDropCm/100).toFixed(2)} m)</span></div>
+            </div>
+          </div>
+
+          <!-- Tabela de Memória de Cálculo -->
+          <table class="bal-calc-table">
       `;
 
       if (turret === "MOA") {
         summaryHTML += `
-          <b>Queda Real do Projétil (Drop):</b> aprox. <b>${netDropCm.toFixed(1)} cm</b> (${(netDropCm/100).toFixed(2)} m)<br>
-          <b>Cálculo em MOA:</b><br>
-          • A ${dist}m, 1 MOA = ${(dist/100)} × 2,908 cm ≈ <b>${cmPerMoaAtDist.toFixed(2)} cm</b><br>
-          • Ângulo necessário: ${netDropCm.toFixed(1)} cm / ${cmPerMoaAtDist.toFixed(2)} cm/MOA ≈ <b>${moaElev.toFixed(1)} MOA</b><br>
-          <b>Cálculo em CLIQUES (Torre de 1/4 MOA):</b><br>
-          • Cliques = ${moaElev.toFixed(1)} MOA × 4 = <b style="color: #ef4444;">${clicksElev} CLIQUES UP</b>
+            <tr>
+              <td>1 MOA a ${dist}m</td>
+              <td>${cmPerMoaAtDist.toFixed(2)} cm</td>
+            </tr>
+            <tr>
+              <td>Ângulo Correção</td>
+              <td>${moaElev.toFixed(1)} MOA</td>
+            </tr>
+            <tr class="bal-final-row">
+              <td>Torre (1/4 MOA)</td>
+              <td>${clicksElev} CLIQUES UP</td>
+            </tr>
         `;
       } else {
         const cmPerMradAtDist = dist / 10;
         summaryHTML += `
-          <b>Queda Real do Projétil (Drop):</b> aprox. <b>${netDropCm.toFixed(1)} cm</b> (${(netDropCm/100).toFixed(2)} m)<br>
-          <b>Cálculo em MRAD:</b><br>
-          • A ${dist}m, 1 MRAD = <b>${cmPerMradAtDist.toFixed(1)} cm</b><br>
-          • Ângulo necessário: ${netDropCm.toFixed(1)} cm / ${cmPerMradAtDist.toFixed(1)} cm/MRAD ≈ <b>${mradElev.toFixed(1)} MRAD</b><br>
-          <b>Cálculo em CLIQUES (Torre de 0.1 MRAD):</b><br>
-          • Cliques = ${mradElev.toFixed(1)} MRAD × 10 = <b style="color: #ef4444;">${clicksElev} CLIQUES UP</b>
+            <tr>
+              <td>1 MRAD a ${dist}m</td>
+              <td>${cmPerMradAtDist.toFixed(1)} cm</td>
+            </tr>
+            <tr>
+              <td>Ângulo Correção</td>
+              <td>${mradElev.toFixed(1)} MRAD</td>
+            </tr>
+            <tr class="bal-final-row">
+              <td>Torre (0.1 MRAD)</td>
+              <td>${clicksElev} CLIQUES UP</td>
+            </tr>
         `;
       }
 
-      document.getElementById('resDetails').innerHTML = summaryHTML;
+      summaryHTML += `
+          </table>
+        </div>
+      `;
 
+      document.getElementById('resDetails').innerHTML = summaryHTML;
+      
       let recommendedZoom = Math.min(Math.max(Math.round(dist / 40), 3), 24);
       document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${recommendedZoom}x`;
 
