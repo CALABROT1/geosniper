@@ -123,7 +123,7 @@
     
     .form-group label { 
       display: block; 
-      font-size: 12px; 
+      font-size: 11px; 
       font-weight: 700;
       color: #cbd5e1; 
       text-transform: uppercase;
@@ -179,7 +179,7 @@
     }
 
     .leaflet-control-layers-list {
-      font-size: 14px !important;
+      font-size: 16px !important;
       font-weight: 700 !important;
       padding: 6px 10px !important;
       color: #0f172a !important;
@@ -205,7 +205,7 @@
       bottom: 20px;
       right: 12px;
       z-index: 1000;
-      display: none; /* Escondido por padrão para não aparecer na Balística */
+      display: none;
       gap: 6px;
       background: rgba(15, 23, 42, 0.9);
       padding: 6px;
@@ -249,7 +249,7 @@
       color: #ef4444;
     }
     .res-item .lbl {
-      font-size: 12px;
+      font-size: 10px;
       color: #94a3b8;
       font-weight: 700;
       margin-top: 4px;
@@ -487,9 +487,8 @@
     let markers = {};
     let circlesAndLabelsGroup = L.layerGroup();
     let measureMarker = null, measureLine = null;
-    let mapBearing = 0; // Ângulo atual do mapa
+    let mapBearing = 0;
 
-    // Ícone Tático do Operador
     function createOperatorIcon() {
       return L.divIcon({
         className: 'user-operator-marker',
@@ -549,9 +548,10 @@
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
       document.getElementById(tabName).classList.add('active');
-      evt.currentTarget.classList.add('active');
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add('active');
+      }
 
-      // Exibe os controles de rotação apenas se a aba for de mapa
       const rotateControls = document.querySelector('.rotate-controls');
       if (rotateControls) {
         if (tabName === 'tabBalistica') {
@@ -666,10 +666,64 @@
             <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
           </div>
           <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
+          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            📲 Compartilhar Alvo no WhatsApp
+          </button>
         `;
 
         renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
       });
+    }
+
+    function sharePointWhatsApp(lat, lng) {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${baseUrl}?tab=medir&targetLat=${lat}&targetLng=${lng}`;
+      const message = `🎯 *GEOSNIPER - Localização de Alvo/Ponto*\n\nConfira a medição e coordenadas marcadas no mapa:\n${shareUrl}`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function checkSharedPointFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      const targetLat = parseFloat(urlParams.get('targetLat'));
+      const targetLng = parseFloat(urlParams.get('targetLng'));
+
+      if (tab === 'medir' && !isNaN(targetLat) && !isNaN(targetLng)) {
+        const btnMedir = document.querySelectorAll('.tab-btn')[1];
+        openTab({ currentTarget: btnMedir }, 'tabMedir');
+
+        const checkMapLoaded = setInterval(() => {
+          if (mapMedir) {
+            clearInterval(checkMapLoaded);
+
+            if (measureMarker) mapMedir.removeLayer(measureMarker);
+            measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
+            mapMedir.setView([targetLat, targetLng], 17);
+
+            if (currentPos) {
+              if (measureLine) mapMedir.removeLayer(measureLine);
+              measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
+
+              const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
+              const sol = getBallisticSolutionForDistance(distanceMeters);
+
+              document.getElementById('distPanel').innerHTML = `
+                <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
+                  Distância até o Alvo Recebido: <b>${Math.round(distanceMeters)}m</b>
+                </div>
+                <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
+                  <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev.toFixed(1)} MOA)
+                </div>
+                <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
+                <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  📲 Compartilhar Alvo no WhatsApp
+                </button>
+              `;
+              renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
+            }
+          }
+        }, 300);
+      }
     }
 
     function getBallisticSolutionForDistance(dist) {
@@ -847,7 +901,6 @@
 
       let summaryHTML = `
         <div class="bal-summary-card">
-          <!-- Métricas Principais -->
           <div class="bal-metrics-grid">
             <div class="metric-box">
               <div class="label">Velocidade no Alvo</div>
@@ -863,7 +916,6 @@
             </div>
           </div>
 
-          <!-- Tabela de Memória de Cálculo -->
           <table class="bal-calc-table">
       `;
 
@@ -991,9 +1043,9 @@
       ctx.fillText(`${zoomLevel}.0x`, 55, 76);
     }
 
-    // Inicializa a balística logo na abertura da página
     window.addEventListener('DOMContentLoaded', () => {
       runBallistics();
+      checkSharedPointFromURL();
     });
 
     if ("geolocation" in navigator) {
