@@ -1474,6 +1474,82 @@ function startSensorListeners(btn) {
     }, 2500);
   }, 3500);
 }
+  // SYNC METEOROLÓGICO REAL E GRATUITO (OPEN-METEO API)
+async function syncWeatherFromGPS() {
+  const btn = document.querySelector('.btn-sync');
+  
+  if (!currentPos || !currentPos[0] || !currentPos[1]) {
+    alert("Coordenadas GPS ainda não obtidas. Certifique-se de ativar a localização no navegador.");
+    return;
+  }
+
+  const lat = currentPos[0];
+  const lng = currentPos[1];
+
+  // Atualiza campo de Latitude para o cálculo de Coriolis
+  const latEl = document.getElementById('eqLatitude');
+  if (latEl) latEl.value = parseFloat(lat.toFixed(4));
+
+  if (btn) btn.innerText = "⏳ Sincronizando Clima...";
+
+  try {
+    // Chamada gratuita para a API Open-Meteo sem chave de API
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Falha ao obter dados meteorológicos");
+
+    const data = await response.json();
+    const current = data.current;
+
+    // 1. Temperatura (°C)
+    const tempEl = document.getElementById('eqTemp');
+    if (tempEl && current.temperature_2m !== undefined) {
+      tempEl.value = Math.round(current.temperature_2m);
+    }
+
+    // 2. Umidade Relativa (%)
+    const humEl = document.getElementById('eqHumidity');
+    if (humEl && current.relative_humidity_2m !== undefined) {
+      humEl.value = Math.round(current.relative_humidity_2m);
+    }
+
+    // 3. Pressão Atmosférica (hPa)
+    const pressEl = document.getElementById('eqPressure');
+    if (pressEl && current.surface_pressure !== undefined) {
+      pressEl.value = Math.round(current.surface_pressure);
+    }
+
+    // 4. Velocidade do Vento (converte m/s ou km/h para km/h)
+    const windSpeedEl = document.getElementById('eqWindSpeed');
+    if (windSpeedEl && current.wind_speed_10m !== undefined) {
+      windSpeedEl.value = Math.round(current.wind_speed_10m);
+    }
+
+    // 5. Direção do Vento em Horas do Relógio (1-12h)
+    if (current.wind_direction_10m !== undefined) {
+      const degrees = current.wind_direction_10m; // 0° a 360°
+      let clockHour = Math.round(degrees / 30);
+      if (clockHour === 0) clockHour = 12;
+      
+      const clockEl = document.getElementById('eqWindClock');
+      if (clockEl) clockEl.value = clockHour.toString();
+    }
+
+    // Salva o novo perfil ambiental no LocalStorage
+    saveEnvironmentProfile();
+
+    if (btn) btn.innerText = "✅ Clima Atualizado!";
+    setTimeout(() => {
+      if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
+    }, 2500);
+
+  } catch (err) {
+    console.error("Erro no sync de clima:", err);
+    alert("Erro ao buscar dados do clima na rede. Verifique sua conexão.");
+    if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
+  }
+}
   
 </script>
 </body>
