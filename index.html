@@ -822,7 +822,7 @@
 
       const rotateControls = document.querySelector('.rotate-controls');
       if (rotateControls) {
-        if (tabName === 'tabBalistica') {
+        if (tabName === 'tabBalistica' || tabName === 'tabEquipamento') {
           rotateControls.style.display = 'none';
         } else {
           rotateControls.style.display = 'flex';
@@ -878,7 +878,7 @@
         layers: [layersRaios["Satélite"]], 
         rotate: true, 
         touchRotate: true 
-      }).setView(currentPos, 16);
+      }).setView(currentPos, 17);
       L.control.layers(layersRaios).addTo(mapRaios);
       markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
@@ -889,7 +889,7 @@
         layers: [layersNormal["Mapa"]], 
         rotate: true, 
         touchRotate: true 
-      }).setView(currentPos, 16);
+      }).setView(currentPos, 17);
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
@@ -898,7 +898,7 @@
         layers: [layersRelevo["Relevo"]], 
         rotate: true, 
         touchRotate: true 
-      }).setView(currentPos, 15);
+      }).setView(currentPos, 17);
       L.control.layers(layersRelevo).addTo(mapRelevo);
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
