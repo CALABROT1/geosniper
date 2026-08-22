@@ -337,6 +337,113 @@
       font-weight: 800 !important;
       font-size: 13px !important;
     }
+    .equip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.equip-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.equip-card.header-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-left: 4px solid #38bdf8;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge-status {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.form-group input, .form-group select {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: #38bdf8;
+}
+
+.btn-sync, .btn-sensor {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-sync:hover, .btn-sensor:hover {
+  background: #0369a1;
+}
   </style>
 </head>
 <body>
@@ -348,6 +455,8 @@
   <button class="tab-btn" onclick="openTab(event, 'tabRaios')">Raios</button>
   <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
   <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
+  <button class="tab-btn" onclick="openTab(event, 'tabEquipamento')">
+  ⚙️ Equipamento & Clima </button>
 </div>
   
 <!-- PAINEL DE CONTROLE DE ROTAÇÃO MANUAL -->
@@ -480,6 +589,162 @@
 
     </div>
   </div>
+
+  <!-- ABA EQUIPAMENTO & CONDIÇÕES CLIMÁTICAS -->
+<div id="tabEquipamento" class="tab-content">
+  <div class="equip-container">
+    
+    <!-- BANNER DE CONFIGURAÇÃO DE MISSÃO -->
+    <div class="equip-card header-card">
+      <div class="card-title">
+        <span>🌐 UNIDADES E IDIOMA</span>
+        <span class="badge-status" id="profileStatusBadge">PERFIL ATIVO: PADRÃO</span>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="sysLanguage">Idioma / Language</label>
+          <select id="sysLanguage" onchange="updateSystemLanguage()">
+            <option value="pt" selected>🇧🇷 Português (BR)</option>
+            <option value="en">🇺🇸 English (US)</option>
+            <option value="es">🇪🇸 Español</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sysUnits">Sistema de Medidas</label>
+          <select id="sysUnits" onchange="updateUnitSystem()">
+            <option value="metric" selected>Métrico (m, km/h, °C, hPa, cm)</option>
+            <option value="imperial">Imperial (yd, mph, °F, inHg, in)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="gunPresetSelect">Preset de Fuzil / Arma</label>
+          <select id="gunPresetSelect" onchange="loadSelectedWeaponPreset()">
+            <option value="custom">-- Fuzil Personalizado --</option>
+            <!-- Preenchido via API /api/weapons -->
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCO 1: ESPECIFICAÇÕES DO FUZIL & CANO -->
+    <div class="equip-card">
+      <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
+      <div class="form-grid-4">
+        <div class="form-group">
+          <label for="eqFps">Velocidade Boca (FPS)</label>
+          <input type="number" id="eqFps" value="2680" step="10" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqBC">Coeficiente Balístico (BC)</label>
+          <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqProfile">Perfil de Arraste</label>
+          <select id="eqProfile" onchange="saveGunProfile()">
+            <option value="G1" selected>G1 (Padrão/Comercial)</option>
+            <option value="G7">G7 (Boat-tail / Longa Distância)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqTurret">Ajuste da Torre</label>
+          <select id="eqTurret" onchange="saveGunProfile()">
+            <option value="MOA" selected>MOA (1/4 MOA)</option>
+            <option value="MRAD">MRAD / MIL (0.1 MRAD)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqTwist">Passo de Raia (Twist 1:X")</label>
+          <input type="number" id="eqTwist" value="10" step="0.5" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqTwistDir">Sentido do Raiamento</label>
+          <select id="eqTwistDir" onchange="saveGunProfile()">
+            <option value="RIGHT" selected>Direita (RH / Right-Hand)</option>
+            <option value="LEFT">Esquerda (LH / Left-Hand)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqBarrelLen">Comprimento do Cano (Pol.)</label>
+          <input type="number" id="eqBarrelLen" value="20" step="0.5" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqScopeHeight">Altura da Luneta (cm)</label>
+          <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCO 2: CONDIÇÕES ATMOSFÉRICAS E CLIMA -->
+    <div class="equip-card">
+      <div class="card-title flex-between">
+        <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
+        <button type="button" class="btn-sync" onclick="syncWeatherFromGPS()">
+          🔄 Sincronizar Clima via GPS
+        </button>
+      </div>
+      <div class="form-grid-4">
+        <div class="form-group">
+          <label for="eqTemp">Temperatura (°C)</label>
+          <input type="number" id="eqTemp" value="15" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqPressure">Pressão Atmosférica (hPa)</label>
+          <input type="number" id="eqPressure" value="1013" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqHumidity">Umidade Relativa (%)</label>
+          <input type="number" id="eqHumidity" value="50" step="5" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqWindSpeed">Vento (km/h)</label>
+          <input type="number" id="eqWindSpeed" value="0" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
+          <select id="eqWindClock" onchange="saveEnvironmentProfile()">
+            <option value="12">12h (Vento de Frente / Headwind)</option>
+            <option value="1">1h</option>
+            <option value="2">2h</option>
+            <option value="3" selected>3h (Vento da Direita / Full Crosswind)</option>
+            <option value="4">4h</option>
+            <option value="5">5h</option>
+            <option value="6">6h (Vento de Cauda / Tailwind)</option>
+            <option value="7">7h</option>
+            <option value="8">8h</option>
+            <option value="9">9h (Vento da Esquerda / Full Crosswind)</option>
+            <option value="10">10h</option>
+            <option value="11">11h</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCO 3: TELEMETRIA & INCLINÔMETRO DA MISSÃO -->
+    <div class="equip-card">
+      <div class="card-title flex-between">
+        <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
+        <button type="button" class="btn-sensor" onclick="readDeviceSensors()">
+          📱 Ler Sensores do Celular (Ângulo/Bússola)
+        </button>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
+          <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
+          <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
+          <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <script>
     let currentPos = null;
@@ -1013,6 +1278,114 @@
     } else {
       alert("Seu dispositivo não suporta geolocalização.");
     }
+// VARIÁVEL DE ESTADO GLOBAL DO SISTEMA
+let weaponsCatalog = {};
+
+// 1. CARREGAR CATÁLOGO DE ARMAS DA API DO RENDER
+async function fetchWeaponsCatalog() {
+  try {
+    const response = await fetch('https://geosniper-api.onrender.com/api/weapons');
+    if (!response.ok) return;
+    weaponsCatalog = await response.json();
+    
+    const selectEl = document.getElementById('gunPresetSelect');
+    if (!selectEl) return;
+
+    selectEl.innerHTML = '<option value="custom">-- Fuzil Personalizado --</option>';
+    for (const key in weaponsCatalog) {
+      const w = weaponsCatalog[key];
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.innerText = w.name;
+      selectEl.appendChild(opt);
+    }
+  } catch (err) {
+    console.warn('Não foi possível carregar catálogo remoto de armas:', err);
+  }
+}
+
+// 2. APLICAR PRESET DE FUZIL SELECIONADO
+function loadSelectedWeaponPreset() {
+  const selectedKey = document.getElementById('gunPresetSelect').value;
+  if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) return;
+
+  const w = weaponsCatalog[selectedKey];
+  document.getElementById('eqFps').value = w.fps;
+  document.getElementById('eqBC').value = w.bc;
+  document.getElementById('eqProfile').value = w.profile || 'G1';
+  document.getElementById('eqTwist').value = w.twist || 10;
+  document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
+  document.getElementById('eqBarrelLen').value = w.barrelLengthInches || 20;
+
+  document.getElementById('profileStatusBadge').innerText = `PERFIL ATIVO: ${w.name.toUpperCase()}`;
+  saveGunProfile();
+}
+
+// 3. PERSISTÊNCIA LOCAL (LOCALSTORAGE)
+function saveGunProfile() {
+  const profileData = {
+    fps: parseFloat(document.getElementById('eqFps').value),
+    bc: parseFloat(document.getElementById('eqBC').value),
+    profile: document.getElementById('eqProfile').value,
+    turret: document.getElementById('eqTurret').value,
+    twist: parseFloat(document.getElementById('eqTwist').value),
+    twistDir: document.getElementById('eqTwistDir').value,
+    barrelLen: parseFloat(document.getElementById('eqBarrelLen').value),
+    scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value)
+  };
+  localStorage.setItem('geosniper_gun_profile', JSON.stringify(profileData));
+}
+
+function saveEnvironmentProfile() {
+  const envData = {
+    temp: parseFloat(document.getElementById('eqTemp').value),
+    pressure: parseFloat(document.getElementById('eqPressure').value),
+    humidity: parseFloat(document.getElementById('eqHumidity').value),
+    windSpeed: parseFloat(document.getElementById('eqWindSpeed').value),
+    windClock: parseInt(document.getElementById('eqWindClock').value),
+    inclination: parseFloat(document.getElementById('eqInclination').value),
+    azimuth: parseFloat(document.getElementById('eqAzimuth').value)
+  };
+  localStorage.setItem('geosniper_env_profile', JSON.stringify(envData));
+}
+
+// 4. ATUALIZAÇÃO DA FUNÇÃO QUE ENVIA DADOS PARA A API DO RENDER
+async function getBallisticSolutionForDistance(dist) {
+  try {
+    const response = await fetch('https://geosniper-api.onrender.com/api/calculate-ballistics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dist: dist,
+        fps: parseFloat(document.getElementById('eqFps')?.value) || 2680,
+        bc: parseFloat(document.getElementById('eqBC')?.value) || 0.447,
+        profile: document.getElementById('eqProfile')?.value || 'G1',
+        turret: document.getElementById('eqTurret')?.value || 'MOA',
+        windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value) || 0,
+        windClock: parseInt(document.getElementById('eqWindClock')?.value) || 3,
+        inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
+        tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
+        pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
+        twistRateInches: parseFloat(document.getElementById('eqTwist')?.value) || 10,
+        twistDirection: document.getElementById('eqTwistDir')?.value || 'RIGHT',
+        latitude: currentPos ? currentPos[0] : -22.82,
+        azimuthDeg: parseFloat(document.getElementById('eqAzimuth')?.value) || 90
+      })
+    });
+
+    if (!response.ok) throw new Error('Erro na requisição da API');
+    return await response.json();
+  } catch (err) {
+    console.error('Falha de conexão com a API:', err);
+    return null;
+  }
+}
+
+// INICIALIZAR CONSULTAS AO CARREGAR A PÁGINA
+window.addEventListener('DOMContentLoaded', () => {
+  fetchWeaponsCatalog();
+});
+  
 </script>
 </body>
 </html>
