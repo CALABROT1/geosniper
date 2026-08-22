@@ -1392,6 +1392,88 @@ async function getBallisticSolutionForDistance(dist) {
 window.addEventListener('DOMContentLoaded', () => {
   fetchWeaponsCatalog();
 });
+
+  // LEITURA DOS SENSORES DO SMARTPHONE (INCLINÔMETRO + BÚSSOLA)
+function readDeviceSensors() {
+  const btn = document.querySelector('.btn-sensor');
+  if (btn) btn.innerText = "⏳ Lendo Sensores...";
+
+  // Solicitação de permissão obrigatória para iOS (Apple Safari)
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(response => {
+        if (response === 'granted') {
+          startSensorListeners(btn);
+        } else {
+          alert('Permissão para acessar os sensores de orientação foi negada.');
+          if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao solicitar permissão de sensores:', err);
+        if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+      });
+  } else if (window.DeviceOrientationEvent) {
+    // Dispositivos Android e navegadores padrão
+    startSensorListeners(btn);
+  } else {
+    alert('Seu dispositivo ou navegador não possui suporte a sensores de orientação/giroscópio.');
+    if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+  }
+}
+
+function startSensorListeners(btn) {
+  let sensorTimeout;
+
+  function handleOrientation(event) {
+    // 1. LEITURA DE AZIMUTE (BÚSSOLA)
+    let heading = null;
+    if (event.webkitCompassHeading) {
+      // Suporte iOS Safari
+      heading = event.webkitCompassHeading;
+    } else if (event.alpha !== null) {
+      // Suporte Android (converte alpha para bússola 0-360)
+      heading = 360 - event.alpha;
+    }
+
+    if (heading !== null) {
+      const azimuteVal = Math.round((heading + 360) % 360);
+      const azEl = document.getElementById('eqAzimuth');
+      if (azEl) azEl.value = azimuteVal;
+    }
+
+    // 2. LEITURA DE INCLINAÇÃO (INCLINÔMETRO - ACLIVE/DECLIVE)
+    // Usamos o pitch (beta) quando o aparelho está em modo retrato
+    if (event.beta !== null) {
+      let pitch = event.beta; // Ângulo de -180° a 180°
+      
+      // Ajusta para considerar a posição de visada (90° em pé = 0° inclinação)
+      let inclination = Math.round(pitch - 90);
+      
+      // Limita o intervalo de segurança de -90° a +90°
+      if (inclination > 90) inclination = 90;
+      if (inclination < -90) inclination = -90;
+
+      const incEl = document.getElementById('eqInclination');
+      if (incEl) incEl.value = inclination;
+    }
+
+    // Salva os dados atualizados e desliga o sensor após 3 segundos de estabilização
+    saveEnvironmentProfile();
+  }
+
+  window.addEventListener('deviceorientation', handleOrientation, true);
+
+  // Desativa o listener após 3.5 segundos para economizar bateria e travar a leitura
+  clearTimeout(sensorTimeout);
+  sensorTimeout = setTimeout(() => {
+    window.removeEventListener('deviceorientation', handleOrientation, true);
+    if (btn) btn.innerText = "✅ Sensores Atualizados!";
+    setTimeout(() => {
+      if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+    }, 2500);
+  }, 3500);
+}
   
 </script>
 </body>
