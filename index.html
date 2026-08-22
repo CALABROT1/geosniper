@@ -337,7 +337,14 @@
       font-weight: 800 !important;
       font-size: 13px !important;
     }
-    .equip-container {
+   #tabEquipamento {
+  overflow-y: auto;
+  max-height: calc(100vh - 70px);
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 30px;
+}
+
+.equip-container {
   display: flex;
   flex-direction: column;
   gap: 15px;
