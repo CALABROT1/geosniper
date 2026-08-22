@@ -613,7 +613,7 @@
         layers: [layersRaios["Satélite"]], 
         rotate: true, 
         touchRotate: true 
-      }).setView(currentPos, 15);
+      }).setView(currentPos, 16);
       L.control.layers(layersRaios).addTo(mapRaios);
       markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
