@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -1594,6 +1595,27 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
     } else {
       alert("Seu dispositivo não suporta geolocalização.");
     }
+  
+  function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
+  // 1. Rota de Acesso Terrestre (OSRM Foot)
+  L.Routing.control({
+    waypoints: [
+      L.latLng(opLat, opLng),
+      L.latLng(targetLat, targetLng)
+    ],
+    router: L.Routing.osrmv1({
+      serviceUrl: 'https://router.project-osrm.org/route/v1',
+      profile: 'foot' // Prioriza travessas, escadarias e trilhas
+    }),
+    lineOptions: {
+      styles: [{ color: '#38bdf8', weight: 4, opacity: 0.8 }] // Rota de Acesso em Azul
+    },
+    createMarker: () => null,
+    addWaypoints: false,
+    show: false
+  }).addTo(mapMedir);
+}
+  
 </script>
 </body>
 </html>
