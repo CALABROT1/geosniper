@@ -930,7 +930,13 @@ mapMedir.on('click', async function(e) {
   if (measureLine) mapMedir.removeLayer(measureLine);
 
   measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
-  measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
+  measureLine = L.polyline([currentPos, [targetLat, targetLng]], { 
+  color: '#ffffff', 
+  weight: 3, 
+  dashArray: '6, 6',
+  smoothFactor: 0,
+  noClip: true
+}).addTo(mapMedir);
 
   // 🎯 CHAMADA DA ROTA TERRESTRE (AZUL)
   if (currentPos) {
@@ -1607,6 +1613,7 @@ let currentRoutePolyline = null;
 async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
   if (!mapMedir) return;
 
+  // Limpa rota anterior
   if (currentRoutePolyline) {
     mapMedir.removeLayer(currentRoutePolyline);
     currentRoutePolyline = null;
@@ -1621,15 +1628,28 @@ async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
     if (data.routes && data.routes.length > 0) {
       const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
 
+      // O segredo está aqui: 'smoothFactor: 0' e 'noClip: true' evitam o congelamento/delay durante o zoom e rotação
       currentRoutePolyline = L.polyline(coords, {
         color: '#38bdf8',
         weight: 5,
         opacity: 0.9,
-        dashArray: '6, 6'
+        dashArray: '6, 6',
+        smoothFactor: 0, // Impede a otimização de pontos ao mover a tela
+        noClip: true     // Impede que a linha seja cortada durante o gesto pinça/zoom
       }).addTo(mapMedir);
+
+      // Garante re-renderização em tempo real sem esperar o gesto terminar
+      mapMedir.off('zoom', updateRouteRender);
+      mapMedir.on('zoom', updateRouteRender);
     }
   } catch (err) {
     console.warn("Erro ao buscar rota terrestre:", err);
+  }
+}
+
+function updateRouteRender() {
+  if (currentRoutePolyline) {
+    currentRoutePolyline.redraw();
   }
 }
   
