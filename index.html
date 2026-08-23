@@ -381,13 +381,16 @@
       align-items: center;
     }
 
-    .badge-status {
-      background: #0284c7;
-      color: #ffffff;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-weight: 700;
+    .zoom-badge {
+      display: inline-block;
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 8px 16px;       /* Aumenta o espaçamento interno */
+      border-radius: 8px;
+      font-size: 16px;          /* Aumentado de 12px para 16px */
+      font-weight: 800;
+      border: 1px solid #38bdf8;/* Destaque na borda azul */
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
     }
 
     .form-grid-4 {
@@ -1227,7 +1230,7 @@
       ctx.fillStyle = "#0284c7";
       ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 50, 70);
 
-      ctx.font = "bold 16px sans-serif"; // Aumentado para 16px
+      ctx.font = "bold 18px sans-serif"; // Aumentado para 16px
       ctx.fillStyle = "#64748b";
       ctx.fillText(`${zoomLevel}.0x`, 50, 95);
     }
