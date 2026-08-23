@@ -916,33 +916,40 @@ function createTileLayers() {
       }
     }
 
-    function initMaps(lat, lng) {
+function initMaps(lat, lng) {
       currentPos = [lat, lng];
       const opIcon = createOperatorIcon();
 
+      // --- ABA RAIOS ---
       const layersRaios = createTileLayers();
-      mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
+      if (mapRaios) { mapRaios.remove(); }
+      mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite Padrão"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersRaios).addTo(mapRaios);
       markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
       updateRaios(lat, lng);
 
+      // --- ABA NORMAL / MAPA ---
       const layersNormal = createTileLayers();
-      mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
+      if (mapNormal) { mapNormal.remove(); }
+      mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
+      // --- ABA RELEVO ---
       const layersRelevo = createTileLayers();
+      if (mapRelevo) { mapRelevo.remove(); }
       mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersRelevo).addTo(mapRelevo);
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
+      // --- ABA MEDIR ---
       const layersMedir = createTileLayers();
-      mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite"]], rotate: true, touchRotate: true }).setView(currentPos, 16);
+      if (mapMedir) { mapMedir.remove(); }
+      mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]], rotate: true, touchRotate: true }).setView(currentPos, 16);
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
-      
 
 
 mapMedir.on('click', async function(e) {
