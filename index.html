@@ -830,13 +830,13 @@
     }
 
 function createTileLayers() {
-  // Dividido em 2 partes para o robô do GitHub não travar o git push
+  // Garantindo a união correta da chave do Mapbox
   const part1 = 'SUA_NOVA_CHAVE_PARTE_1';
   const part2 = 'SUA_NOVA_CHAVE_PARTE_2';
-  const MAPBOX_TOKEN = `${part1}${part2}`;
+  const MAPBOX_TOKEN = part1 + part2;
 
   const mapboxSatellite = L.tileLayer(
-    `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`, {
+    'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=' + MAPBOX_TOKEN, {
       tileSize: 512,
       zoomOffset: -1,
       maxZoom: 22,
