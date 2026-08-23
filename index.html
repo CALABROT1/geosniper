@@ -6,10 +6,11 @@
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
   <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -1596,24 +1597,39 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       alert("Seu dispositivo não suporta geolocalização.");
     }
   
-  function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
-  // 1. Rota de Acesso Terrestre (OSRM Foot)
-  L.Routing.control({
-    waypoints: [
-      L.latLng(opLat, opLng),
-      L.latLng(targetLat, targetLng)
-    ],
-    router: L.Routing.osrmv1({
-      serviceUrl: 'https://router.project-osrm.org/route/v1',
-      profile: 'foot' // Prioriza travessas, escadarias e trilhas
-    }),
-    lineOptions: {
-      styles: [{ color: '#38bdf8', weight: 4, opacity: 0.8 }] // Rota de Acesso em Azul
-    },
-    createMarker: () => null,
-    addWaypoints: false,
-    show: false
-  }).addTo(mapMedir);
+ let currentRoutePolyline = null;
+
+async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
+  if (!mapMedir) return;
+
+  // Limpa a rota anterior se houver
+  if (currentRoutePolyline) {
+    mapMedir.removeLayer(currentRoutePolyline);
+  }
+
+  // URL OSRM no perfil 'foot' (a pé/trilhas/becos)
+  const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson`;
+
+  try {
+    const response = await fetch(osrmUrl);
+    const data = await response.json();
+
+    if (data.routes && data.routes.length > 0) {
+      const coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+
+      // Desenha a rota de acesso terrestre em Azul Tático
+      currentRoutePolyline = L.polyline(coordinates, {
+        color: '#38bdf8',
+        weight: 5,
+        opacity: 0.85,
+        dashArray: '6, 6'
+      }).addTo(mapMedir);
+
+      console.log(`Rota por terra calculada: ${(data.routes[0].distance / 1000).toFixed(2)} km`);
+    }
+  } catch (err) {
+    console.warn("Falha ao consultar serviço de rotas OSRM:", err);
+  }
 }
   
 </script>
