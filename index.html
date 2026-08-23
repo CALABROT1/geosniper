@@ -922,37 +922,42 @@
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
-      mapMedir.on('click', async function(e) {
-        const targetLat = e.latlng.lat;
-        const targetLng = e.latlng.lng;
+mapMedir.on('click', async function(e) {
+  const targetLat = e.latlng.lat;
+  const targetLng = e.latlng.lng;
 
-        if (measureMarker) mapMedir.removeLayer(measureMarker);
-        if (measureLine) mapMedir.removeLayer(measureLine);
+  if (measureMarker) mapMedir.removeLayer(measureMarker);
+  if (measureLine) mapMedir.removeLayer(measureLine);
 
-        measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
-        measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
+  measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
+  measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ef4444', weight: 3, dashArray: '6, 6' }).addTo(mapMedir);
 
-        const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
-        const sol = await getBallisticSolutionForDistance(distanceMeters);
+  // 🎯 CHAMADA DA ROTA TERRESTRE (AZUL)
+  if (currentPos) {
+    drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
+  }
 
-        if (!sol) return;
+  const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
+  const sol = await getBallisticSolutionForDistance(distanceMeters);
 
-        const panelEl = document.getElementById('distPanel');
-        panelEl.innerHTML = `
-          <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
-            Distância: <b>${Math.round(distanceMeters)}m</b>
-          </div>
-          <div style="font-size: 14px; color: #f8fafc; margin-bottom: 8px;">
-            <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
-          </div>
-          <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
-          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            📲 Compartilhar Alvo no WhatsApp
-          </button>
-        `;
+  if (!sol) return;
 
-        renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
-      });
+  const panelEl = document.getElementById('distPanel');
+  panelEl.innerHTML = `
+    <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
+      Distância: <b>${Math.round(distanceMeters)}m</b>
+    </div>
+    <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
+      <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
+    </div>
+    <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
+    <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+      📲 Compartilhar Alvo no WhatsApp
+    </button>
+  `;
+
+  renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
+});
     }
 
     function sharePointWhatsApp(lat, lng) {
@@ -1602,51 +1607,29 @@ let currentRoutePolyline = null;
 async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
   if (!mapMedir) return;
 
-  // Limpa rota anterior imediatamente
   if (currentRoutePolyline) {
     mapMedir.removeLayer(currentRoutePolyline);
     currentRoutePolyline = null;
   }
 
-  // URL OSRM de alta velocidade
   const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson`;
 
-  // Controller para cancelar se o servidor demorar mais de 3 segundos
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3000);
-
   try {
-    const response = await fetch(osrmUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) throw new Error("Servidor de rotas fora do ar");
-
-    const data = await response.json();
+    const res = await fetch(osrmUrl);
+    const data = await res.json();
 
     if (data.routes && data.routes.length > 0) {
-      const coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+      const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
 
-      // Desenha a Rota Terrestre em Azul Tático
-      currentRoutePolyline = L.polyline(coordinates, {
+      currentRoutePolyline = L.polyline(coords, {
         color: '#38bdf8',
         weight: 5,
-        opacity: 0.85,
+        opacity: 0.9,
         dashArray: '6, 6'
       }).addTo(mapMedir);
-
-      console.log(`✅ Rota calculada em tempo real: ${(data.routes[0].distance / 1000).toFixed(2)} km`);
     }
   } catch (err) {
-    clearTimeout(timeoutId);
-    console.warn("⚠️ Servidor público de rotas lento/indisponível. Desenhando acesso direto.");
-    
-    // FALLBACK TÁTICO: Caso a API de ruas falhe ou demore, desenha o acesso em vetor azul direto
-    currentRoutePolyline = L.polyline([[opLat, opLng], [targetLat, targetLng]], {
-      color: '#0284c7',
-      weight: 3,
-      opacity: 0.6,
-      dashArray: '4, 4'
-    }).addTo(mapMedir);
+    console.warn("Erro ao buscar rota terrestre:", err);
   }
 }
   
