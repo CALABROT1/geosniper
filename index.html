@@ -931,7 +931,7 @@ mapMedir.on('click', async function(e) {
 
   measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
   measureLine = L.polyline([currentPos, [targetLat, targetLng]], { 
-  color: '#ffffff', 
+  color: '#ff4500', 
   weight: 3, 
   dashArray: '6, 6',
   smoothFactor: 0,
@@ -1630,7 +1630,7 @@ async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
 
       // O segredo está aqui: 'smoothFactor: 0' e 'noClip: true' evitam o congelamento/delay durante o zoom e rotação
       currentRoutePolyline = L.polyline(coords, {
-        color: '#38bdf8',
+        color: '#ffffff',
         weight: 5,
         opacity: 0.9,
         dashArray: '6, 6',
