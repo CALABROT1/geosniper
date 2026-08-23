@@ -1222,14 +1222,14 @@
 
       ctx.restore();
 
-      ctx.textAlign = "left";
-      ctx.font = "bold 15px sans-serif";
+     ctx.textAlign = "left";
+      ctx.font = "bold 20px sans-serif"; // Aumentado para 20px
       ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 50, 60);
+      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 30, 50);
 
-      ctx.font = "bold 14px sans-serif";
+      ctx.font = "bold 18px sans-serif"; // Aumentado para 18px
       ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, 50, 78);
+      ctx.fillText(`${zoomLevel}.0x`, 30, 75);
     }
 
     function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
