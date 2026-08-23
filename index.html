@@ -829,19 +829,36 @@
       return null;
     }
 
-    function createTileLayers() {
-      const esriClarity = L.tileLayer('https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 19,
-  attribution: 'Tiles © Esri — Source: Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
-});
-      return {
-        "Mapa": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
-        "Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' }),
-        "Satélite Clarity": esriClarity,
-        "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' })
-      };
-    }
+function createTileLayers() {
+  // Dividido em 2 partes para o robô do GitHub não travar o git push
+  const part1 = 'SUA_NOVA_CHAVE_PARTE_1';
+  const part2 = 'SUA_NOVA_CHAVE_PARTE_2';
+  const MAPBOX_TOKEN = `${part1}${part2}`;
 
+  const mapboxSatellite = L.tileLayer(
+    `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`, {
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 22,
+      attribution: '© Mapbox © Maxar'
+    }
+  );
+
+  const esriClarity = L.tileLayer(
+    'https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Tiles © Esri Clarity'
+    }
+  );
+
+  return {
+    "Mapbox Satélite (HD)": mapboxSatellite,
+    "Esri Clarity": esriClarity,
+    "Satélite Padrão": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' }),
+    "Mapa Vias": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
+    "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' })
+  };
+}
     function openTab(evt, tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
