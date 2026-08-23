@@ -269,7 +269,6 @@
       border: 1px solid #334155;
     }
 
-    /* Estilização do Resumo Balístico (Dashboard Tático) */
     .bal-summary-card {
       background: #0f172a;
       border: 1px solid #334155;
@@ -337,120 +336,121 @@
       font-weight: 800 !important;
       font-size: 13px !important;
     }
-   #tabEquipamento {
-  overflow-y: auto;
-  max-height: calc(100vh - 70px);
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 30px;
-}
 
-.equip-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding: 12px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
+    #tabEquipamento {
+      overflow-y: auto;
+      max-height: calc(100vh - 70px);
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 30px;
+    }
 
-.equip-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
+    .equip-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      padding: 12px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-.equip-card.header-card {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  border-left: 4px solid #38bdf8;
-}
+    .equip-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
 
-.card-title {
-  font-size: 14px;
-  font-weight: 800;
-  color: #38bdf8;
-  margin-bottom: 14px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
+    .equip-card.header-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-left: 4px solid #38bdf8;
+    }
 
-.flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+    .card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
 
-.badge-status {
-  background: #0284c7;
-  color: #ffffff;
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: 700;
-}
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-.form-grid-4 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-}
+    .badge-status {
+      background: #0284c7;
+      color: #ffffff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
 
-.form-grid-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-}
+    .form-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
 
-.form-row-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
 
-.form-group label {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 700;
-  text-transform: uppercase;
-}
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-.form-group input, .form-group select {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #f8fafc;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  outline: none;
-}
+    .form-group label {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
 
-.form-group input:focus, .form-group select:focus {
-  border-color: #38bdf8;
-}
+    .form-group input, .form-group select {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
 
-.btn-sync, .btn-sensor {
-  background: #0284c7;
-  color: #ffffff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+    .form-group input:focus, .form-group select:focus {
+      border-color: #38bdf8;
+    }
 
-.btn-sync:hover, .btn-sensor:hover {
-  background: #0369a1;
-}
+    .btn-sync, .btn-sensor {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-sync:hover, .btn-sensor:hover {
+      background: #0369a1;
+    }
   </style>
 </head>
 <body>
@@ -463,7 +463,7 @@
   <button class="tab-btn" onclick="openTab(event, 'tabRaios')">Raios</button>
   <button class="tab-btn" onclick="openTab(event, 'tabRelevo')">Relevo</button>
   <button class="tab-btn" onclick="openTab(event, 'tabNormal')">Mapa</button>
-  </div>
+</div>
   
 <!-- PAINEL DE CONTROLE DE ROTAÇÃO MANUAL -->
 <div class="rotate-controls">
@@ -497,10 +497,13 @@
             <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
           </div>
           <div class="form-group">
-            <label>Torre / Graduação</label>
-            <select id="balTurret">
-              <option value="MOA" selected>1/4 MOA (0.73cm / 100m)</option>
-              <option value="MRAD">0.1 MRAD (1cm / 100m)</option>
+            <label for="balTurret">Torre / Graduação</label>
+            <select id="balTurret" onchange="syncTurretFromBalistica()">
+              <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
+              <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
+              <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
+              <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
+              <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
             </select>
           </div>
         </div>
@@ -533,6 +536,16 @@
         <div class="form-group">
           <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
           <input type="number" id="balDistance" value="600" step="25">
+        </div>
+
+        <div class="form-group">
+          <label for="eqReticleType">Estilo de Retículo (Luneta)</label>
+          <select id="eqReticleType" onchange="runBallistics()">
+            <option value="mildot" selected>Mil-Dot Tradicional (Pontos)</option>
+            <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
+            <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
+            <option value="duplex">Duplex / BDC Simples</option>
+          </select>
         </div>
 
         <!-- DIVISOR TÁTICO: VENTO -->
@@ -597,160 +610,162 @@
   </div>
 
   <!-- ABA EQUIPAMENTO & CONDIÇÕES CLIMÁTICAS -->
-<div id="tabEquipamento" class="tab-content">
-  <div class="equip-container">
-    
-    <!-- BANNER DE CONFIGURAÇÃO DE MISSÃO -->
-    <div class="equip-card header-card">
-      <div class="card-title">
-        <span>🌐 UNIDADES E IDIOMA</span>
-        <span class="badge-status" id="profileStatusBadge">PERFIL ATIVO: PADRÃO</span>
+  <div id="tabEquipamento" class="tab-content">
+    <div class="equip-container">
+      
+      <!-- BANNER DE CONFIGURAÇÃO DE MISSÃO -->
+      <div class="equip-card header-card">
+        <div class="card-title">
+          <span>🌐 UNIDADES E IDIOMA</span>
+          <span class="badge-status" id="profileStatusBadge">PERFIL ATIVO: PADRÃO</span>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label for="sysLanguage">Idioma / Language</label>
+            <select id="sysLanguage" onchange="updateSystemLanguage()">
+              <option value="pt" selected>🇧🇷 Português (BR)</option>
+              <option value="en">🇺🇸 English (US)</option>
+              <option value="es">🇪🇸 Español</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="sysUnits">Sistema de Medidas</label>
+            <select id="sysUnits" onchange="updateUnitSystem()">
+              <option value="metric" selected>Métrico (m, km/h, °C, hPa, cm)</option>
+              <option value="imperial">Imperial (yd, mph, °F, inHg, in)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="gunPresetSelect">Preset de Fuzil / Arma</label>
+            <select id="gunPresetSelect" onchange="loadSelectedWeaponPreset()">
+              <option value="custom">-- Fuzil Personalizado --</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="form-row-3">
-        <div class="form-group">
-          <label for="sysLanguage">Idioma / Language</label>
-          <select id="sysLanguage" onchange="updateSystemLanguage()">
-            <option value="pt" selected>🇧🇷 Português (BR)</option>
-            <option value="en">🇺🇸 English (US)</option>
-            <option value="es">🇪🇸 Español</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="sysUnits">Sistema de Medidas</label>
-          <select id="sysUnits" onchange="updateUnitSystem()">
-            <option value="metric" selected>Métrico (m, km/h, °C, hPa, cm)</option>
-            <option value="imperial">Imperial (yd, mph, °F, inHg, in)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="gunPresetSelect">Preset de Fuzil / Arma</label>
-          <select id="gunPresetSelect" onchange="loadSelectedWeaponPreset()">
-            <option value="custom">-- Fuzil Personalizado --</option>
-            <!-- Preenchido via API /api/weapons -->
-          </select>
-        </div>
-      </div>
-    </div>
 
-    <!-- BLOCO 1: ESPECIFICAÇÕES DO FUZIL & CANO -->
-    <div class="equip-card">
-      <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
-      <div class="form-grid-4">
-        <div class="form-group">
-          <label for="eqFps">Velocidade Boca (FPS)</label>
-          <input type="number" id="eqFps" value="2680" step="10" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqBC">Coeficiente Balístico (BC)</label>
-          <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqProfile">Perfil de Arraste</label>
-          <select id="eqProfile" onchange="saveGunProfile()">
-            <option value="G1" selected>G1 (Padrão/Comercial)</option>
-            <option value="G7">G7 (Boat-tail / Longa Distância)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="eqTurret">Ajuste da Torre</label>
-          <select id="eqTurret" onchange="saveGunProfile()">
-            <option value="MOA" selected>MOA (1/4 MOA)</option>
-            <option value="MRAD">MRAD / MIL (0.1 MRAD)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="eqTwist">Passo de Raia (Twist 1:X")</label>
-          <input type="number" id="eqTwist" value="10" step="0.5" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqTwistDir">Sentido do Raiamento</label>
-          <select id="eqTwistDir" onchange="saveGunProfile()">
-            <option value="RIGHT" selected>Direita (RH / Right-Hand)</option>
-            <option value="LEFT">Esquerda (LH / Left-Hand)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="eqBarrelLen">Comprimento do Cano (Pol.)</label>
-          <input type="number" id="eqBarrelLen" value="20" step="0.5" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqScopeHeight">Altura da Luneta (cm)</label>
-          <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
+      <!-- BLOCO 1: ESPECIFICAÇÕES DO FUZIL & CANO -->
+      <div class="equip-card">
+        <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
+        <div class="form-grid-4">
+          <div class="form-group">
+            <label for="eqFps">Velocidade Boca (FPS)</label>
+            <input type="number" id="eqFps" value="2680" step="10" onchange="saveGunProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqBC">Coeficiente Balístico (BC)</label>
+            <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqProfile">Perfil de Arraste</label>
+            <select id="eqProfile" onchange="saveGunProfile()">
+              <option value="G1" selected>G1 (Padrão/Comercial)</option>
+              <option value="G7">G7 (Boat-tail / Longa Distância)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eqTurret">Ajuste da Torre</label>
+            <select id="eqTurret" onchange="syncTurretFromEquipamento()">
+              <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
+              <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
+              <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
+              <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
+              <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eqTwist">Passo de Raia (Twist 1:X")</label>
+            <input type="number" id="eqTwist" value="10" step="0.5" onchange="saveGunProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqTwistDir">Sentido do Raiamento</label>
+            <select id="eqTwistDir" onchange="saveGunProfile()">
+              <option value="RIGHT" selected>Direita (RH / Right-Hand)</option>
+              <option value="LEFT">Esquerda (LH / Left-Hand)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eqBarrelLen">Comprimento do Cano (Pol.)</label>
+            <input type="number" id="eqBarrelLen" value="20" step="0.5" onchange="saveGunProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqScopeHeight">Altura da Luneta (cm)</label>
+            <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- BLOCO 2: CONDIÇÕES ATMOSFÉRICAS E CLIMA -->
-    <div class="equip-card">
-      <div class="card-title flex-between">
-        <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
-        <button type="button" class="btn-sync" onclick="syncWeatherFromGPS()">
-          🔄 Sincronizar Clima via GPS
-        </button>
+      <!-- BLOCO 2: CONDIÇÕES ATMOSFÉRICAS E CLIMA -->
+      <div class="equip-card">
+        <div class="card-title flex-between">
+          <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
+          <button type="button" class="btn-sync" onclick="syncWeatherFromGPS()">
+            🔄 Sincronizar Clima via GPS
+          </button>
+        </div>
+        <div class="form-grid-4">
+          <div class="form-group">
+            <label for="eqTemp">Temperatura (°C)</label>
+            <input type="number" id="eqTemp" value="15" step="1" onchange="saveEnvironmentProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqPressure">Pressão Atmosférica (hPa)</label>
+            <input type="number" id="eqPressure" value="1013" step="1" onchange="saveEnvironmentProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqHumidity">Umidade Relativa (%)</label>
+            <input type="number" id="eqHumidity" value="50" step="5" onchange="saveEnvironmentProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqWindSpeed">Vento (km/h)</label>
+            <input type="number" id="eqWindSpeed" value="0" step="1" onchange="saveEnvironmentProfile()">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
+            <select id="eqWindClock" onchange="saveEnvironmentProfile()">
+              <option value="12">12h (Vento de Frente / Headwind)</option>
+              <option value="1">1h</option>
+              <option value="2">2h</option>
+              <option value="3" selected>3h (Vento da Direita / Full Crosswind)</option>
+              <option value="4">4h</option>
+              <option value="5">5h</option>
+              <option value="6">6h (Vento de Cauda / Tailwind)</option>
+              <option value="7">7h</option>
+              <option value="8">8h</option>
+              <option value="9">9h (Vento da Esquerda / Full Crosswind)</option>
+              <option value="10">10h</option>
+              <option value="11">11h</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="form-grid-4">
-        <div class="form-group">
-          <label for="eqTemp">Temperatura (°C)</label>
-          <input type="number" id="eqTemp" value="15" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqPressure">Pressão Atmosférica (hPa)</label>
-          <input type="number" id="eqPressure" value="1013" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqHumidity">Umidade Relativa (%)</label>
-          <input type="number" id="eqHumidity" value="50" step="5" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqWindSpeed">Vento (km/h)</label>
-          <input type="number" id="eqWindSpeed" value="0" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group" style="grid-column: span 2;">
-          <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
-          <select id="eqWindClock" onchange="saveEnvironmentProfile()">
-            <option value="12">12h (Vento de Frente / Headwind)</option>
-            <option value="1">1h</option>
-            <option value="2">2h</option>
-            <option value="3" selected>3h (Vento da Direita / Full Crosswind)</option>
-            <option value="4">4h</option>
-            <option value="5">5h</option>
-            <option value="6">6h (Vento de Cauda / Tailwind)</option>
-            <option value="7">7h</option>
-            <option value="8">8h</option>
-            <option value="9">9h (Vento da Esquerda / Full Crosswind)</option>
-            <option value="10">10h</option>
-            <option value="11">11h</option>
-          </select>
-        </div>
-      </div>
-    </div>
 
-    <!-- BLOCO 3: TELEMETRIA & INCLINÔMETRO DA MISSÃO -->
-    <div class="equip-card">
-      <div class="card-title flex-between">
-        <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
-        <button type="button" class="btn-sensor" onclick="readDeviceSensors()">
-          📱 Ler Sensores do Celular (Ângulo/Bússola)
-        </button>
+      <!-- BLOCO 3: TELEMETRIA & INCLINÔMETRO DA MISSÃO -->
+      <div class="equip-card">
+        <div class="card-title flex-between">
+          <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
+          <button type="button" class="btn-sensor" onclick="readDeviceSensors()">
+            📱 Ler Sensores do Celular (Ângulo/Bússola)
+          </button>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
+            <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="saveEnvironmentProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
+            <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="saveEnvironmentProfile()">
+          </div>
+          <div class="form-group">
+            <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
+            <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
+          </div>
+        </div>
       </div>
-      <div class="form-grid-3">
-        <div class="form-group">
-          <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
-          <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
-          <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
-          <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
-        </div>
-      </div>
-    </div>
 
+    </div>
   </div>
-</div>
 
 <script>
     let currentPos = null;
@@ -759,8 +774,8 @@
     let circlesAndLabelsGroup = L.layerGroup();
     let measureMarker = null, measureLine = null;
     let mapBearing = 0;
+    let weaponsCatalog = {};
 
-    // URL DA SUA API NO RENDER
     const API_URL = 'https://geosniper-api.onrender.com/api/calculate-ballistics';
 
     function createOperatorIcon() {
@@ -880,41 +895,25 @@
       const opIcon = createOperatorIcon();
 
       const layersRaios = createTileLayers();
-      mapRaios = L.map('mapRaios', { 
-        layers: [layersRaios["Satélite"]], 
-        rotate: true, 
-        touchRotate: true 
-      }).setView(currentPos, 17);
+      mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersRaios).addTo(mapRaios);
       markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
       circlesAndLabelsGroup.addTo(mapRaios);
       updateRaios(lat, lng);
 
       const layersNormal = createTileLayers();
-      mapNormal = L.map('mapNormal', { 
-        layers: [layersNormal["Mapa"]], 
-        rotate: true, 
-        touchRotate: true 
-      }).setView(currentPos, 17);
+      mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
       const layersRelevo = createTileLayers();
-      mapRelevo = L.map('mapRelevo', { 
-        layers: [layersRelevo["Relevo"]], 
-        rotate: true, 
-        touchRotate: true 
-      }).setView(currentPos, 17);
+      mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersRelevo).addTo(mapRelevo);
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
       const layersMedir = createTileLayers();
-      mapMedir = L.map('mapMedir', { 
-        layers: [layersMedir["Satélite"]], 
-        rotate: true, 
-        touchRotate: true 
-      }).setView(currentPos, 16);
+      mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite"]], rotate: true, touchRotate: true }).setView(currentPos, 16);
       L.control.layers(layersMedir).addTo(mapMedir);
       markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
@@ -965,7 +964,7 @@
       const targetLng = parseFloat(urlParams.get('targetLng'));
 
       if (tab === 'medir' && !isNaN(targetLat) && !isNaN(targetLng)) {
-        const btnMedir = document.querySelectorAll('.tab-btn')[1];
+        const btnMedir = document.querySelectorAll('.tab-btn')[2];
         openTab({ currentTarget: btnMedir }, 'tabMedir');
 
         const checkMapLoaded = setInterval(async () => {
@@ -1004,7 +1003,20 @@
       }
     }
 
-    // CHAMADA ASSÍNCRONA PARA O SERVIDOR RENDER
+    function syncTurretFromBalistica() {
+      const balVal = document.getElementById('balTurret').value;
+      const eqEl = document.getElementById('eqTurret');
+      if (eqEl) eqEl.value = balVal;
+      saveGunProfile();
+    }
+
+    function syncTurretFromEquipamento() {
+      const eqVal = document.getElementById('eqTurret').value;
+      const balEl = document.getElementById('balTurret');
+      if (balEl) balEl.value = eqVal;
+      saveGunProfile();
+    }
+
     async function getBallisticSolutionForDistance(dist) {
       try {
         const response = await fetch(API_URL, {
@@ -1012,16 +1024,23 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             dist: dist,
-            fps: parseFloat(document.getElementById('balSpeed')?.value) || 2680,
-            bc: parseFloat(document.getElementById('balBC')?.value) || 0.447,
-            profile: document.getElementById('balDragProfile')?.value || 'G1',
-            turret: document.getElementById('balTurret')?.value || 'MOA',
-            windKmh: parseFloat(document.getElementById('balWindSpeed')?.value) || 0,
-            windClock: parseInt(document.getElementById('balWindDir')?.value) || 3
+            fps: parseFloat(document.getElementById('eqFps')?.value || document.getElementById('balSpeed')?.value) || 2680,
+            bc: parseFloat(document.getElementById('eqBC')?.value || document.getElementById('balBC')?.value) || 0.447,
+            profile: document.getElementById('eqProfile')?.value || document.getElementById('balDragProfile')?.value || 'G1',
+            turret: document.getElementById('eqTurret')?.value || document.getElementById('balTurret')?.value || '1/4_MOA',
+            windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value || document.getElementById('balWindSpeed')?.value) || 0,
+            windClock: parseInt(document.getElementById('eqWindClock')?.value || document.getElementById('balWindDir')?.value) || 3,
+            inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
+            tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
+            pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
+            twistRateInches: parseFloat(document.getElementById('eqTwist')?.value) || 10,
+            twistDirection: document.getElementById('eqTwistDir')?.value || 'RIGHT',
+            latitude: currentPos ? currentPos[0] : -22.82,
+            azimuthDeg: parseFloat(document.getElementById('eqAzimuth')?.value) || 90
           })
         });
 
-        if (!response.ok) throw new Error('Erro no servidor da API');
+        if (!response.ok) throw new Error('Erro na requisição da API');
         return await response.json();
       } catch (err) {
         console.error('Falha de conexão com a API:', err);
@@ -1048,8 +1067,7 @@
       if (elElev) elElev.innerText = `${data.clicksElev} UP`;
       if (elWind) elWind.innerText = `${Math.abs(data.clicksWind)} ${data.clicksWind >= 0 ? 'R' : 'L'}`;
 
-      const rawTurret = document.getElementById('balTurret')?.value || 'MOA';
-      const turret = rawTurret.toUpperCase().includes("MOA") ? "MOA" : "MRAD";
+      const rawTurret = document.getElementById('balTurret')?.value || '1/4_MOA';
 
       let summaryHTML = `
         <div class="bal-summary-card">
@@ -1069,33 +1087,18 @@
           </div>
 
           <table class="bal-calc-table">
-      `;
-
-      if (turret === "MOA") {
-        summaryHTML += `
             <tr>
-              <td>Ângulo Correção</td>
+              <td>Ângulo Correção (MOA)</td>
               <td>${data.moaElev} MOA</td>
             </tr>
-            <tr class="bal-final-row">
-              <td>Torre (1/4 MOA)</td>
-              <td>${data.clicksElev} CLIQUES UP</td>
-            </tr>
-        `;
-      } else {
-        summaryHTML += `
             <tr>
-              <td>Ângulo Correção</td>
+              <td>Ângulo Correção (MRAD)</td>
               <td>${data.mradElev} MRAD</td>
             </tr>
             <tr class="bal-final-row">
-              <td>Torre (0.1 MRAD)</td>
+              <td>Ajuste da Torre (${rawTurret})</td>
               <td>${data.clicksElev} CLIQUES UP</td>
             </tr>
-        `;
-      }
-
-      summaryHTML += `
           </table>
         </div>
       `;
@@ -1106,148 +1109,427 @@
       renderReticle(data.mradElev, data.mradWind, dist, data.recommendedZoom);
     }
 
-    function renderMiniReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
-      const canvas = document.getElementById('mapReticleCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const w = canvas.width, h = canvas.height;
-      const cx = w / 2, cy = h / 2;
-
-      ctx.clearRect(0, 0, w, h);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath(); ctx.arc(cx, cy, cx - 3, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4; ctx.stroke();
-
-      const pixelsPerMRAD = 11;
-      const impactX = cx + (mradWind * pixelsPerMRAD);
-      const impactY = cy + (mradElev * pixelsPerMRAD);
-
-      const thinEnd = 4.8 * pixelsPerMRAD;
-
-      ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - thinEnd); ctx.lineTo(cx, cy + thinEnd);
-      ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
-      ctx.stroke();
-
-      ctx.lineWidth = 5.5;
-      ctx.beginPath();
-      ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
-      ctx.moveTo(cx, cy + thinEnd); ctx.lineTo(cx, h);
-      ctx.moveTo(0, cy); ctx.lineTo(cx - thinEnd, cy);
-      ctx.moveTo(cx + thinEnd, cy); ctx.lineTo(w, cy);
-      ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      for (let i = 1; i <= 4; i++) {
-        ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 1.8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy + (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 1.8, 0, Math.PI * 2); ctx.fill();
-      }
-
-      ctx.fillStyle = "rgba(239, 68, 68, 0.35)";
-      ctx.beginPath(); ctx.arc(impactX, impactY, 9, 0, Math.PI * 2); ctx.fill();
-
-      ctx.fillStyle = "#ef4444"; ctx.strokeStyle = "#7f1d1d"; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(impactX, impactY, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(impactX - 5, impactY); ctx.lineTo(impactX + 5, impactY);
-      ctx.moveTo(impactX, impactY - 5); ctx.lineTo(impactX, impactY + 5);
-      ctx.stroke();
-
-      ctx.textAlign = "left";
-      ctx.font = "bold 15px sans-serif";
-      ctx.fillStyle = "#0284c7";
-      ctx.fillText(`D: ${Math.round(distanceMeters)}m`, 25, 60);
-
-      ctx.font = "bold 15px sans-serif";
-      ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, 25, 76);
-    }
-
-    function renderReticle(mradElev, mradWind, distanceMeters, zoomLevel) {
+    function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
       const canvas = document.getElementById('reticleCanvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      const w = canvas.width, h = canvas.height;
-      const cx = w / 2, cy = h / 2;
+      
+      const width = canvas.width;
+      const height = canvas.height;
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(width, height) / 2 - 10;
 
-      ctx.clearRect(0, 0, w, h);
+      const reticleStyleEl = document.getElementById('eqReticleType');
+      const reticleStyle = reticleStyleEl ? reticleStyleEl.value : 'mildot';
 
-      ctx.fillStyle = "#ffffff";
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.save();
       ctx.beginPath();
-      ctx.arc(cx, cy, cx - 4, 0, Math.PI * 2);
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
       ctx.fill();
-      ctx.strokeStyle = "#1e293b";
       ctx.lineWidth = 6;
+      ctx.strokeStyle = "#0f172a";
       ctx.stroke();
-
-      const pixelsPerMRAD = 18; 
-
-      const impactX = cx + (mradWind * pixelsPerMRAD);
-      const impactY = cy + (mradElev * pixelsPerMRAD);
+      ctx.clip();
 
       ctx.strokeStyle = "#000000";
       ctx.fillStyle = "#000000";
 
-      ctx.lineWidth = 1.8;
-      const thinEnd = 4.8 * pixelsPerMRAD;
+      if (reticleStyle === 'duplex') {
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 30, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 30, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 30); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 30); ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - thinEnd); ctx.lineTo(cx, cy + thinEnd);
-      ctx.moveTo(cx - thinEnd, cy); ctx.lineTo(cx + thinEnd, cy);
-      ctx.stroke();
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx - 30, cy); ctx.lineTo(cx + 30, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - 30); ctx.lineTo(cx, cy + 30); ctx.stroke();
 
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(cx, 0); ctx.lineTo(cx, cy - thinEnd);
-      ctx.moveTo(cx, cy + thinEnd); ctx.lineTo(cx, h);
-      ctx.moveTo(0, cy); ctx.lineTo(cx - thinEnd, cy);
-      ctx.moveTo(cx + thinEnd, cy); ctx.lineTo(w, cy);
-      ctx.stroke();
+        [15, 30, 45].forEach(offset => {
+          ctx.beginPath(); ctx.moveTo(cx - 8, cy + offset); ctx.lineTo(cx + 8, cy + offset); ctx.stroke();
+        });
 
-      for (let i = 1; i <= 4; i++) {
-        ctx.beginPath(); ctx.arc(cx + (i * pixelsPerMRAD), cy, 2.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx - (i * pixelsPerMRAD), cy, 2.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy + (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy - (i * pixelsPerMRAD), 2.5, 0, Math.PI * 2); ctx.fill();
+      } else if (reticleStyle === 'moa_hash') {
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
+
+        const step = 12;
+        for (let i = -10; i <= 10; i++) {
+          if (i === 0) continue;
+          const pos = i * step;
+          const isMajor = i % 5 === 0;
+          const tickSize = isMajor ? 10 : 5;
+          ctx.beginPath(); ctx.moveTo(cx + pos, cy - tickSize); ctx.lineTo(cx + pos, cy + tickSize); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - tickSize, cy + pos); ctx.lineTo(cx + tickSize, cy + pos); ctx.stroke();
+        }
+
+      } else if (reticleStyle === 'tree') {
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
+
+        const step = 15;
+        for (let y = 1; y <= 8; y++) {
+          const yPos = cy + (y * step);
+          for (let x = -y; x <= y; x++) {
+            if (x === 0) continue;
+            ctx.beginPath(); ctx.arc(cx + (x * step), yPos, 1.5, 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.beginPath(); ctx.moveTo(cx - 4, yPos); ctx.lineTo(cx + 4, yPos); ctx.stroke();
+        }
+
+      } else {
+        // Mil-Dot Tradicional
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 100, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 100, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 100); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 100); ctx.stroke();
+
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx - 100, cy); ctx.lineTo(cx + 100, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - 100); ctx.lineTo(cx, cy + 100); ctx.stroke();
+
+        const dotSpacing = 18;
+        for (let i = -5; i <= 5; i++) {
+          if (i === 0) continue;
+          ctx.beginPath(); ctx.arc(cx + (i * dotSpacing), cy, 2.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx, cy + (i * dotSpacing), 2.5, 0, Math.PI * 2); ctx.fill();
+        }
       }
 
-      ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+      const scalePxPerMrad = 18;
+      const targetX = cx + (mradWind * scalePxPerMrad);
+      const targetY = cy + (mradElev * scalePxPerMrad);
+
       ctx.beginPath();
-      ctx.arc(impactX, impactY, 8, 0, Math.PI * 2);
+      ctx.arc(targetX, targetY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(239, 68, 68, 0.8)";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#dc2626";
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
       ctx.fill();
 
-      ctx.fillStyle = "#ef4444";
-      ctx.strokeStyle = "#991b1b";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(impactX, impactY, 3.5, 0, Math.PI * 2);
-      ctx.fill(); 
-      ctx.stroke();
-
-      ctx.strokeStyle = "#ef4444";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(impactX - 6, impactY); ctx.lineTo(impactX + 6, impactY);
-      ctx.moveTo(impactX, impactY - 6); ctx.lineTo(impactX, impactY + 5);
-      ctx.stroke();
+      ctx.restore();
 
       ctx.textAlign = "left";
       ctx.font = "bold 15px sans-serif";
       ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 55, 60);
+      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 50, 60);
 
-      ctx.font = "bold 17px sans-serif";
+      ctx.font = "bold 14px sans-serif";
       ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, 55, 80);
+      ctx.fillText(`${zoomLevel}.0x`, 50, 78);
+    }
+
+    function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
+      const canvas = document.getElementById('mapReticleCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(width, height) / 2 - 4;
+
+      const reticleStyleEl = document.getElementById('eqReticleType');
+      const reticleStyle = reticleStyleEl ? reticleStyleEl.value : 'mildot';
+
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#38bdf8";
+      ctx.stroke();
+      ctx.clip();
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.fillStyle = "#ffffff";
+
+      if (reticleStyle === 'duplex') {
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 15, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 15, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 15); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 15); ctx.stroke();
+
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx - 15, cy); ctx.lineTo(cx + 15, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - 15); ctx.lineTo(cx, cy + 15); ctx.stroke();
+
+      } else if (reticleStyle === 'moa_hash') {
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
+
+        for (let i = -6; i <= 6; i++) {
+          if (i === 0) continue;
+          const pos = i * 6;
+          ctx.beginPath(); ctx.moveTo(cx + pos, cy - 3); ctx.lineTo(cx + pos, cy + 3); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 3, cy + pos); ctx.lineTo(cx + 3, cy + pos); ctx.stroke();
+        }
+
+      } else if (reticleStyle === 'tree') {
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
+
+        const step = 8;
+        for (let y = 1; y <= 5; y++) {
+          const yPos = cy + (y * step);
+          for (let x = -y; x <= y; x++) {
+            if (x === 0) continue;
+            ctx.beginPath(); ctx.arc(cx + (x * step), yPos, 1, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+
+      } else {
+        // Mil-Dot Tradicional
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
+
+        const dotSpacing = 10;
+        for (let i = -4; i <= 4; i++) {
+          if (i === 0) continue;
+          ctx.beginPath(); ctx.arc(cx + (i * dotSpacing), cy, 1.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx, cy + (i * dotSpacing), 1.5, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      const scalePxPerMrad = 10;
+      const targetX = cx + (mradWind * scalePxPerMrad);
+      const targetY = cy + (mradElev * scalePxPerMrad);
+
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#ef4444";
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#ffffff";
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    async function fetchWeaponsCatalog() {
+      try {
+        const response = await fetch('https://geosniper-api.onrender.com/api/weapons');
+        if (!response.ok) return;
+        weaponsCatalog = await response.json();
+        
+        const selectEl = document.getElementById('gunPresetSelect');
+        if (!selectEl) return;
+
+        selectEl.innerHTML = '<option value="custom">-- Fuzil Personalizado --</option>';
+        for (const key in weaponsCatalog) {
+          const w = weaponsCatalog[key];
+          const opt = document.createElement('option');
+          opt.value = key;
+          opt.innerText = w.name;
+          selectEl.appendChild(opt);
+        }
+      } catch (err) {
+        console.warn('Não foi possível carregar catálogo remoto de armas:', err);
+      }
+    }
+
+    function loadSelectedWeaponPreset() {
+      const selectedKey = document.getElementById('gunPresetSelect').value;
+      if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) return;
+
+      const w = weaponsCatalog[selectedKey];
+      document.getElementById('eqFps').value = w.fps;
+      document.getElementById('eqBC').value = w.bc;
+      document.getElementById('eqProfile').value = w.profile || 'G1';
+      document.getElementById('eqTwist').value = w.twist || 10;
+      document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
+      document.getElementById('eqBarrelLen').value = w.barrelLengthInches || 20;
+
+      document.getElementById('profileStatusBadge').innerText = `PERFIL ATIVO: ${w.name.toUpperCase()}`;
+      saveGunProfile();
+    }
+
+    function saveGunProfile() {
+      const profileData = {
+        fps: parseFloat(document.getElementById('eqFps').value),
+        bc: parseFloat(document.getElementById('eqBC').value),
+        profile: document.getElementById('eqProfile').value,
+        turret: document.getElementById('eqTurret').value,
+        twist: parseFloat(document.getElementById('eqTwist').value),
+        twistDir: document.getElementById('eqTwistDir').value,
+        barrelLen: parseFloat(document.getElementById('eqBarrelLen').value),
+        scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value)
+      };
+      localStorage.setItem('geosniper_gun_profile', JSON.stringify(profileData));
+    }
+
+    function saveEnvironmentProfile() {
+      const envData = {
+        temp: parseFloat(document.getElementById('eqTemp').value),
+        pressure: parseFloat(document.getElementById('eqPressure').value),
+        humidity: parseFloat(document.getElementById('eqHumidity').value),
+        windSpeed: parseFloat(document.getElementById('eqWindSpeed').value),
+        windClock: parseInt(document.getElementById('eqWindClock').value),
+        inclination: parseFloat(document.getElementById('eqInclination').value),
+        azimuth: parseFloat(document.getElementById('eqAzimuth').value)
+      };
+      localStorage.setItem('geosniper_env_profile', JSON.stringify(envData));
+    }
+
+    function readDeviceSensors() {
+      const btn = document.querySelector('.btn-sensor');
+      if (btn) btn.innerText = "⏳ Lendo Sensores...";
+
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              startSensorListeners(btn);
+            } else {
+              alert('Permissão para acessar os sensores de orientação foi negada.');
+              if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+            }
+          })
+          .catch(err => {
+            console.error('Erro ao solicitar permissão de sensores:', err);
+            if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+          });
+      } else if (window.DeviceOrientationEvent) {
+        startSensorListeners(btn);
+      } else {
+        alert('Seu dispositivo ou navegador não possui suporte a sensores de orientação/giroscópio.');
+        if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+      }
+    }
+
+    function startSensorListeners(btn) {
+      let sensorTimeout;
+
+      function handleOrientation(event) {
+        let heading = null;
+        if (event.webkitCompassHeading) {
+          heading = event.webkitCompassHeading;
+        } else if (event.alpha !== null) {
+          heading = 360 - event.alpha;
+        }
+
+        if (heading !== null) {
+          const azimuteVal = Math.round((heading + 360) % 360);
+          const azEl = document.getElementById('eqAzimuth');
+          if (azEl) azEl.value = azimuteVal;
+        }
+
+        if (event.beta !== null) {
+          let pitch = event.beta;
+          let inclination = Math.round(pitch - 90);
+          if (inclination > 90) inclination = 90;
+          if (inclination < -90) inclination = -90;
+
+          const incEl = document.getElementById('eqInclination');
+          if (incEl) incEl.value = inclination;
+        }
+
+        saveEnvironmentProfile();
+      }
+
+      window.addEventListener('deviceorientation', handleOrientation, true);
+
+      clearTimeout(sensorTimeout);
+      sensorTimeout = setTimeout(() => {
+        window.removeEventListener('deviceorientation', handleOrientation, true);
+        if (btn) btn.innerText = "✅ Sensores Atualizados!";
+        setTimeout(() => {
+          if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+        }, 2500);
+      }, 3500);
+    }
+
+    async function syncWeatherFromGPS() {
+      const btn = document.querySelector('.btn-sync');
+      
+      if (!currentPos || !currentPos[0] || !currentPos[1]) {
+        alert("Coordenadas GPS ainda não obtidas. Certifique-se de ativar a localização no navegador.");
+        return;
+      }
+
+      const lat = currentPos[0];
+      const lng = currentPos[1];
+
+      const latEl = document.getElementById('eqLatitude');
+      if (latEl) latEl.value = parseFloat(lat.toFixed(4));
+
+      if (btn) btn.innerText = "⏳ Sincronizando Clima...";
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Falha ao obter dados meteorológicos");
+
+        const data = await response.json();
+        const current = data.current;
+
+        const tempEl = document.getElementById('eqTemp');
+        if (tempEl && current.temperature_2m !== undefined) {
+          tempEl.value = Math.round(current.temperature_2m);
+        }
+
+        const humEl = document.getElementById('eqHumidity');
+        if (humEl && current.relative_humidity_2m !== undefined) {
+          humEl.value = Math.round(current.relative_humidity_2m);
+        }
+
+        const pressEl = document.getElementById('eqPressure');
+        if (pressEl && current.surface_pressure !== undefined) {
+          pressEl.value = Math.round(current.surface_pressure);
+        }
+
+        const windSpeedEl = document.getElementById('eqWindSpeed');
+        if (windSpeedEl && current.wind_speed_10m !== undefined) {
+          windSpeedEl.value = Math.round(current.wind_speed_10m);
+        }
+
+        if (current.wind_direction_10m !== undefined) {
+          const degrees = current.wind_direction_10m;
+          let clockHour = Math.round(degrees / 30);
+          if (clockHour === 0) clockHour = 12;
+          
+          const clockEl = document.getElementById('eqWindClock');
+          if (clockEl) clockEl.value = clockHour.toString();
+        }
+
+        saveEnvironmentProfile();
+
+        if (btn) btn.innerText = "✅ Clima Atualizado!";
+        setTimeout(() => {
+          if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
+        }, 2500);
+
+      } catch (err) {
+        console.error("Erro no sync de clima:", err);
+        alert("Erro ao buscar dados do clima na rede. Verifique sua conexão.");
+        if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      fetchWeaponsCatalog();
       runBallistics();
       checkSharedPointFromURL();
     });
@@ -1284,272 +1566,6 @@
     } else {
       alert("Seu dispositivo não suporta geolocalização.");
     }
-// VARIÁVEL DE ESTADO GLOBAL DO SISTEMA
-let weaponsCatalog = {};
-
-// 1. CARREGAR CATÁLOGO DE ARMAS DA API DO RENDER
-async function fetchWeaponsCatalog() {
-  try {
-    const response = await fetch('https://geosniper-api.onrender.com/api/weapons');
-    if (!response.ok) return;
-    weaponsCatalog = await response.json();
-    
-    const selectEl = document.getElementById('gunPresetSelect');
-    if (!selectEl) return;
-
-    selectEl.innerHTML = '<option value="custom">-- Fuzil Personalizado --</option>';
-    for (const key in weaponsCatalog) {
-      const w = weaponsCatalog[key];
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.innerText = w.name;
-      selectEl.appendChild(opt);
-    }
-  } catch (err) {
-    console.warn('Não foi possível carregar catálogo remoto de armas:', err);
-  }
-}
-
-// 2. APLICAR PRESET DE FUZIL SELECIONADO
-function loadSelectedWeaponPreset() {
-  const selectedKey = document.getElementById('gunPresetSelect').value;
-  if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) return;
-
-  const w = weaponsCatalog[selectedKey];
-  document.getElementById('eqFps').value = w.fps;
-  document.getElementById('eqBC').value = w.bc;
-  document.getElementById('eqProfile').value = w.profile || 'G1';
-  document.getElementById('eqTwist').value = w.twist || 10;
-  document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
-  document.getElementById('eqBarrelLen').value = w.barrelLengthInches || 20;
-
-  document.getElementById('profileStatusBadge').innerText = `PERFIL ATIVO: ${w.name.toUpperCase()}`;
-  saveGunProfile();
-}
-
-// 3. PERSISTÊNCIA LOCAL (LOCALSTORAGE)
-function saveGunProfile() {
-  const profileData = {
-    fps: parseFloat(document.getElementById('eqFps').value),
-    bc: parseFloat(document.getElementById('eqBC').value),
-    profile: document.getElementById('eqProfile').value,
-    turret: document.getElementById('eqTurret').value,
-    twist: parseFloat(document.getElementById('eqTwist').value),
-    twistDir: document.getElementById('eqTwistDir').value,
-    barrelLen: parseFloat(document.getElementById('eqBarrelLen').value),
-    scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value)
-  };
-  localStorage.setItem('geosniper_gun_profile', JSON.stringify(profileData));
-}
-
-function saveEnvironmentProfile() {
-  const envData = {
-    temp: parseFloat(document.getElementById('eqTemp').value),
-    pressure: parseFloat(document.getElementById('eqPressure').value),
-    humidity: parseFloat(document.getElementById('eqHumidity').value),
-    windSpeed: parseFloat(document.getElementById('eqWindSpeed').value),
-    windClock: parseInt(document.getElementById('eqWindClock').value),
-    inclination: parseFloat(document.getElementById('eqInclination').value),
-    azimuth: parseFloat(document.getElementById('eqAzimuth').value)
-  };
-  localStorage.setItem('geosniper_env_profile', JSON.stringify(envData));
-}
-
-// 4. ATUALIZAÇÃO DA FUNÇÃO QUE ENVIA DADOS PARA A API DO RENDER
-async function getBallisticSolutionForDistance(dist) {
-  try {
-    const response = await fetch('https://geosniper-api.onrender.com/api/calculate-ballistics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dist: dist,
-        fps: parseFloat(document.getElementById('eqFps')?.value) || 2680,
-        bc: parseFloat(document.getElementById('eqBC')?.value) || 0.447,
-        profile: document.getElementById('eqProfile')?.value || 'G1',
-        turret: document.getElementById('eqTurret')?.value || 'MOA',
-        windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value) || 0,
-        windClock: parseInt(document.getElementById('eqWindClock')?.value) || 3,
-        inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
-        tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
-        pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
-        twistRateInches: parseFloat(document.getElementById('eqTwist')?.value) || 10,
-        twistDirection: document.getElementById('eqTwistDir')?.value || 'RIGHT',
-        latitude: currentPos ? currentPos[0] : -22.82,
-        azimuthDeg: parseFloat(document.getElementById('eqAzimuth')?.value) || 90
-      })
-    });
-
-    if (!response.ok) throw new Error('Erro na requisição da API');
-    return await response.json();
-  } catch (err) {
-    console.error('Falha de conexão com a API:', err);
-    return null;
-  }
-}
-
-// INICIALIZAR CONSULTAS AO CARREGAR A PÁGINA
-window.addEventListener('DOMContentLoaded', () => {
-  fetchWeaponsCatalog();
-});
-
-  // LEITURA DOS SENSORES DO SMARTPHONE (INCLINÔMETRO + BÚSSOLA)
-function readDeviceSensors() {
-  const btn = document.querySelector('.btn-sensor');
-  if (btn) btn.innerText = "⏳ Lendo Sensores...";
-
-  // Solicitação de permissão obrigatória para iOS (Apple Safari)
-  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission()
-      .then(response => {
-        if (response === 'granted') {
-          startSensorListeners(btn);
-        } else {
-          alert('Permissão para acessar os sensores de orientação foi negada.');
-          if (btn) btn.innerText = "📱 Ler Sensores do Celular";
-        }
-      })
-      .catch(err => {
-        console.error('Erro ao solicitar permissão de sensores:', err);
-        if (btn) btn.innerText = "📱 Ler Sensores do Celular";
-      });
-  } else if (window.DeviceOrientationEvent) {
-    // Dispositivos Android e navegadores padrão
-    startSensorListeners(btn);
-  } else {
-    alert('Seu dispositivo ou navegador não possui suporte a sensores de orientação/giroscópio.');
-    if (btn) btn.innerText = "📱 Ler Sensores do Celular";
-  }
-}
-
-function startSensorListeners(btn) {
-  let sensorTimeout;
-
-  function handleOrientation(event) {
-    // 1. LEITURA DE AZIMUTE (BÚSSOLA)
-    let heading = null;
-    if (event.webkitCompassHeading) {
-      // Suporte iOS Safari
-      heading = event.webkitCompassHeading;
-    } else if (event.alpha !== null) {
-      // Suporte Android (converte alpha para bússola 0-360)
-      heading = 360 - event.alpha;
-    }
-
-    if (heading !== null) {
-      const azimuteVal = Math.round((heading + 360) % 360);
-      const azEl = document.getElementById('eqAzimuth');
-      if (azEl) azEl.value = azimuteVal;
-    }
-
-    // 2. LEITURA DE INCLINAÇÃO (INCLINÔMETRO - ACLIVE/DECLIVE)
-    // Usamos o pitch (beta) quando o aparelho está em modo retrato
-    if (event.beta !== null) {
-      let pitch = event.beta; // Ângulo de -180° a 180°
-      
-      // Ajusta para considerar a posição de visada (90° em pé = 0° inclinação)
-      let inclination = Math.round(pitch - 90);
-      
-      // Limita o intervalo de segurança de -90° a +90°
-      if (inclination > 90) inclination = 90;
-      if (inclination < -90) inclination = -90;
-
-      const incEl = document.getElementById('eqInclination');
-      if (incEl) incEl.value = inclination;
-    }
-
-    // Salva os dados atualizados e desliga o sensor após 3 segundos de estabilização
-    saveEnvironmentProfile();
-  }
-
-  window.addEventListener('deviceorientation', handleOrientation, true);
-
-  // Desativa o listener após 3.5 segundos para economizar bateria e travar a leitura
-  clearTimeout(sensorTimeout);
-  sensorTimeout = setTimeout(() => {
-    window.removeEventListener('deviceorientation', handleOrientation, true);
-    if (btn) btn.innerText = "✅ Sensores Atualizados!";
-    setTimeout(() => {
-      if (btn) btn.innerText = "📱 Ler Sensores do Celular";
-    }, 2500);
-  }, 3500);
-}
-  // SYNC METEOROLÓGICO REAL E GRATUITO (OPEN-METEO API)
-async function syncWeatherFromGPS() {
-  const btn = document.querySelector('.btn-sync');
-  
-  if (!currentPos || !currentPos[0] || !currentPos[1]) {
-    alert("Coordenadas GPS ainda não obtidas. Certifique-se de ativar a localização no navegador.");
-    return;
-  }
-
-  const lat = currentPos[0];
-  const lng = currentPos[1];
-
-  // Atualiza campo de Latitude para o cálculo de Coriolis
-  const latEl = document.getElementById('eqLatitude');
-  if (latEl) latEl.value = parseFloat(lat.toFixed(4));
-
-  if (btn) btn.innerText = "⏳ Sincronizando Clima...";
-
-  try {
-    // Chamada gratuita para a API Open-Meteo sem chave de API
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m`;
-    
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Falha ao obter dados meteorológicos");
-
-    const data = await response.json();
-    const current = data.current;
-
-    // 1. Temperatura (°C)
-    const tempEl = document.getElementById('eqTemp');
-    if (tempEl && current.temperature_2m !== undefined) {
-      tempEl.value = Math.round(current.temperature_2m);
-    }
-
-    // 2. Umidade Relativa (%)
-    const humEl = document.getElementById('eqHumidity');
-    if (humEl && current.relative_humidity_2m !== undefined) {
-      humEl.value = Math.round(current.relative_humidity_2m);
-    }
-
-    // 3. Pressão Atmosférica (hPa)
-    const pressEl = document.getElementById('eqPressure');
-    if (pressEl && current.surface_pressure !== undefined) {
-      pressEl.value = Math.round(current.surface_pressure);
-    }
-
-    // 4. Velocidade do Vento (converte m/s ou km/h para km/h)
-    const windSpeedEl = document.getElementById('eqWindSpeed');
-    if (windSpeedEl && current.wind_speed_10m !== undefined) {
-      windSpeedEl.value = Math.round(current.wind_speed_10m);
-    }
-
-    // 5. Direção do Vento em Horas do Relógio (1-12h)
-    if (current.wind_direction_10m !== undefined) {
-      const degrees = current.wind_direction_10m; // 0° a 360°
-      let clockHour = Math.round(degrees / 30);
-      if (clockHour === 0) clockHour = 12;
-      
-      const clockEl = document.getElementById('eqWindClock');
-      if (clockEl) clockEl.value = clockHour.toString();
-    }
-
-    // Salva o novo perfil ambiental no LocalStorage
-    saveEnvironmentProfile();
-
-    if (btn) btn.innerText = "✅ Clima Atualizado!";
-    setTimeout(() => {
-      if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
-    }, 2500);
-
-  } catch (err) {
-    console.error("Erro no sync de clima:", err);
-    alert("Erro ao buscar dados do clima na rede. Verifique sua conexão.");
-    if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
-  }
-}
-  
 </script>
 </body>
 </html>
