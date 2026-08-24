@@ -1024,128 +1024,99 @@
       renderReticle(data.mradElev, data.mradWind, dist, data.recommendedZoom);
     }
 
-    function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
-      const canvas = document.getElementById('reticleCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      
-      const width = canvas.width;
-      const height = canvas.height;
-      const cx = width / 2;
-      const cy = height / 2;
-      const radius = Math.min(width, height) / 2 - 10;
+ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 15) {
+  const canvas = document.getElementById('reticleCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const width = canvas.width;
+  const height = canvas.height;
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = Math.min(width, height) / 2 - 10;
 
-      const reticleStyleEl = document.getElementById('eqReticleType');
-      const reticleStyle = reticleStyleEl ? reticleStyleEl.value : 'mildot';
+  ctx.clearRect(0, 0, width, height);
 
-      ctx.clearRect(0, 0, width, height);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = "#0f172a";
+  ctx.stroke();
+  ctx.clip();
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = "#0f172a";
-      ctx.stroke();
-      ctx.clip();
+  // Desenho da Cruz Guia
+  ctx.strokeStyle = "#000000";
+  ctx.fillStyle = "#000000";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
 
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#000000";
+  // Desenho dos Mil-Dots (Pontos de 1 MRAD)
+  const dotSpacing = 18;
+  for (let i = -5; i <= 5; i++) {
+    if (i === 0) continue;
+    ctx.beginPath(); ctx.arc(cx + (i * dotSpacing), cy, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy + (i * dotSpacing), 2.5, 0, Math.PI * 2); ctx.fill();
+  }
 
-      if (reticleStyle === 'duplex') {
-        ctx.lineWidth = 6;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 30, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 30, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 30); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 30); ctx.stroke();
+  // Escala Dinâmica (Pixels por MRAD)
+  const scalePxPerMrad = 18;
 
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(cx - 30, cy); ctx.lineTo(cx + 30, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - 30); ctx.lineTo(cx, cy + 30); ctx.stroke();
+  // --- RENDERING DO RETÍCULO MESTRE MULTI-DISTÂNCIA ---
+  // Array de distâncias padrão para projeção simultânea de balística
+  const multiDistances = [200, 300, 400, 500, 600, 700, 800];
+  
+  // Fórmula Simplificada de Aproximação MRAD por Distância para Múltiplos Pontos
+  multiDistances.forEach(d => {
+    // Estimativa de Elevação em MRAD para o calibramento visual
+    let estMrad = Math.pow(d / 100, 1.45) * 0.35; 
+    let pY = cy + (estMrad * scalePxPerMrad);
+    let pX = cx + (mradWind * scalePxPerMrad);
 
-        [15, 30, 45].forEach(offset => {
-          ctx.beginPath(); ctx.moveTo(cx - 8, cy + offset); ctx.lineTo(cx + 8, cy + offset); ctx.stroke();
-        });
+    if (pY < cy + radius && pY > cy - radius) {
+      if (Math.round(d) === Math.round(distanceMeters)) {
+        // ALVO PRINCIPAL SELECIONADO (MARCADOR VERMELHO COM ANEL)
+        ctx.beginPath();
+        ctx.arc(pX, pY, 7, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#dc2626";
+        ctx.stroke();
 
-      } else if (reticleStyle === 'moa_hash') {
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
-
-        const step = 12;
-        for (let i = -10; i <= 10; i++) {
-          if (i === 0) continue;
-          const pos = i * step;
-          const isMajor = i % 5 === 0;
-          const tickSize = isMajor ? 10 : 5;
-          ctx.beginPath(); ctx.moveTo(cx + pos, cy - tickSize); ctx.lineTo(cx + pos, cy + tickSize); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(cx - tickSize, cy + pos); ctx.lineTo(cx + tickSize, cy + pos); ctx.stroke();
-        }
-
-      } else if (reticleStyle === 'tree') {
-        ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
-
-        const step = 15;
-        for (let y = 1; y <= 8; y++) {
-          const yPos = cy + (y * step);
-          for (let x = -y; x <= y; x++) {
-            if (x === 0) continue;
-            ctx.beginPath(); ctx.arc(cx + (x * step), yPos, 1.5, 0, Math.PI * 2); ctx.fill();
-          }
-          ctx.beginPath(); ctx.moveTo(cx - 4, yPos); ctx.lineTo(cx + 4, yPos); ctx.stroke();
-        }
-
+        ctx.fillStyle = "#dc2626";
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText(`🎯 ${d}m`, pX + 10, pY + 4);
       } else {
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 100, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 100, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 100); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 100); ctx.stroke();
+        // SUB-MARCADORES SECUNDÁRIOS (PONTOS AZUIS DE REFERÊNCIA)
+        ctx.beginPath();
+        ctx.arc(pX, pY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#0284c7";
+        ctx.fill();
 
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(cx - 100, cy); ctx.lineTo(cx + 100, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - 100); ctx.lineTo(cx, cy + 100); ctx.stroke();
-
-        const dotSpacing = 18;
-        for (let i = -5; i <= 5; i++) {
-          if (i === 0) continue;
-          ctx.beginPath(); ctx.arc(cx + (i * dotSpacing), cy, 2.5, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(cx, cy + (i * dotSpacing), 2.5, 0, Math.PI * 2); ctx.fill();
-        }
+        ctx.fillStyle = "#475569";
+        ctx.font = "bold 9px sans-serif";
+        ctx.fillText(`${d}m`, pX + 6, pY + 3);
       }
-
-      const scalePxPerMrad = 18;
-      const targetX = cx + (mradWind * scalePxPerMrad);
-      const targetY = cy + (mradElev * scalePxPerMrad);
-
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, 6, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(239, 68, 68, 0.8)";
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#dc2626";
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, 2, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-
-      ctx.restore();
-
-      ctx.textAlign = "left";
-      ctx.font = "bold 18px sans-serif";
-      ctx.fillStyle = "#0284c7";
-      ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 50, 70);
-
-      ctx.font = "bold 18px sans-serif";
-      ctx.fillStyle = "#64748b";
-      ctx.fillText(`${zoomLevel}.0x`, 50, 95);
     }
+  });
 
+  ctx.restore();
+
+  // Legenda de Telemetria
+  ctx.textAlign = "left";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillStyle = "#0284c7";
+  ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 35, 55);
+
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillStyle = "#64748b";
+  ctx.fillText(`Zoom Calibrado: ${zoomLevel}.0x`, 35, 75);
+}
+  
     function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
       const canvas = document.getElementById('mapReticleCanvas');
       if (!canvas) return;
