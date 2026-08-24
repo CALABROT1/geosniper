@@ -30,12 +30,10 @@
       white-space: nowrap;
     }
     
-    /* Barra de Navegação */
     .tabs { display: flex; background: #1e293b; height: 50px; overflow-x: auto; }
     .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 700; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
-    /* Área de Conteúdo */
     .tab-content { 
       display: none; 
       height: calc(100vh - 50px); 
@@ -45,18 +43,13 @@
     }
     .tab-content.active { display: block; }
 
-    /* Permite rolagem vertical apenas na aba Balística */
     #tabBalistica {
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch;
     }
 
-    .map { 
-      height: 100%; 
-      width: 100%; 
-    }
+    .map { height: 100%; width: 100%; }
 
-    /* Estilo dos Rótulos no Mapa */
     .radius-label {
       background: rgba(255, 255, 255, 0.95);
       font-size: 15px;
@@ -80,7 +73,6 @@
       pointer-events: auto; max-width: 320px; width: 90%;
     }
 
-    /* CSS da Aba Balística */
     .ballistics-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -175,33 +167,6 @@
       box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2);
     }
 
-    .leaflet-control-layers-toggle {
-      width: 44px !important;
-      height: 44px !important;
-    }
-
-    .leaflet-control-layers-list {
-      font-size: 16px !important;
-      font-weight: 700 !important;
-      padding: 6px 10px !important;
-      color: #0f172a !important;
-    }
-
-    .leaflet-control-layers-base label {
-      margin-bottom: 6px !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      cursor: pointer !important;
-    }
-
-    .leaflet-control-layers-base input[type="radio"] {
-      width: 18px !important;
-      height: 18px !important;
-      cursor: pointer !important;
-    }
-
-    /* Controles de Rotação Manual Tática */
     .rotate-controls {
       position: fixed;
       bottom: 20px;
@@ -227,39 +192,12 @@
       cursor: pointer;
     }
 
-    .rotate-controls button:active {
-      background: #0284c7;
-      color: #fff;
-    }
+    .results-box { display: flex; gap: 10px; margin-bottom: 15px; }
+    .res-item { flex: 1; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+    .res-item .val { font-size: 20px; font-weight: 900; color: #ef4444; }
+    .res-item .lbl { font-size: 10px; color: #94a3b8; font-weight: 700; margin-top: 4px; }
 
-    .results-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .res-item {
-      flex: 1;
-      background: #0f172a;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      text-align: center;
-    }
-    .res-item .val {
-      font-size: 20px;
-      font-weight: 900;
-      color: #ef4444;
-    }
-    .res-item .lbl {
-      font-size: 10px;
-      color: #94a3b8;
-      font-weight: 700;
-      margin-top: 4px;
-    }
-
-    .reticle-container {
-      text-align: center;
-    }
+    .reticle-container { text-align: center; }
     .zoom-badge {
       display: inline-block;
       background: #0f172a;
@@ -272,151 +210,32 @@
       box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
     }
 
-    .bal-summary-card {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 15px;
-    }
+    .bal-summary-card { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; margin-bottom: 15px; }
+    .bal-metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+    .metric-box { background: #1e293b; padding: 8px 10px; border-radius: 6px; border: 1px solid #334155; text-align: center; }
+    .metric-box .label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+    .metric-box .value { font-size: 15px; font-weight: 800; color: #f8fafc; margin-top: 2px; }
 
-    .bal-metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
-    }
+    .bal-calc-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    .bal-calc-table td { padding: 6px 8px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+    .bal-calc-table td:last-child { text-align: right; font-weight: 700; color: #f8fafc; }
+    .bal-final-row { background: rgba(239, 68, 68, 0.1); border-radius: 6px; }
+    .bal-final-row td { border-bottom: none !important; color: #ef4444 !important; font-weight: 800 !important; font-size: 13px !important; }
 
-    .metric-box {
-      background: #1e293b;
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      text-align: center;
-    }
-
-    .metric-box .label {
-      font-size: 10px;
-      color: #94a3b8;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .metric-box .value {
-      font-size: 15px;
-      font-weight: 800;
-      color: #f8fafc;
-      margin-top: 2px;
-    }
-
-    .bal-calc-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-
-    .bal-calc-table td {
-      padding: 6px 8px;
-      border-bottom: 1px solid #1e293b;
-      color: #cbd5e1;
-    }
-
-    .bal-calc-table td:last-child {
-      text-align: right;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-
-    .bal-final-row {
-      background: rgba(239, 68, 68, 0.1);
-      border-radius: 6px;
-    }
-
-    .bal-final-row td {
-      border-bottom: none !important;
-      color: #ef4444 !important;
-      font-weight: 800 !important;
-      font-size: 13px !important;
-    }
-
-    #tabEquipamento {
-      overflow-y: auto;
-      max-height: calc(100vh - 70px);
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 30px;
-    }
-
-    .equip-container {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      padding: 12px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .equip-card {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    .equip-card.header-card {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border-left: 4px solid #38bdf8;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #38bdf8;
-      margin-bottom: 14px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .flex-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .form-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-
-    .form-grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-    }
-
-    .form-row-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-    }
+    #tabEquipamento { overflow-y: auto; max-height: calc(100vh - 70px); -webkit-overflow-scrolling: touch; padding-bottom: 30px; }
+    .equip-container { display: flex; flex-direction: column; gap: 15px; padding: 12px; max-width: 1200px; margin: 0 auto; }
+    .equip-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .equip-card.header-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-left: 4px solid #38bdf8; }
+    .card-title { font-size: 14px; font-weight: 800; color: #38bdf8; margin-bottom: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .form-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .form-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .form-row-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 
     .btn-sync, .btn-sensor {
-      background: #0284c7;
-      color: #ffffff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
+      background: #0284c7; color: #ffffff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.2s;
     }
-
-    .btn-sync:hover, .btn-sensor:hover {
-      background: #0369a1;
-    }
+    .btn-sync:hover, .btn-sensor:hover { background: #0369a1; }
   </style>
 </head>
 <body>
@@ -431,29 +250,23 @@
   <button class="tab-btn" data-tab="tabNormal" onclick="openTab(event, 'tabNormal')">Mapa</button>
 </div>
 
-<!-- PAINEL DE CONTROLE DE ROTAÇÃO MANUAL -->
 <div class="rotate-controls">
   <button onclick="rotateMap(-30)" title="Girar 30° para Esquerda">↩️ -30°</button>
   <button onclick="resetNorth()" title="Resetar para o Norte">🧭 NORTE</button>
   <button onclick="rotateMap(30)" title="Girar 30° para Direita">↪️ +30°</button>
 </div>
 
-  <!-- DIVS DOS MAPAS -->
   <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map"></div></div>
   <div id="tabNormal" class="tab-content"><div id="mapNormal" class="map"></div></div>
   <div id="tabRelevo" class="tab-content"><div id="mapRelevo" class="map"></div></div>
   
-  <!-- DIV DA ABA MEDIR -->
   <div id="tabMedir" class="tab-content">
     <div id="mapMedir" class="map"></div>
     <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
   </div>
 
-  <!-- DIV DA ABA BALÍSTICA -->
   <div id="tabBalistica" class="tab-content active">
     <div class="ballistics-grid">
-      
-      <!-- PAINEL DE ENTRADA DE DADOS -->
       <div class="card">
         <h3>🎯 Configurações de Tiro & Projétil</h3>
         
@@ -545,7 +358,6 @@
         <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
         
-      <!-- PAINEL DE RESULTADOS & CANVAS DO RETÍCULO -->
       <div class="card">
         <h3>Solução Tática & Retículo</h3>
 
@@ -560,22 +372,18 @@
           </div>
         </div>
 
-        <div id="resDetails">
-          Aguardando cálculo...
+        <div id="resDetails">Aguardando cálculo...</div>
+
+        <div class="reticle-container" style="position: relative; text-align: center; margin-top: 15px;">
+          <div id="zoomBadge" class="zoom-badge" style="position: absolute; top: 10px; right: 10px; background: #0284c7; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800;">
+            Zoom Sugerido: --
+          </div>
+          <canvas id="reticleCanvas" width="300" height="300" style="background:#fff; border-radius:50%; border:4px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto;"></canvas>
         </div>
-
-<div class="reticle-container" style="position: relative; text-align: center; margin-top: 15px;">
-  <div id="zoomBadge" class="zoom-badge" style="position: absolute; top: 10px; right: 10px; background: #0284c7; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800;">
-    Zoom Sugerido: --
-  </div>
-  <canvas id="reticleCanvas" width="300" height="300" style="background:#fff; border-radius:50%; border:4px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto;"></canvas>
-</div>
       </div>
-
     </div>
   </div>
 
-  <!-- ABA EQUIPAMENTO & CONDIÇÕES CLIMÁTICAS -->
   <div id="tabEquipamento" class="tab-content">
     <div class="equip-container">
       
@@ -706,8 +514,8 @@
       <div class="equip-card">
         <div class="card-title flex-between">
           <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
-          <button type="button" class="btn-sensor" onclick="readDeviceSensors()">
-            📱 Ler Sensores do Celular (Ângulo/Bússola)
+          <button type="button" class="btn-sensor" onclick="openTacticalCameraFromEquip()">
+            📷 Abrir Câmera Tática (Captura de Visada)
           </button>
         </div>
         <div class="form-grid-3">
@@ -728,14 +536,10 @@
 
     </div>
   </div>
-<!-- ======================================================== -->
-  <!-- MODAL DA CÂMERA TÁTICA COM RETÍCULO (AQUI!)             -->
-  <!-- ======================================================== -->
+
   <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
-    
     <video id="cameraVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
     
-    <!-- RETÍCULO SOBREPOSTO -->
     <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); pointer-events:none;">
       <svg width="220" height="220" viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="45" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.8"/>
@@ -745,12 +549,10 @@
       </svg>
     </div>
 
-    <!-- HUD COM TELEMETRIA EM TEMPO REAL -->
     <div id="cameraHUD" style="position:absolute; top:20px; background:rgba(15,23,42,0.9); color:#38bdf8; padding:10px 18px; border-radius:10px; font-weight:800; font-size:13px; border:1px solid #334155; text-align:center;">
       SÍTIO (PITCH): <span id="hudInclination" style="color:#fff;">0°</span> | AZIMUTE: <span id="hudAzimuth" style="color:#fff;">0°</span>
     </div>
 
-    <!-- BOTÕES DA CÂMERA -->
     <div style="position:absolute; bottom:30px; display:flex; gap:15px; width:90%; max-width:400px;">
       <button onclick="closeCameraModal()" style="flex:1; padding:14px; background:#334155; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer;">❌ CANCELAR</button>
       <button onclick="captureAndProcessTacticalPhoto()" style="flex:2; padding:14px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 0 12px rgba(2,132,199,0.6);">📷 CAPTURAR & VINCULAR</button>
@@ -758,7 +560,6 @@
 
     <canvas id="photoCanvas" style="display:none;"></canvas>
   </div>
-
 
 <script>
     let currentPos = null;
@@ -823,7 +624,6 @@
       const part2 = '9uIn0.8Wqi1dqir8FRPfUdLtZezg';
       const MAPBOX_TOKEN = part1 + part2;
 
-      // Endpoint raster v4 estático direto (100% compatível com Leaflet)
       const mapboxSatellite = L.tileLayer(
         'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + MAPBOX_TOKEN, {
           maxZoom: 22,
@@ -917,7 +717,6 @@
       currentPos = [lat, lng];
       const opIcon = createOperatorIcon();
 
-      // --- ABA RAIOS ---
       const layersRaios = createTileLayers();
       if (mapRaios) { mapRaios.remove(); }
       mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite Padrão"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
@@ -926,14 +725,12 @@
       circlesAndLabelsGroup.addTo(mapRaios);
       updateRaios(lat, lng);
 
-      // --- ABA NORMAL / MAPA ---
       const layersNormal = createTileLayers();
       if (mapNormal) { mapNormal.remove(); }
       mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
       L.control.layers(layersNormal).addTo(mapNormal);
       markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
-      // --- ABA RELEVO ---
       const layersRelevo = createTileLayers();
       if (mapRelevo) { mapRelevo.remove(); }
       mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
@@ -941,7 +738,6 @@
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
-      // --- ABA MEDIR ---
       const layersMedir = createTileLayers();
       if (mapMedir) { mapMedir.remove(); }
       mapMedir = L.map('mapMedir', { 
@@ -992,46 +788,46 @@
             📲 Compartilhar Alvo no WhatsApp
           </button>
         `;
-           // Ativa a leitura do sensor em direção ao alvo clicado
+
         startTargetGuidance(targetLat, targetLng);
         renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
       });
     }
 
-   async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
-  if (!mapMedir) return;
+    async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
+      if (!mapMedir) return;
 
-  if (currentRoutePolyline) {
-    mapMedir.removeLayer(currentRoutePolyline);
-    currentRoutePolyline = null;
-  }
+      if (currentRoutePolyline) {
+        mapMedir.removeLayer(currentRoutePolyline);
+        currentRoutePolyline = null;
+      }
 
-  // Com radiuses=500;500 o OSRM aceita conectar a rota mesmo se o ponto estiver 'fora' da via/calçada oficial
-  const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson&radiuses=500;500`;
+      const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson&radiuses=500;500`;
 
-  try {
-    const res = await fetch(osrmUrl);
-    const data = await res.json();
+      try {
+        const res = await fetch(osrmUrl);
+        const data = await res.json();
 
-    if (data.routes && data.routes.length > 0) {
-      const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        if (data.routes && data.routes.length > 0) {
+          const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
 
-      currentRoutePolyline = L.polyline(coords, {
-        color: '#ffffff',
-        weight: 4,
-        opacity: 0.9,
-        dashArray: '6, 6',
-        smoothFactor: 0,
-        noClip: true
-      }).addTo(mapMedir);
+          currentRoutePolyline = L.polyline(coords, {
+            color: '#ffffff',
+            weight: 4,
+            opacity: 0.9,
+            dashArray: '6, 6',
+            smoothFactor: 0,
+            noClip: true
+          }).addTo(mapMedir);
 
-      mapMedir.off('zoom', updateRouteRender);
-      mapMedir.on('zoom', updateRouteRender);
+          mapMedir.off('zoom', updateRouteRender);
+          mapMedir.on('zoom', updateRouteRender);
+        }
+      } catch (err) {
+        console.warn("Erro ao buscar rota terrestre:", err);
+      }
     }
-  } catch (err) {
-    console.warn("Erro ao buscar rota terrestre:", err);
-  }
-}
+
     function updateRouteRender() {
       if (currentRoutePolyline) {
         currentRoutePolyline.redraw();
@@ -1071,23 +867,27 @@
 
               if (!sol) return;
 
-document.getElementById('distPanel').innerHTML = `
-  <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
-    Distância até o Alvo Recebido: <b>${Math.round(distanceMeters)}m</b>
-  </div>
-  <div style="font-size: 14px; color: #f8fafc; margin-bottom: 8px;">
-    <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
-  </div>
-  <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
-  <div id="targetGuidanceBox"></div>
-  <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-    📲 Compartilhar Alvo no WhatsApp
-  </button>
-`;
+              document.getElementById('distPanel').innerHTML = `
+                <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
+                  Distância até o Alvo Recebido: <b>${Math.round(distanceMeters)}m</b>
+                </div>
+                <div style="font-size: 14px; color: #f8fafc; margin-bottom: 8px;">
+                  <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
+                </div>
+                <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
+                <div id="targetGuidanceBox"></div>
+                <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  📲 Compartilhar Alvo no WhatsApp
+                </button>
+              `;
 
-// Ativa a bússola tática para o alvo recebido via WhatsApp
-startTargetGuidance(targetLat, targetLng);
-renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
+              startTargetGuidance(targetLat, targetLng);
+              renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
+            }
+          }
+        }, 300);
+      }
+    }
 
     function syncTurretFromBalistica() {
       const balVal = document.getElementById('balTurret').value;
@@ -1624,12 +1424,223 @@ renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoo
       }
     }
 
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      const toRad = deg => deg * Math.PI / 180;
+      const toDeg = rad => rad * 180 / Math.PI;
+
+      const dLon = toRad(lon2 - lon1);
+      const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+      const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+                Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+
+      return (toDeg(Math.atan2(y, x)) + 360) % 360;
+    }
+
+    let alignedTargetVibrated = false;
+
+    function startTargetGuidance(targetLat, targetLng) {
+      if (!window.DeviceOrientationEvent) return;
+
+      window.addEventListener('deviceorientation', function(event) {
+        if (!currentPos || !targetLat || !targetLng) return;
+
+        let operatorHeading = event.webkitCompassHeading || (360 - event.alpha);
+        if (operatorHeading === undefined || isNaN(operatorHeading)) return;
+
+        let targetBearing = calculateBearing(currentPos[0], currentPos[1], targetLat, targetLng);
+
+        let delta = targetBearing - operatorHeading;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+
+        const guidanceEl = document.getElementById('targetGuidanceBox');
+        if (!guidanceEl) return;
+
+        const absDelta = Math.abs(delta);
+
+        if (absDelta <= 10) {
+          guidanceEl.innerHTML = `
+            <div style="font-size: 15px; font-weight: 900; color: #22c55e; background: rgba(34,197,94,0.2); padding: 8px; border-radius: 8px; border: 2px solid #22c55e; margin-top: 8px;">
+              🎯 ALVO EM LINHA DE VISADA
+            </div>
+          `;
+
+          if (!alignedTargetVibrated && navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+            alignedTargetVibrated = true;
+          }
+        } else {
+          alignedTargetVibrated = false;
+          const turnDir = delta > 0 ? "Gire para a DIREITA ➔" : "⬅️ Gire para a ESQUERDA";
+          
+          guidanceEl.innerHTML = `
+            <div style="font-size: 13px; font-weight: 800; color: #f59e0b; margin-top: 8px; background: rgba(245,158,11,0.1); padding: 6px; border-radius: 6px; border: 1px solid #f59e0b;">
+              🔄 ${turnDir} (${Math.round(absDelta)}°)
+            </div>
+          `;
+        }
+      }, true);
+    }
+
+    let cameraStream = null;
+    let currentHudInclination = 0;
+    let currentHudAzimuth = 0;
+    let currentTargetForPhoto = null;
+
+    function openTacticalCameraFromEquip() {
+      if (!measureMarker) {
+        alert("⚠️ Marque um alvo no mapa (Aba Medir) antes de realizar a captura de visada.");
+        return;
+      }
+      const pos = measureMarker.getLatLng();
+      openTacticalCamera(pos.lat, pos.lng);
+    }
+
+    async function openTacticalCamera(targetLat, targetLng) {
+      currentTargetForPhoto = { lat: targetLat, lng: targetLng };
+      const modal = document.getElementById('cameraModal');
+      const video = document.getElementById('cameraVideo');
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } },
+          audio: false
+        });
+        video.srcObject = cameraStream;
+        modal.style.display = 'flex';
+        window.addEventListener('deviceorientation', updateCameraHUD, true);
+      } catch (err) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          video.srcObject = cameraStream;
+          modal.style.display = 'flex';
+          window.addEventListener('deviceorientation', updateCameraHUD, true);
+        } catch (e) {
+          alert("Erro ao acessar a câmera do dispositivo.");
+        }
+      }
+    }
+
+    function updateCameraHUD(event) {
+      let heading = event.webkitCompassHeading || (360 - event.alpha);
+      if (heading !== undefined && !isNaN(heading)) {
+        currentHudAzimuth = Math.round((heading + 360) % 360);
+        const azEl = document.getElementById('hudAzimuth');
+        if (azEl) azEl.innerText = `${currentHudAzimuth}°`;
+      }
+
+      if (event.beta !== null) {
+        let pitch = event.beta;
+        let inclination = Math.round(pitch - 90);
+        if (inclination > 90) inclination = 90;
+        if (inclination < -90) inclination = -90;
+
+        currentHudInclination = inclination;
+        const incEl = document.getElementById('hudInclination');
+        if (incEl) incEl.innerText = `${currentHudInclination}°`;
+      }
+    }
+
+    async function captureAndProcessTacticalPhoto() {
+      const video = document.getElementById('cameraVideo');
+      const canvas = document.getElementById('photoCanvas');
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - 80, cy); ctx.lineTo(cx + 80, cy);
+      ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy + 80);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(10, canvas.height - 60, canvas.width - 20, 50);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px sans-serif';
+      const timestamp = new Date().toLocaleString('pt-BR');
+      ctx.fillText(`GEOSNIPER COP | ${timestamp} | SÍTIO: ${currentHudInclination}° | AZ: ${currentHudAzimuth}°`, 20, canvas.height - 28);
+
+      const imageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      closeCameraModal();
+
+      const incEl = document.getElementById('eqInclination');
+      const azEl = document.getElementById('eqAzimuth');
+      if (incEl) incEl.value = currentHudInclination;
+      if (azEl) azEl.value = currentHudAzimuth;
+      saveEnvironmentProfile();
+
+      try {
+        const res = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: imageBase64,
+            targetId: `target_${Math.round(currentTargetForPhoto.lat * 10000)}_${Math.round(currentTargetForPhoto.lng * 10000)}`
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          updateTargetMarkerWithPhoto(currentTargetForPhoto.lat, currentTargetForPhoto.lng, data.imageUrl);
+          alert("📷 Imagem Tática vinculada com sucesso ao ponto do alvo!");
+        }
+      } catch (err) {
+        console.error("Erro no upload da foto:", err);
+        alert("Erro ao conectar com o servidor para enviar a imagem.");
+      }
+    }
+
+    function closeCameraModal() {
+      const modal = document.getElementById('cameraModal');
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      window.removeEventListener('deviceorientation', updateCameraHUD, true);
+      if (modal) modal.style.display = 'none';
+    }
+
+    function updateTargetMarkerWithPhoto(lat, lng, imageUrl) {
+      if (!measureMarker) return;
+
+      const cameraIcon = L.divIcon({
+        className: 'tactical-photo-marker',
+        html: `<div style="background:#0284c7; color:#fff; border:2px solid #fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:0 0 10px rgba(2,132,199,0.8);">📷</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      measureMarker.setIcon(cameraIcon);
+
+      measureMarker.bindPopup(`
+        <div style="text-align:center; max-width:220px;">
+          <b style="color:#0284c7;">🎯 FOTO DO ALVO (VISADA)</b><br>
+          <img src="${imageUrl}" style="width:100%; border-radius:8px; margin-top:6px; border:1px solid #334155; cursor:pointer;" onclick="window.open('${imageUrl}', '_blank')">
+          <div style="font-size:10px; color:#64748b; margin-top:4px;">Clique para expandir</div>
+        </div>
+      `).openPopup();
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       fetchWeaponsCatalog();
       runBallistics();
       checkSharedPointFromURL();
 
-      // Restaura a aba ativa salva
       const savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
       openTab(null, savedTab);
     });
@@ -1656,238 +1667,22 @@ renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoo
               const targetLatLng = measureMarker.getLatLng();
               measureLine.setLatLngs([currentPos, targetLatLng]);
               const d = L.latLng(currentPos).distanceTo(targetLatLng);
-              document.getElementById('distPanel').innerText = `Distância: ${d >= 1000 ? (d/1000).toFixed(2)+' km' : Math.round(d)+' metros'}`;
+              const distEl = document.getElementById('distPanel');
+              if (distEl) {
+                distEl.innerText = `Distância: ${d >= 1000 ? (d/1000).toFixed(2)+' km' : Math.round(d)+' metros'}`;
+              }
             }
           }
         },
-        (err) => { document.getElementById('distPanel').innerText = "Erro ao obter GPS: " + err.message; },
+        (err) => { 
+          const distEl = document.getElementById('distPanel');
+          if (distEl) distEl.innerText = "Erro ao obter GPS: " + err.message; 
+        },
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
       );
     } else {
       alert("Seu dispositivo não suporta geolocalização.");
     }
-  
-  // ==========================================
-// ORIENTAÇÃO TÁTICA E BÚSSOLA DE ALVO
-// ==========================================
-
-// Calculates bearing angle (0° to 360°)
-function calculateBearing(lat1, lon1, lat2, lon2) {
-  const toRad = deg => deg * Math.PI / 180;
-  const toDeg = rad => rad * 180 / Math.PI;
-
-  const dLon = toRad(lon2 - lon1);
-  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
-  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
-
-  return (toDeg(Math.atan2(y, x)) + 360) % 360;
-}
-
-let alignedTargetVibrated = false;
-
-function startTargetGuidance(targetLat, targetLng) {
-  if (!window.DeviceOrientationEvent) return;
-
-  window.addEventListener('deviceorientation', function(event) {
-    if (!currentPos || !targetLat || !targetLng) return;
-
-    let operatorHeading = event.webkitCompassHeading || (360 - event.alpha);
-    if (operatorHeading === undefined || isNaN(operatorHeading)) return;
-
-    let targetBearing = calculateBearing(currentPos[0], currentPos[1], targetLat, targetLng);
-
-    let delta = targetBearing - operatorHeading;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-
-    const guidanceEl = document.getElementById('targetGuidanceBox');
-    if (!guidanceEl) return;
-
-    const absDelta = Math.abs(delta);
-
-    if (absDelta <= 10) {
-      guidanceEl.innerHTML = `
-        <div style="font-size: 15px; font-weight: 900; color: #22c55e; background: rgba(34,197,94,0.2); padding: 8px; border-radius: 8px; border: 2px solid #22c55e; margin-top: 8px;">
-          🎯 ALVO EM LINHA DE VISADA
-        </div>
-      `;
-
-      if (!alignedTargetVibrated && navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
-        alignedTargetVibrated = true;
-      }
-    } else {
-      alignedTargetVibrated = false;
-      const turnDir = delta > 0 ? "Gire para a DIREITA ➔" : "⬅️ Gire para a ESQUERDA";
-      
-      guidanceEl.innerHTML = `
-        <div style="font-size: 13px; font-weight: 800; color: #f59e0b; margin-top: 8px; background: rgba(245,158,11,0.1); padding: 6px; border-radius: 6px; border: 1px solid #f59e0b;">
-          🔄 ${turnDir} (${Math.round(absDelta)}°)
-        </div>
-      `;
-    }
-  }, true);
-}
-  }, true);
-}
-
-// ==========================================
-// CÂMERA TÁTICA E CAPTURA DE TELEMETRIA
-// ==========================================
-let cameraStream = null;
-let currentHudInclination = 0;
-let currentHudAzimuth = 0;
-let currentTargetForPhoto = null;
-
-function openTacticalCameraFromEquip() {
-  if (!measureMarker) {
-    alert("⚠️ Marque um alvo no mapa (Aba Medir) antes de realizar a captura de visada.");
-    return;
-  }
-  const pos = measureMarker.getLatLng();
-  openTacticalCamera(pos.lat, pos.lng);
-}
-
-async function openTacticalCamera(targetLat, targetLng) {
-  currentTargetForPhoto = { lat: targetLat, lng: targetLng };
-  const modal = document.getElementById('cameraModal');
-  const video = document.getElementById('cameraVideo');
-
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { exact: "environment" } },
-      audio: false
-    });
-    video.srcObject = cameraStream;
-    modal.style.display = 'flex';
-    window.addEventListener('deviceorientation', updateCameraHUD, true);
-  } catch (err) {
-    try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      video.srcObject = cameraStream;
-      modal.style.display = 'flex';
-      window.addEventListener('deviceorientation', updateCameraHUD, true);
-    } catch (e) {
-      alert("Erro ao acessar a câmera do dispositivo.");
-    }
-  }
-}
-
-function updateCameraHUD(event) {
-  let heading = event.webkitCompassHeading || (360 - event.alpha);
-  if (heading !== undefined && !isNaN(heading)) {
-    currentHudAzimuth = Math.round((heading + 360) % 360);
-    const azEl = document.getElementById('hudAzimuth');
-    if (azEl) azEl.innerText = `${currentHudAzimuth}°`;
-  }
-
-  if (event.beta !== null) {
-    let pitch = event.beta;
-    let inclination = Math.round(pitch - 90);
-    if (inclination > 90) inclination = 90;
-    if (inclination < -90) inclination = -90;
-
-    currentHudInclination = inclination;
-    const incEl = document.getElementById('hudInclination');
-    if (incEl) incEl.innerText = `${currentHudInclination}°`;
-  }
-}
-
-async function captureAndProcessTacticalPhoto() {
-  const video = document.getElementById('cameraVideo');
-  const canvas = document.getElementById('photoCanvas');
-  const ctx = canvas.getContext('2d');
-
-  canvas.width = video.videoWidth || 1280;
-  canvas.height = video.videoHeight || 720;
-
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  
-  ctx.strokeStyle = '#ef4444';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(cx - 80, cy); ctx.lineTo(cx + 80, cy);
-  ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy + 80);
-  ctx.stroke();
-
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 40, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-  ctx.fillRect(10, canvas.height - 60, canvas.width - 20, 50);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 16px sans-serif';
-  const timestamp = new Date().toLocaleString('pt-BR');
-  ctx.fillText(`GEOSNIPER COP | ${timestamp} | SÍTIO: ${currentHudInclination}° | AZ: ${currentHudAzimuth}°`, 20, canvas.height - 28);
-
-  const imageBase64 = canvas.toDataURL('image/jpeg', 0.8);
-  closeCameraModal();
-
-  const incEl = document.getElementById('eqInclination');
-  const azEl = document.getElementById('eqAzimuth');
-  if (incEl) incEl.value = currentHudInclination;
-  if (azEl) azEl.value = currentHudAzimuth;
-  saveEnvironmentProfile();
-
-  try {
-    const res = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageBase64: imageBase64,
-        targetId: `target_${Math.round(currentTargetForPhoto.lat * 10000)}_${Math.round(currentTargetForPhoto.lng * 10000)}`
-      })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      updateTargetMarkerWithPhoto(currentTargetForPhoto.lat, currentTargetForPhoto.lng, data.imageUrl);
-      alert("📷 Imagem Tática vinculada com sucesso ao ponto do alvo!");
-    }
-  } catch (err) {
-    console.error("Erro no upload da foto:", err);
-    alert("Erro ao conectar com o servidor para enviar a imagem.");
-  }
-}
-
-function closeCameraModal() {
-  const modal = document.getElementById('cameraModal');
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-  window.removeEventListener('deviceorientation', updateCameraHUD, true);
-  if (modal) modal.style.display = 'none';
-}
-
-function updateTargetMarkerWithPhoto(lat, lng, imageUrl) {
-  if (!measureMarker) return;
-
-  const cameraIcon = L.divIcon({
-    className: 'tactical-photo-marker',
-    html: `<div style="background:#0284c7; color:#fff; border:2px solid #fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:0 0 10px rgba(2,132,199,0.8);">📷</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
-  });
-
-  measureMarker.setIcon(cameraIcon);
-
-  measureMarker.bindPopup(`
-    <div style="text-align:center; max-width:220px;">
-      <b style="color:#0284c7;">🎯 FOTO DO ALVO (VISADA)</b><br>
-      <img src="${imageUrl}" style="width:100%; border-radius:8px; margin-top:6px; border:1px solid #334155; cursor:pointer;" onclick="window.open('${imageUrl}', '_blank')">
-      <div style="font-size:10px; color:#64748b; margin-top:4px;">Clique para expandir</div>
-    </div>
-  `).openPopup();
-}
 </script>
 </body>
 </html>
