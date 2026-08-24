@@ -835,10 +835,11 @@ function createTileLayers() {
   const MAPBOX_TOKEN = part1 + part2;
 
   const mapboxSatellite = L.tileLayer(
-    'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=' + MAPBOX_TOKEN, {
+    'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + MAPBOX_TOKEN, {
+      maxZoom: 22,
+      maxNativeZoom: 19,
       tileSize: 512,
       zoomOffset: -1,
-      maxZoom: 22,
       attribution: '© Mapbox © Maxar'
     }
   );
@@ -944,13 +945,18 @@ function initMaps(lat, lng) {
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
-      // --- ABA MEDIR ---
-      const layersMedir = createTileLayers();
-      if (mapMedir) { mapMedir.remove(); }
-      mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]], rotate: true, touchRotate: true }).setView(currentPos, 16);
-      L.control.layers(layersMedir).addTo(mapMedir);
-      markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
+     // ABA MEDIR
+const layersMedir = createTileLayers();
+if (mapMedir) { mapMedir.remove(); }
+mapMedir = L.map('mapMedir', { 
+  layers: [layersMedir["Mapbox Satélite (HD)"]], 
+  rotate: true, 
+  touchRotate: true 
+}).setView(currentPos, 16);
 
+L.control.layers(layersMedir).addTo(mapMedir);
+markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
+  
 
 mapMedir.on('click', async function(e) {
   const targetLat = e.latlng.lat;
