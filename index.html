@@ -1108,13 +1108,13 @@
 
   // Legenda de Telemetria
   ctx.textAlign = "left";
-  ctx.font = "bold 16px sans-serif";
+  ctx.font = "bold 15px sans-serif";
   ctx.fillStyle = "#0284c7";
-  ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 35, 55);
+  ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 55, 55);
 
   ctx.font = "bold 14px sans-serif";
   ctx.fillStyle = "#64748b";
-  ctx.fillText(`Zoom Calibrado: ${zoomLevel}.0x`, 35, 75);
+  ctx.fillText(`Zoom: ${zoomLevel}.0x`, 35, 75);
 }
   
     function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
