@@ -945,7 +945,7 @@ function initMaps(lat, lng) {
       L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
       markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
-     // ABA MEDIR
+// ABA MEDIR
 const layersMedir = createTileLayers();
 if (mapMedir) { mapMedir.remove(); }
 mapMedir = L.map('mapMedir', { 
@@ -956,7 +956,6 @@ mapMedir = L.map('mapMedir', {
 
 L.control.layers(layersMedir).addTo(mapMedir);
 markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
-  
 
 mapMedir.on('click', async function(e) {
   const targetLat = e.latlng.lat;
@@ -967,13 +966,14 @@ mapMedir.on('click', async function(e) {
 
   measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
   measureLine = L.polyline([currentPos, [targetLat, targetLng]], { 
-  color: '#ff4500', 
-  weight: 3, 
-  dashArray: '6, 6',
-  smoothFactor: 0,
-  noClip: true
-}).addTo(mapMedir);
-
+    color: '#ff4500', 
+    weight: 3, 
+    dashArray: '6, 6',
+    smoothFactor: 0,
+    noClip: true
+  }).addTo(mapMedir);
+});
+  
   // 🎯 CHAMADA DA ROTA TERRESTRE (AZUL)
   if (currentPos) {
     drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
