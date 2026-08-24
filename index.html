@@ -964,40 +964,40 @@
       });
     }
 
-    async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
-      if (!mapMedir) return;
+   async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
+  if (!mapMedir) return;
 
-      if (currentRoutePolyline) {
-        mapMedir.removeLayer(currentRoutePolyline);
-        currentRoutePolyline = null;
-      }
+  if (currentRoutePolyline) {
+    mapMedir.removeLayer(currentRoutePolyline);
+    currentRoutePolyline = null;
+  }
 
-      const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson`;
+  // Com radiuses=500;500 o OSRM aceita conectar a rota mesmo se o ponto estiver 'fora' da via/calçada oficial
+  const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson&radiuses=500;500`;
 
-      try {
-        const res = await fetch(osrmUrl);
-        const data = await res.json();
+  try {
+    const res = await fetch(osrmUrl);
+    const data = await res.json();
 
-        if (data.routes && data.routes.length > 0) {
-          const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    if (data.routes && data.routes.length > 0) {
+      const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
 
-          currentRoutePolyline = L.polyline(coords, {
-            color: '#ffffff',
-            weight: 5,
-            opacity: 0.9,
-            dashArray: '6, 6',
-            smoothFactor: 0,
-            noClip: true
-          }).addTo(mapMedir);
+      currentRoutePolyline = L.polyline(coords, {
+        color: '#ffffff',
+        weight: 4,
+        opacity: 0.9,
+        dashArray: '6, 6',
+        smoothFactor: 0,
+        noClip: true
+      }).addTo(mapMedir);
 
-          mapMedir.off('zoom', updateRouteRender);
-          mapMedir.on('zoom', updateRouteRender);
-        }
-      } catch (err) {
-        console.warn("Erro ao buscar rota terrestre:", err);
-      }
+      mapMedir.off('zoom', updateRouteRender);
+      mapMedir.on('zoom', updateRouteRender);
     }
-
+  } catch (err) {
+    console.warn("Erro ao buscar rota terrestre:", err);
+  }
+}
     function updateRouteRender() {
       if (currentRoutePolyline) {
         currentRoutePolyline.redraw();
