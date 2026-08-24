@@ -1728,6 +1728,165 @@ function startTargetGuidance(targetLat, targetLng) {
     }
   }, true);
 }
+  }, true);
+}
+
+// ==========================================
+// CÂMERA TÁTICA E CAPTURA DE TELEMETRIA
+// ==========================================
+let cameraStream = null;
+let currentHudInclination = 0;
+let currentHudAzimuth = 0;
+let currentTargetForPhoto = null;
+
+function openTacticalCameraFromEquip() {
+  if (!measureMarker) {
+    alert("⚠️ Marque um alvo no mapa (Aba Medir) antes de realizar a captura de visada.");
+    return;
+  }
+  const pos = measureMarker.getLatLng();
+  openTacticalCamera(pos.lat, pos.lng);
+}
+
+async function openTacticalCamera(targetLat, targetLng) {
+  currentTargetForPhoto = { lat: targetLat, lng: targetLng };
+  const modal = document.getElementById('cameraModal');
+  const video = document.getElementById('cameraVideo');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: "environment" } },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+    modal.style.display = 'flex';
+    window.addEventListener('deviceorientation', updateCameraHUD, true);
+  } catch (err) {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      video.srcObject = cameraStream;
+      modal.style.display = 'flex';
+      window.addEventListener('deviceorientation', updateCameraHUD, true);
+    } catch (e) {
+      alert("Erro ao acessar a câmera do dispositivo.");
+    }
+  }
+}
+
+function updateCameraHUD(event) {
+  let heading = event.webkitCompassHeading || (360 - event.alpha);
+  if (heading !== undefined && !isNaN(heading)) {
+    currentHudAzimuth = Math.round((heading + 360) % 360);
+    const azEl = document.getElementById('hudAzimuth');
+    if (azEl) azEl.innerText = `${currentHudAzimuth}°`;
+  }
+
+  if (event.beta !== null) {
+    let pitch = event.beta;
+    let inclination = Math.round(pitch - 90);
+    if (inclination > 90) inclination = 90;
+    if (inclination < -90) inclination = -90;
+
+    currentHudInclination = inclination;
+    const incEl = document.getElementById('hudInclination');
+    if (incEl) incEl.innerText = `${currentHudInclination}°`;
+  }
+}
+
+async function captureAndProcessTacticalPhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('photoCanvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = video.videoWidth || 1280;
+  canvas.height = video.videoHeight || 720;
+
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx - 80, cy); ctx.lineTo(cx + 80, cy);
+  ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy + 80);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+  ctx.fillRect(10, canvas.height - 60, canvas.width - 20, 50);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px sans-serif';
+  const timestamp = new Date().toLocaleString('pt-BR');
+  ctx.fillText(`GEOSNIPER COP | ${timestamp} | SÍTIO: ${currentHudInclination}° | AZ: ${currentHudAzimuth}°`, 20, canvas.height - 28);
+
+  const imageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+  closeCameraModal();
+
+  const incEl = document.getElementById('eqInclination');
+  const azEl = document.getElementById('eqAzimuth');
+  if (incEl) incEl.value = currentHudInclination;
+  if (azEl) azEl.value = currentHudAzimuth;
+  saveEnvironmentProfile();
+
+  try {
+    const res = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageBase64: imageBase64,
+        targetId: `target_${Math.round(currentTargetForPhoto.lat * 10000)}_${Math.round(currentTargetForPhoto.lng * 10000)}`
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      updateTargetMarkerWithPhoto(currentTargetForPhoto.lat, currentTargetForPhoto.lng, data.imageUrl);
+      alert("📷 Imagem Tática vinculada com sucesso ao ponto do alvo!");
+    }
+  } catch (err) {
+    console.error("Erro no upload da foto:", err);
+    alert("Erro ao conectar com o servidor para enviar a imagem.");
+  }
+}
+
+function closeCameraModal() {
+  const modal = document.getElementById('cameraModal');
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  window.removeEventListener('deviceorientation', updateCameraHUD, true);
+  if (modal) modal.style.display = 'none';
+}
+
+function updateTargetMarkerWithPhoto(lat, lng, imageUrl) {
+  if (!measureMarker) return;
+
+  const cameraIcon = L.divIcon({
+    className: 'tactical-photo-marker',
+    html: `<div style="background:#0284c7; color:#fff; border:2px solid #fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:0 0 10px rgba(2,132,199,0.8);">📷</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
+  measureMarker.setIcon(cameraIcon);
+
+  measureMarker.bindPopup(`
+    <div style="text-align:center; max-width:220px;">
+      <b style="color:#0284c7;">🎯 FOTO DO ALVO (VISADA)</b><br>
+      <img src="${imageUrl}" style="width:100%; border-radius:8px; margin-top:6px; border:1px solid #334155; cursor:pointer;" onclick="window.open('${imageUrl}', '_blank')">
+      <div style="font-size:10px; color:#64748b; margin-top:4px;">Clique para expandir</div>
+    </div>
+  `).openPopup();
+}
 </script>
 </body>
 </html>
