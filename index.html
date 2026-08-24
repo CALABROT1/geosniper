@@ -1633,6 +1633,80 @@
     } else {
       alert("Seu dispositivo não suporta geolocalização.");
     }
+function calculateBearing(lat1, lon1, lat2, lon2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
+
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+
+  let brng = toDeg(Math.atan2(y, x));
+  return (brng + 360) % 360; // Retorna o valor de 0° a 360°
+}
+  // ==========================================
+// ORIENTAÇÃO TÁTICA E BÚSSOLA DE ALVO
+// ==========================================
+
+// Calculates bearing angle (0° to 360°)
+function calculateBearing(lat1, lon1, lat2, lon2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
+
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+let alignedTargetVibrated = false;
+
+function startTargetGuidance(targetLat, targetLng) {
+  if (!window.DeviceOrientationEvent) return;
+
+  window.addEventListener('deviceorientation', function(event) {
+    if (!currentPos || !targetLat || !targetLng) return;
+
+    let operatorHeading = event.webkitCompassHeading || (360 - event.alpha);
+    if (operatorHeading === undefined || isNaN(operatorHeading)) return;
+
+    let targetBearing = calculateBearing(currentPos[0], currentPos[1], targetLat, targetLng);
+
+    let delta = targetBearing - operatorHeading;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+
+    const guidanceEl = document.getElementById('targetGuidanceBox');
+    if (!guidanceEl) return;
+
+    const absDelta = Math.abs(delta);
+
+    if (absDelta <= 10) {
+      guidanceEl.innerHTML = `
+        <div style="font-size: 15px; font-weight: 900; color: #22c55e; background: rgba(34,197,94,0.2); padding: 8px; border-radius: 8px; border: 2px solid #22c55e; margin-top: 8px;">
+          🎯 ALVO EM LINHA DE VISADA
+        </div>
+      `;
+
+      if (!alignedTargetVibrated && navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+        alignedTargetVibrated = true;
+      }
+    } else {
+      alignedTargetVibrated = false;
+      const turnDir = delta > 0 ? "Gire para a DIREITA ➔" : "⬅️ Gire para a ESQUERDA";
+      
+      guidanceEl.innerHTML = `
+        <div style="font-size: 13px; font-weight: 800; color: #f59e0b; margin-top: 8px; background: rgba(245,158,11,0.1); padding: 6px; border-radius: 6px; border: 1px solid #f59e0b;">
+          🔄 ${turnDir} (${Math.round(absDelta)}°)
+        </div>
+      `;
+    }
+  }, true);
+}
 </script>
 </body>
 </html>
