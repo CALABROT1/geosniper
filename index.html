@@ -239,11 +239,22 @@
   </style>
 </head>
 <body>
-  <!-- MODAL DA TABELA DE TRAJETÓRIA -->
+<!-- MODAL DA TABELA DE TRAJETÓRIA COM OPÇÕES DE EXPORTAÇÃO -->
 <div id="trajectoryModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.95); z-index:9999; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #334155; padding-bottom:10px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #334155; padding-bottom:10px; flex-wrap:wrap; gap:10px;">
     <h3 style="color:#38bdf8; margin:0; font-size:18px;">📋 CARD DE TIRO TÁTICO</h3>
-    <button onclick="closeTrajectoryModal()" style="background:#ef4444; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-weight:800; cursor:pointer;">❌ FECHAR</button>
+    
+    <div style="display:flex; gap:8px;">
+      <button onclick="exportTrajectoryToCSV()" style="background:#10b981; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">
+        📊 EXPORTAR EXCEL (CSV)
+      </button>
+      <button onclick="window.print()" style="background:#0284c7; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">
+        🖨️ IMPRIMIR / PDF
+      </button>
+      <button onclick="closeTrajectoryModal()" style="background:#ef4444; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">
+        ❌ FECHAR
+      </button>
+    </div>
   </div>
 
   <div style="overflow-x:auto;">
@@ -1738,6 +1749,35 @@
 
 function closeTrajectoryModal() {
   document.getElementById('trajectoryModal').style.display = 'none';
+}
+
+  function exportTrajectoryToCSV() {
+  const table = document.querySelector('#trajectoryModal table');
+  if (!table) return;
+
+  let csv = [];
+  const rows = table.querySelectorAll('tr');
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = [];
+    const cols = rows[i].querySelectorAll('td, th');
+    
+    for (let j = 0; j < cols.length; j++) {
+      // Limpa espaços extras e substitui quebras de linha
+      let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/;/g, ',');
+      row.push(`"${data}"`);
+    }
+    csv.push(row.join(';'));
+  }
+
+  const csvFile = new Blob(["\ufeff" + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const downloadLink = document.createElement('a');
+  downloadLink.download = `GeoSniper_Card_De_Tiro_${new Date().toISOString().slice(0,10)}.csv`;
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = 'none';
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
 }
 
   
