@@ -286,6 +286,12 @@ body.nvg-red-mode .btn-sensor {
 body.nvg-red-mode .leaflet-tile-container img {
   filter: sepia(100%) hue-rotate(310deg) saturate(600%) contrast(150%) brightness(70%);
 }
+    /* Oculta os botões de rotação especificamente na aba do Mapa Normal */
+#tabNormal .leaflet-control-container .leaflet-bottom,
+#tabNormal [class*="rotate"],
+#tabNormal [id*="rotate"] {
+  display: none !important;
+}
   </style>
 </head>
 <body>
