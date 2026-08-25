@@ -2313,6 +2313,135 @@ async function exportToKML() {
 }
   
 </script>
+  <script>
+  // ==========================================
+  // NAVEGAÇÃO ENTRE ABAS
+  // ==========================================
+  function openTab(evt, tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+    const activeTabEl = document.getElementById(tabName);
+    if (activeTabEl) activeTabEl.classList.add('active');
+
+    if (evt && evt.currentTarget) {
+      evt.currentTarget.classList.add('active');
+    } else {
+      const btn = document.querySelector(`[data-tab="${tabName}"]`);
+      if (btn) btn.classList.add('active');
+    }
+
+    localStorage.setItem('geosniper_active_tab', tabName);
+
+    // Carrega a visão do gerenciador SQLite ao clicar na aba Relevo
+    if (tabName === 'tabRelevo' && typeof initRelevoMap === 'function') {
+      initRelevoMap();
+    }
+  }
+
+  // ==========================================
+  // CÁLCULO BALÍSTICO (PREVENÇÃO DE ERRO)
+  // ==========================================
+  function runBallistics() {
+    console.log("Calculando trajetória balística...");
+    // Insira a lógica de cálculo da tabela balística aqui
+  }
+
+  // ==========================================
+  // PAINEL DO GERENCIADOR (ABA RELEVO / SQLITE)
+  // ==========================================
+  let mapRelevoAdmin = null;
+  let adminLayerGroup = null;
+
+  function initRelevoMap() {
+    if (!mapRelevoAdmin) {
+      mapRelevoAdmin = L.map('mapRelevo').setView([-22.82145, -43.05123], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapRelevoAdmin);
+      adminLayerGroup = L.layerGroup().addTo(mapRelevoAdmin);
+    }
+    setTimeout(() => mapRelevoAdmin.invalidateSize(), 300);
+    loadAdminTable();
+  }
+
+  async function loadAdminTable() {
+    try {
+      const res = await fetch('https://geosniper-api.onrender.com/api/admin/markers');
+      const markers = await res.json();
+      const tbody = document.getElementById('adminTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      if (adminLayerGroup) adminLayerGroup.clearLayers();
+      const bounds = [];
+
+      markers.forEach(pin => {
+        if (adminLayerGroup) {
+          const marker = L.marker([pin.lat, pin.lng]).addTo(adminLayerGroup);
+          marker.bindPopup(`<b>${pin.label}</b><br>Operador: ${pin.operator}`);
+          bounds.push([pin.lat, pin.lng]);
+        }
+
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #334155';
+        row.innerHTML = `
+          <td style="padding:6px;">${pin.type ? pin.type.toUpperCase() : 'PONTO'}</td>
+          <td style="padding:6px; font-weight:bold; color:#38bdf8;">${pin.label}</td>
+          <td style="padding:6px;">${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}</td>
+          <td style="padding:6px;">${pin.operator}</td>
+          <td style="padding:6px; color:#94a3b8;">${new Date(pin.timestamp).toLocaleString()}</td>
+          <td style="padding:6px; text-align:center;">
+            <button type="button" onclick="editMarkerAdmin('${pin.id}', '${pin.label}')" style="background:#f59e0b; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer;">✏️</button>
+            <button type="button" onclick="deleteMarkerAdmin('${pin.id}')" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; margin-left:4px;">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      if (bounds.length > 0 && mapRelevoAdmin) {
+        mapRelevoAdmin.fitBounds(bounds, { padding: [30, 30] });
+      }
+    } catch (err) {
+      console.error('Erro ao carregar dados do gerenciador:', err);
+    }
+  }
+
+  async function editMarkerAdmin(id, currentLabel) {
+    const newLabel = prompt("Nova descrição para este ponto tático:", currentLabel);
+    if (!newLabel) return;
+    await fetch(`https://geosniper-api.onrender.com/api/admin/markers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: newLabel, type: 'target' })
+    });
+    loadAdminTable();
+  }
+
+  async function deleteMarkerAdmin(id) {
+    if (!confirm("Excluir definitivamente este ponto do banco SQLite?")) return;
+    await fetch(`https://geosniper-api.onrender.com/api/admin/markers/${id}`, { method: 'DELETE' });
+    loadAdminTable();
+  }
+
+  async function exportToKML() {
+    try {
+      const res = await fetch('https://geosniper-api.onrender.com/api/admin/markers');
+      const markers = await res.json();
+      let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>GeoSniper - Pontos Táticos</name>`;
+      markers.forEach(m => {
+        kmlContent += `\n    <Placemark>\n      <name>${m.label}</name>\n      <description>Operador: ${m.operator}</description>\n      <Point>\n        <coordinates>${m.lng},${m.lat},0</coordinates>\n      </Point>\n    </Placemark>`;
+      });
+      kmlContent += `\n  </Document>\n</kml>`;
+
+      const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `GeoSniper_Export_${Date.now()}.kml`;
+      a.click();
+    } catch (err) {
+      alert("Erro ao gerar KML.");
+    }
+  }
+</script>
 </body>
 </html>
   
