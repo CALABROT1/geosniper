@@ -236,6 +236,55 @@
       background: #0284c7; color: #ffffff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.2s;
     }
     .btn-sync:hover, .btn-sensor:hover { background: #0369a1; }
+
+    /* MODO VISÃO NOTURNA (VERMELHO TÁTICO) */
+body.nvg-red-mode {
+  background: #000000 !important;
+  color: #ff0000 !important;
+}
+
+body.nvg-red-mode .card,
+body.nvg-red-mode .equip-card,
+body.nvg-red-mode .tabs,
+body.nvg-red-mode .dist-info-panel,
+body.nvg-red-mode #trajectoryModal {
+  background: #0d0000 !important;
+  border-color: #660000 !important;
+  color: #ff3333 !important;
+}
+
+body.nvg-red-mode h3,
+body.nvg-red-mode label,
+body.nvg-red-mode .card-title,
+body.nvg-red-mode .tab-btn {
+  color: #ff3333 !important;
+}
+
+body.nvg-red-mode .tab-btn.active {
+  color: #ff0000 !important;
+  border-bottom-color: #ff0000 !important;
+  background: #260000 !important;
+}
+
+body.nvg-red-mode input,
+body.nvg-red-mode select {
+  background: #1a0000 !important;
+  border-color: #880000 !important;
+  color: #ff6666 !important;
+}
+
+body.nvg-red-mode .btn-calc,
+body.nvg-red-mode .btn-sync,
+body.nvg-red-mode .btn-sensor {
+  background: linear-gradient(135deg, #990000 0%, #440000 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #ff0000 !important;
+}
+
+/* Aplica filtro vermelho tático nos tiles do mapa */
+body.nvg-red-mode .leaflet-tile-container img {
+  filter: sepia(100%) hue-rotate(310deg) saturate(600%) contrast(150%) brightness(70%);
+}
   </style>
 </head>
 <body>
@@ -285,6 +334,9 @@
   <button class="tab-btn" data-tab="tabRaios" onclick="openTab(event, 'tabRaios')">Raios</button>
   <button class="tab-btn" data-tab="tabRelevo" onclick="openTab(event, 'tabRelevo')">Relevo</button>
   <button class="tab-btn" data-tab="tabNormal" onclick="openTab(event, 'tabNormal')">Mapa</button>
+  <button onclick="toggleNVGMode()" id="nvgBtn" style="background:#b91c1c; color:#fff; border:none; padding:0 10px; font-weight:800; font-size:12px; cursor:pointer; border-radius:4px; margin:8px 6px;">
+  🚨 NVG RED</button>
+  
 </div>
 
 <div class="rotate-controls">
@@ -506,7 +558,25 @@
           </div>
         </div>
       </div>
-
+<div class="equip-card" style="border-left: 4px solid #f59e0b;">
+  <div class="card-title" style="color:#f59e0b;">🎯 CALIBRAÇÃO DE CAMPO (VELOCITY TRUING)</div>
+  <div class="form-grid-3">
+    <div class="form-group">
+      <label>Distância do Teste (Metros)</label>
+      <input type="number" id="truingDist" value="500" placeholder="Ex: 500">
+    </div>
+    <div class="form-group">
+      <label>Queda Observada / Impacto Real (cm)</label>
+      <input type="number" id="truingActualDrop" value="180" placeholder="Ex: 180">
+    </div>
+    <div class="form-group" style="display:flex; align-items:flex-end;">
+      <button onclick="runVelocityTruing()" style="width:100%; background:#f59e0b; color:#0f172a; border:none; padding:12px; border-radius:8px; font-weight:800; cursor:pointer;">
+        ⚙️ CALIBRAR FPS REAL
+      </button>
+    </div>
+  </div>
+  <div id="truingResultBox" style="margin-top:10px; font-size:13px; font-weight:700;"></div>
+</div>
       <div class="equip-card">
         <div class="card-title flex-between">
           <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
@@ -1779,7 +1849,57 @@ function closeTrajectoryModal() {
   downloadLink.click();
   document.body.removeChild(downloadLink);
 }
+// MODO NVG
+function toggleNVGMode() {
+  document.body.classList.toggle('nvg-red-mode');
+  const isRed = document.body.classList.contains('nvg-red-mode');
+  const btn = document.getElementById('nvgBtn');
+  if (btn) {
+    btn.innerText = isRed ? '☀️ MODO DIA' : '🚨 NVG RED';
+    btn.style.background = isRed ? '#15803d' : '#b91c1c';
+  }
+  if (typeof runBallistics === 'function') runBallistics();
+}
 
+// CALIBRAÇÃO TRUING (Se ainda não tiver colado, fica aqui também)
+async function runVelocityTruing() {
+  const truingDist = parseFloat(document.getElementById('truingDist')?.value);
+  const actualDropCm = parseFloat(document.getElementById('truingActualDrop')?.value);
+  const currentFps = parseFloat(document.getElementById('eqFps')?.value || 2680);
+  const bc = parseFloat(document.getElementById('eqBC')?.value || 0.447);
+
+  const resBox = document.getElementById('truingResultBox');
+  if (resBox) resBox.innerHTML = '<span style="color:#38bdf8;">⏳ Processando cálculo de Truing...</span>';
+
+  try {
+    const response = await fetch('https://geosniper-api.onrender.com/api/calibrate-truing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ truingDist, actualDropCm, currentFps, bc })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      document.getElementById('eqFps').value = data.calibratedFps;
+      const balSpeedEl = document.getElementById('balSpeed');
+      if (balSpeedEl) balSpeedEl.value = data.calibratedFps;
+
+      saveGunProfile();
+
+      resBox.innerHTML = `
+        <div style="background:rgba(34,197,94,0.15); border:1px solid #22c55e; color:#22c55e; padding:10px; border-radius:6px;">
+          ✅ FPS Calibrado com Sucesso!<br>
+          Anterior: <b>${data.previousFps} FPS</b> ➔ Ajustado para: <b>${data.calibratedFps} FPS</b> (${data.differenceFps >= 0 ? '+' : ''}${data.differenceFps} FPS)
+        </div>
+      `;
+    }
+  } catch (err) {
+    if (resBox) resBox.innerHTML = '<span style="color:#ef4444;">Erro ao calcular Truing. Verifique a API.</span>';
+  }
+}
+</script>
+</body>
+</html>
   
 </script>
 </body>
