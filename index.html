@@ -311,7 +311,7 @@
 
 <div id="tabNormal" class="tab-content">
   <div id="mapNormal" class="map"></div>
-  <!-- DOCK FLUTUANTE TÁTICO INFERIOR ATUALIZADO -->
+<!-- DOCK FLUTUANTE TÁTICO INFERIOR ATUALIZADO -->
 <div id="tacticalDock" style="position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); backdrop-filter: blur(8px); pointer-events: auto !important;">
   <button type="button" onclick="addTacticalMarker('drone')" title="Marcar Drone" style="background:none; border:none; font-size:20px; cursor:pointer;">🕹️</button>
   <button type="button" onclick="addTacticalMarker('barricade')" title="Marcar Barricada" style="background:none; border:none; font-size:20px; cursor:pointer;">🚧</button>
@@ -319,9 +319,7 @@
   <button type="button" onclick="addTacticalMarker('patrol')" title="Marcar Patrulha / Operadores" style="background:none; border:none; font-size:20px; cursor:pointer;">👮‍♂️👮‍♂️👮‍♂️</button>
   <button type="button" onclick="addTacticalMarker('sniper')" title="Marcar Posição Sniper / Caçador" style="background:none; border:none; font-size:20px; cursor:pointer;">🔭</button>
   <button type="button" onclick="addTacticalMarker('medical')" title="Marcar Ponto APH" style="background:none; border:none; font-size:20px; cursor:pointer;">🚑</button>
-  <button type="button" onclick="addTacticalMarker('ammo')" title="Marcar Ponto de Fuzis" style="background:none; border:none; cursor:pointer;">
-  <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 650 240'><g fill='%2338bdf8'><rect x='25' y='86' width='10' height='8'/><rect x='35' y='88' width='165' height='4'/><polygon points='65,88 72,62 82,62 88,88'/><polygon points='175,88 190,68 205,68 200,88'/><path d='M 200,78 L 325,78 C 330,85 330,95 325,102 L 200,98 Z'/><rect x='325' y='76' width='135' height='24'/><rect x='325' y='100' width='135' height='20'/><path d='M 350,120 L 395,120 C 405,155 390,200 345,220 C 335,225 320,220 315,210 C 345,185 355,155 350,120 Z'/><path d='M 435,118 L 465,180 C 458,187 440,185 432,180 L 412,120 Z'/><path d='M 460,78 L 610,92 C 620,93 625,100 625,110 L 625,140 C 625,148 615,152 605,148 L 460,118 Z'/><rect x='618' y='93' width='9' height='52' rx='2'/></g></svg>" style="width:28px; height:auto;"/>
-</button>
+  <button type="button" onclick="addTacticalMarker('ammo')" title="Marcar Ponto de Fuzis" style="background:none; border:none; font-size:20px; cursor:pointer;">🔫🔫🔫</button>
   <div style="width: 1px; height: 24px; background: #475569; margin: 0 2px;"></div>
   <button type="button" onclick="toggleMilitaryGridOnActiveMap()" title="Alternar Grade Militar" style="background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; padding:5px 8px; border-radius:15px; font-weight:800; font-size:11px; cursor:pointer;">🌐 GRADE</button>
   <button type="button" onclick="triggerTacticalCamera()" title="Capturar Foto Tática" style="background:#0284c7; border:none; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer;">📷</button>
@@ -1292,24 +1290,18 @@
       if (typeof loadAdminTable === 'function') loadAdminTable();
     });
   }
-  // ==========================================
+// ==========================================
 // TRADUÇÃO E MAPEAMENTO DE ÍCONES TÁTICOS
 // ==========================================
-
 function getEmojiForType(type) {
   switch (type) {
-    case 'drone': return '🕹️';
-    case 'barricade': return '🚧';
-    case 'target': return '🎯';
-    case 'patrol': return '👮‍♂️👮‍♂️👮‍♂️';
-    case 'sniper': return '🔭';
-    case 'medical': return '🚑';
-    case 'ammo': 
-      return `<div style="display:inline-flex; align-items:center; gap:1px;">
-                <img src="${rifleSvgIcon}" style="width:26px; height:auto; filter:drop-shadow(0 0 2px #ffffff);"/>
-                <img src="${rifleSvgIcon}" style="width:26px; height:auto; filter:drop-shadow(0 0 2px #ffffff); margin-left:-12px;"/>
-                <img src="${rifleSvgIcon}" style="width:26px; height:auto; filter:drop-shadow(0 0 2px #ffffff); margin-left:-12px;"/>
-              </div>`;
+    case 'drone': return '🕹️';          // Controle/Drone Quadricóptero
+    case 'barricade': return '🚧';      // Barricada
+    case 'target': return '🎯';         // Alvo
+    case 'patrol': return '👮‍♂️👮‍♂️👮‍♂️';    // 3 Operadores/Policiais juntos
+    case 'sniper': return '🔭';         // Luneta/Sniper
+    case 'medical': return '🚑';        // APH / Socorro Tático
+    case 'ammo': return '🔫🔫🔫';        // 3 Fuzis juntos
     default: return '📍';
   }
 }
@@ -1322,10 +1314,11 @@ function getLabelForType(type) {
     case 'patrol': return 'PATRULHA';
     case 'sniper': return 'SNIPER';
     case 'medical': return 'APH';
-    case 'ammo': return 'FUZIS (M16)';
+    case 'ammo': return 'FUZIS';
     default: return 'PONTO TÁTICO';
   }
 }
+
 // ==========================================
 // MODO DE MARCAÇÃO COM TOAST FLUTUANTE
 // ==========================================
@@ -1385,6 +1378,116 @@ function renderTacticalMarkerOnMap(pin) {
   });
 
   activeTacticalMarkers[pin.id] = marker;
+}
+
+// ==========================================
+// CORREÇÃO: ABA RELEVO (GEORREFERENCIAMENTO COMPLETO)
+// ==========================================
+let mapRelevoAdmin = null;
+let adminLayerGroup = null;
+
+function initRelevoMap() {
+  if (!mapRelevoAdmin) {
+    mapRelevoAdmin = L.map('mapRelevo').setView(currentPos || [-22.82145, -43.05123], 12);
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' }).addTo(mapRelevoAdmin);
+    adminLayerGroup = L.layerGroup().addTo(mapRelevoAdmin);
+  }
+  setTimeout(() => mapRelevoAdmin.invalidateSize(), 250);
+  loadAdminTable();
+}
+
+async function loadAdminTable() {
+  try {
+    const res = await fetch('https://geosniper-api.onrender.com/api/admin/markers');
+    const markers = await res.json();
+    const tbody = document.getElementById('adminTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    if (adminLayerGroup) adminLayerGroup.clearLayers();
+    const bounds = [];
+
+    markers.forEach(pin => {
+      const iconEmoji = getEmojiForType(pin.type);
+
+      // PLOTA O MARCADOR NO MAPA DO GERENCIADOR
+      if (adminLayerGroup) {
+        const customIcon = L.divIcon({
+          className: 'custom-admin-pin',
+          html: `<div style="font-size:22px;">${iconEmoji}</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        const marker = L.marker([pin.lat, pin.lng], { icon: customIcon }).addTo(adminLayerGroup);
+        marker.bindPopup(`
+          <div style="font-size:12px; color:#0f172a;">
+            <b style="color:#0284c7;">${iconEmoji} ${pin.label}</b><br>
+            <b>Obs:</b> ${pin.observation || 'Sem notas'}<br>
+            <b>Operador:</b> ${pin.operator}
+          </div>
+        `);
+        bounds.push([pin.lat, pin.lng]);
+      }
+
+      // PREENCHE A TABELA
+      const row = document.createElement('tr');
+      row.style.borderBottom = '1px solid #334155';
+      row.innerHTML = `
+        <td style="padding:6px;">${iconEmoji} ${pin.type ? pin.type.toUpperCase() : 'PONTO'}</td>
+        <td style="padding:6px; font-weight:bold; color:#38bdf8;">${pin.label}</td>
+        <td style="padding:6px; color:#cbd5e1;">${pin.observation || '-'}</td>
+        <td style="padding:6px;">${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}</td>
+        <td style="padding:6px;">${pin.operator}</td>
+        <td style="padding:6px; color:#94a3b8;">${new Date(pin.timestamp).toLocaleString()}</td>
+        <td style="padding:6px; text-align:center;">
+          <button type="button" onclick="editMarkerAdmin('${pin.id}', '${pin.label}', '${pin.observation || ''}')" style="background:#f59e0b; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer;">✏️</button>
+          <button type="button" onclick="deleteMarkerAdmin('${pin.id}')" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; margin-left:4px;">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // ENQUADRA TODOS OS PONTOS NA TELA AUTOMATICAMENTE
+    if (bounds.length > 0 && mapRelevoAdmin) {
+      mapRelevoAdmin.fitBounds(bounds, { padding: [40, 40] });
+    }
+  } catch (err) {
+    console.error('Erro ao carregar dados do gerenciador:', err);
+  }
+}
+
+// ==========================================
+// SOBREPOSIÇÃO DE GRADE MILITAR (QUADRANTES)
+// ==========================================
+let activeGridLayers = {};
+
+function toggleMilitaryGridOnActiveMap() {
+  const activeMap = getActiveMapInstance();
+  if (!activeMap) return;
+
+  const mapId = activeMap._container.id;
+
+  if (activeGridLayers[mapId]) {
+    activeMap.removeLayer(activeGridLayers[mapId]);
+    delete activeGridLayers[mapId];
+    return;
+  }
+
+  const gridGroup = L.layerGroup();
+  const bounds = activeMap.getBounds();
+  const step = 0.005; // Linhas a cada ~500 metros
+
+  for (let lat = Math.floor(bounds.getSouth() / step) * step; lat <= bounds.getNorth(); lat += step) {
+    L.polyline([[lat, bounds.getWest()], [lat, bounds.getEast()]], { color: '#38bdf8', weight: 1, opacity: 0.5, dashArray: '4, 4' }).addTo(gridGroup);
+  }
+
+  for (let lng = Math.floor(bounds.getWest() / step) * step; lng <= bounds.getEast(); lng += step) {
+    L.polyline([[bounds.getSouth(), lng], [bounds.getNorth(), lng]], { color: '#38bdf8', weight: 1, opacity: 0.5, dashArray: '4, 4' }).addTo(gridGroup);
+  }
+
+  gridGroup.addTo(activeMap);
+  activeGridLayers[mapId] = gridGroup;
 }
   async function uploadAndBroadcastTacticalPhoto(imageBase64) {
     try {
