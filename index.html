@@ -339,6 +339,7 @@
           <tr>
             <th style="padding: 8px;">TIPO</th>
             <th style="padding: 8px;">IDENTIFICAÇÃO</th>
+            <th style="padding: 8px;">OBSERVAÇÃO TÁTICA</th>
             <th style="padding: 8px;">COORDENADAS</th>
             <th style="padding: 8px;">OPERADOR</th>
             <th style="padding: 8px;">DATA/HORA</th>
@@ -673,6 +674,9 @@
   let mapBearing = 0;
   let weaponsCatalog = {};
 
+  let pendingMarkerType = null;
+  let activeTacticalMarkers = {};
+
   const API_URL = 'https://geosniper-api.onrender.com/api/calculate-ballistics';
 
   // ==========================================
@@ -826,6 +830,9 @@
     mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], rotate: true, touchRotate: true }).setView(currentPos, 17);
     L.control.layers(layersNormal).addTo(mapNormal);
     markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
+
+    // MODO DE MARCAÇÃO DIRETA NO MAPA OPERACIONAL
+    setupMapClickForMarkers(mapNormal);
 
     const layersRelevo = createTileLayers();
     if (mapRelevo) { mapRelevo.remove(); }
@@ -1217,19 +1224,112 @@
     reader.readAsDataURL(file);
   });
 
+  // 1. ATIVA O MODO DE MARCAÇÃO AO CLICAR NO DOCK TÁTICO
   function addTacticalMarker(type) {
-    const label = prompt("Descrição do Ponto Tático:", type.toUpperCase());
-    if (!label) return;
+    pendingMarkerType = type;
+    alert(`Modo de marcação ativo [${type.toUpperCase()}]. Clique em qualquer local do mapa para posicionar o ponto.`);
+  }
 
-    const lat = currentPos ? currentPos[0] : -22.82145;
-    const lng = currentPos ? currentPos[1] : -43.05123;
+  // 2. ESCUTA O CLIQUE NO MAPA OPERACIONAL PARA CRIAR O PONTO
+  function setupMapClickForMarkers(mapInstance) {
+    if (!mapInstance) return;
+    mapInstance.on('click', (e) => {
+      if (!pendingMarkerType) return;
 
-    if (socket) {
-      socket.emit('new-tactical-pin', { type, lat, lng, label, operator: 'Operador_Alfa' });
-      alert(`Ponto "${label}" registrado!`);
-    } else {
-      alert("WebSocket indisponível.");
-    }
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      const label = prompt("Título / Identificação do Ponto:", pendingMarkerType.toUpperCase());
+      if (!label) { pendingMarkerType = null; return; }
+
+      const observation = prompt("Observação Tática (Texto Livre):", "") || "";
+
+      if (socket) {
+        socket.emit('new-tactical-pin', {
+          type: pendingMarkerType,
+          lat: lat,
+          lng: lng,
+          label: label,
+          observation: observation,
+          operator: localStorage.getItem('geoOperatorID') || 'Operador_Alfa'
+        });
+      } else {
+        alert("Erro: Conexão com o servidor indisponível.");
+      }
+
+      pendingMarkerType = null;
+    });
+  }
+
+  // 3. GERENCIAMENTO DE SOCKET.IO PARA DESENHAR MARCADORES ARRASTÁVEIS
+  if (socket) {
+    socket.on('init-tactical-markers', (pins) => {
+      pins.forEach(pin => renderTacticalMarkerOnMap(pin));
+    });
+
+    socket.on('tactical-pin-added', (pin) => {
+      renderTacticalMarkerOnMap(pin);
+    });
+
+    socket.on('tactical-pin-updated', (data) => {
+      if (activeTacticalMarkers[data.id]) {
+        activeTacticalMarkers[data.id].setLatLng([data.lat, data.lng]);
+      }
+      if (typeof loadAdminTable === 'function') loadAdminTable();
+    });
+
+    socket.on('tactical-pin-deleted', (id) => {
+      if (activeTacticalMarkers[id] && mapNormal) {
+        mapNormal.removeLayer(activeTacticalMarkers[id]);
+        delete activeTacticalMarkers[id];
+      }
+      if (typeof loadAdminTable === 'function') loadAdminTable();
+    });
+  }
+
+  function renderTacticalMarkerOnMap(pin) {
+    if (!mapNormal) return;
+
+    let iconEmoji = '🎯';
+    if (pin.type === 'drone') iconEmoji = '🛸';
+    if (pin.type === 'barricade') iconEmoji = '🚧';
+    if (pin.type === 'patrol') iconEmoji = '🚓';
+
+    const customIcon = L.divIcon({
+      className: 'custom-tactical-pin',
+      html: `<div style="font-size:24px; cursor:grab;" title="Arraste para ajustar a posição">${iconEmoji}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+
+    const marker = L.marker([pin.lat, pin.lng], {
+      icon: customIcon,
+      draggable: true
+    }).addTo(mapNormal);
+
+    const popupContent = `
+      <div style="font-size:12px; color:#0f172a; max-width:220px;">
+        <b style="color:#0284c7; font-size:13px;">${iconEmoji} ${pin.label}</b><br>
+        <b>Operador:</b> ${pin.operator}<br>
+        <b>Coord:</b> ${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}<br>
+        ${pin.observation ? `<div style="margin-top:6px; padding:6px; background:#f1f5f9; border-left:3px solid #0284c7; font-style:italic;">"${pin.observation}"</div>` : ''}
+        ${pin.photoUrl ? `<img src="${pin.photoUrl}" style="width:100%; border-radius:4px; margin-top:6px;">` : ''}
+        <div style="font-size:9px; color:#64748b; margin-top:4px;">${new Date(pin.timestamp).toLocaleString()}</div>
+      </div>
+    `;
+    marker.bindPopup(popupContent);
+
+    marker.on('dragend', (event) => {
+      const newPos = event.target.getLatLng();
+      if (socket) {
+        socket.emit('update-tactical-pin-location', {
+          id: pin.id,
+          lat: newPos.lat,
+          lng: newPos.lng
+        });
+      }
+    });
+
+    activeTacticalMarkers[pin.id] = marker;
   }
 
   async function uploadAndBroadcastTacticalPhoto(imageBase64) {
@@ -1247,7 +1347,7 @@
         const lng = currentPos ? currentPos[1] : -43.05123;
 
         socket.emit('new-tactical-pin', {
-          type: 'target', lat, lng, label: 'RECON / FOTO TÁTICA', photoUrl: data.imageUrl, operator: 'Operador_Alfa'
+          type: 'target', lat, lng, label: 'RECON / FOTO TÁTICA', observation: 'Foto de campo capturada via HUD', photoUrl: data.imageUrl, operator: 'Operador_Alfa'
         });
 
         alert('✅ Foto Tática gravada no mapa!');
@@ -1287,7 +1387,7 @@
       markers.forEach(pin => {
         if (adminLayerGroup) {
           const marker = L.marker([pin.lat, pin.lng]).addTo(adminLayerGroup);
-          marker.bindPopup(`<b>${pin.label}</b><br>Operador: ${pin.operator}`);
+          marker.bindPopup(`<b>${pin.label}</b><br>Obs: ${pin.observation || 'Sem notas'}<br>Operador: ${pin.operator}`);
           bounds.push([pin.lat, pin.lng]);
         }
 
@@ -1296,11 +1396,12 @@
         row.innerHTML = `
           <td style="padding:6px;">${pin.type ? pin.type.toUpperCase() : 'PONTO'}</td>
           <td style="padding:6px; font-weight:bold; color:#38bdf8;">${pin.label}</td>
+          <td style="padding:6px; color:#cbd5e1;">${pin.observation || '-'}</td>
           <td style="padding:6px;">${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}</td>
           <td style="padding:6px;">${pin.operator}</td>
           <td style="padding:6px; color:#94a3b8;">${new Date(pin.timestamp).toLocaleString()}</td>
           <td style="padding:6px; text-align:center;">
-            <button type="button" onclick="editMarkerAdmin('${pin.id}', '${pin.label}')" style="background:#f59e0b; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer;">✏️</button>
+            <button type="button" onclick="editMarkerAdmin('${pin.id}', '${pin.label}', '${pin.observation || ''}')" style="background:#f59e0b; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer;">✏️</button>
             <button type="button" onclick="deleteMarkerAdmin('${pin.id}')" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; margin-left:4px;">🗑️</button>
           </td>
         `;
@@ -1315,13 +1416,15 @@
     }
   }
 
-  async function editMarkerAdmin(id, currentLabel) {
+  async function editMarkerAdmin(id, currentLabel, currentObs) {
     const newLabel = prompt("Nova descrição para este ponto tático:", currentLabel);
     if (!newLabel) return;
+    const newObs = prompt("Nova observação tática:", currentObs) || "";
+
     await fetch(`https://geosniper-api.onrender.com/api/admin/markers/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ label: newLabel, type: 'target' })
+      body: JSON.stringify({ label: newLabel, observation: newObs, type: 'target' })
     });
     loadAdminTable();
   }
@@ -1338,7 +1441,7 @@
       const markers = await res.json();
       let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>GeoSniper - Pontos Táticos</name>`;
       markers.forEach(m => {
-        kmlContent += `\n    <Placemark>\n      <name>${m.label}</name>\n      <description>Operador: ${m.operator}</description>\n      <Point>\n        <coordinates>${m.lng},${m.lat},0</coordinates>\n      </Point>\n    </Placemark>`;
+        kmlContent += `\n    <Placemark>\n      <name>${m.label}</name>\n      <description>Operador: ${m.operator} | Obs: ${m.observation || 'Sem notas'}</description>\n      <Point>\n        <coordinates>${m.lng},${m.lat},0</coordinates>\n      </Point>\n    </Placemark>`;
       });
       kmlContent += `\n  </Document>\n</kml>`;
 
