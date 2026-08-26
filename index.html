@@ -311,15 +311,18 @@
 
 <div id="tabNormal" class="tab-content">
   <div id="mapNormal" class="map"></div>
-  <!-- DOCK FLUTUANTE TÁTICO INFERIOR -->
-  <div id="tacticalDock" style="position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); backdrop-filter: blur(8px); pointer-events: auto !important;">
-    <button type="button" onclick="addTacticalMarker('drone')" title="Marcar Drone" style="background:none; border:none; font-size:22px; cursor:pointer; pointer-events:auto;">🛸</button>
-    <button type="button" onclick="addTacticalMarker('barricade')" title="Marcar Barricada" style="background:none; border:none; font-size:22px; cursor:pointer; pointer-events:auto;">🚧</button>
-    <button type="button" onclick="addTacticalMarker('target')" title="Marcar Alvo" style="background:none; border:none; font-size:22px; cursor:pointer; pointer-events:auto;">🎯</button>
-    <button type="button" onclick="addTacticalMarker('patrol')" title="Marcar Patrulha" style="background:none; border:none; font-size:22px; cursor:pointer; pointer-events:auto;">🚓</button>
-    <div style="width: 1px; height: 24px; background: #475569; margin: 0 2px;"></div>
-    <button type="button" onclick="triggerTacticalCamera()" title="Capturar Foto Tática" style="background:#0284c7; border:none; color:white; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; pointer-events:auto;">📷</button>
-  </div>
+  <!-- DOCK FLUTUANTE TÁTICO INFERIOR ATUALIZADO -->
+<div id="tacticalDock" style="position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); backdrop-filter: blur(8px); pointer-events: auto !important;">
+  <button type="button" onclick="addTacticalMarker('drone')" title="Marcar Drone" style="background:none; border:none; font-size:20px; cursor:pointer;">🕹️</button>
+  <button type="button" onclick="addTacticalMarker('barricade')" title="Marcar Barricada" style="background:none; border:none; font-size:20px; cursor:pointer;">🚧</button>
+  <button type="button" onclick="addTacticalMarker('target')" title="Marcar Alvo / Hostil" style="background:none; border:none; font-size:20px; cursor:pointer;">🎯</button>
+  <button type="button" onclick="addTacticalMarker('patrol')" title="Marcar Patrulha / Operadores" style="background:none; border:none; font-size:20px; cursor:pointer;">👮‍♂️👮‍♂️👮‍♂️</button>
+  <button type="button" onclick="addTacticalMarker('sniper')" title="Marcar Posição Sniper / Caçador" style="background:none; border:none; font-size:20px; cursor:pointer;">🔭</button>
+  <button type="button" onclick="addTacticalMarker('medical')" title="Marcar Ponto APH" style="background:none; border:none; font-size:20px; cursor:pointer;">🚑</button>
+  <button type="button" onclick="addTacticalMarker('ammo')" title="Marcar Ponto de Fuzis (3x M16)" style="background:none; border:none; font-size:18px; cursor:pointer;">🔫🔫🔫</button>
+  <div style="width: 1px; height: 24px; background: #475569; margin: 0 2px;"></div>
+  <button type="button" onclick="toggleMilitaryGridOnActiveMap()" title="Alternar Grade Militar" style="background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; padding:5px 8px; border-radius:15px; font-weight:800; font-size:11px; cursor:pointer;">🌐 GRADE</button>
+  <button type="button" onclick="triggerTacticalCamera()" title="Capturar Foto Tática" style="background:#0284c7; border:none; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer;">📷</button>
 </div>
 
 <!-- ABA RELEVO: PAINEL DO GERENCIADOR E VISÃO GLOBAL -->
@@ -1285,53 +1288,95 @@
       if (typeof loadAdminTable === 'function') loadAdminTable();
     });
   }
+  // ==========================================
+// TRADUÇÃO E MAPEAMENTO DE ÍCONES TÁTICOS
+// ==========================================
 
-  function renderTacticalMarkerOnMap(pin) {
-    if (!mapNormal) return;
-
-    let iconEmoji = '🎯';
-    if (pin.type === 'drone') iconEmoji = '🛸';
-    if (pin.type === 'barricade') iconEmoji = '🚧';
-    if (pin.type === 'patrol') iconEmoji = '🚓';
-
-    const customIcon = L.divIcon({
-      className: 'custom-tactical-pin',
-      html: `<div style="font-size:24px; cursor:grab;" title="Arraste para ajustar a posição">${iconEmoji}</div>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15]
-    });
-
-    const marker = L.marker([pin.lat, pin.lng], {
-      icon: customIcon,
-      draggable: true
-    }).addTo(mapNormal);
-
-    const popupContent = `
-      <div style="font-size:12px; color:#0f172a; max-width:220px;">
-        <b style="color:#0284c7; font-size:13px;">${iconEmoji} ${pin.label}</b><br>
-        <b>Operador:</b> ${pin.operator}<br>
-        <b>Coord:</b> ${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}<br>
-        ${pin.observation ? `<div style="margin-top:6px; padding:6px; background:#f1f5f9; border-left:3px solid #0284c7; font-style:italic;">"${pin.observation}"</div>` : ''}
-        ${pin.photoUrl ? `<img src="${pin.photoUrl}" style="width:100%; border-radius:4px; margin-top:6px;">` : ''}
-        <div style="font-size:9px; color:#64748b; margin-top:4px;">${new Date(pin.timestamp).toLocaleString()}</div>
-      </div>
-    `;
-    marker.bindPopup(popupContent);
-
-    marker.on('dragend', (event) => {
-      const newPos = event.target.getLatLng();
-      if (socket) {
-        socket.emit('update-tactical-pin-location', {
-          id: pin.id,
-          lat: newPos.lat,
-          lng: newPos.lng
-        });
-      }
-    });
-
-    activeTacticalMarkers[pin.id] = marker;
+function getEmojiForType(type) {
+  switch (type) {
+    case 'drone': return '🕹️';          // Drone Quadricóptero
+    case 'barricade': return '🚧';      // Barricada
+    case 'target': return '🎯';         // Alvo / Hostil
+    case 'patrol': return '👮‍♂️👮‍♂️👮‍♂️';    // Patrulha (3 Operadores)
+    case 'sniper': return '🔭';         // Luneta / Sniper
+    case 'medical': return '🚑';        // APH Tático
+    case 'ammo': return '🔫🔫🔫';       // 3 Fuzis M16
+    default: return '📍';
   }
+}
 
+function getLabelForType(type) {
+  switch (type) {
+    case 'drone': return 'DRONE';
+    case 'barricade': return 'BARRICADA';
+    case 'target': return 'ALVO';
+    case 'patrol': return 'PATRULHA';
+    case 'sniper': return 'SNIPER';
+    case 'medical': return 'APH';
+    case 'ammo': return 'FUZIS (M16)';
+    default: return 'PONTO TÁTICO';
+  }
+}
+// ==========================================
+// MODO DE MARCAÇÃO COM TOAST FLUTUANTE
+// ==========================================
+function addTacticalMarker(type) {
+  pendingMarkerType = type;
+  const labelTranslated = getLabelForType(type);
+  const toast = document.getElementById('tacticalToast');
+  if (toast) {
+    toast.innerText = `📍 MODO [${labelTranslated}]: CLIQUE NO MAPA PARA POSICIONAR`;
+    toast.style.display = 'block';
+  }
+}
+
+// ==========================================
+// RENDERIZAÇÃO DE PONTOS NO MAPA OPERACIONAL
+// ==========================================
+function renderTacticalMarkerOnMap(pin) {
+  if (!mapNormal) return;
+
+  const iconEmoji = getEmojiForType(pin.type);
+  const typeLabel = getLabelForType(pin.type);
+
+  const customIcon = L.divIcon({
+    className: 'custom-tactical-pin',
+    html: `<div style="font-size:20px; white-space:nowrap; cursor:grab;" title="Arraste para ajustar">${iconEmoji}</div>`,
+    iconSize: [40, 30],
+    iconAnchor: [20, 15]
+  });
+
+  const marker = L.marker([pin.lat, pin.lng], {
+    icon: customIcon,
+    draggable: true
+  }).addTo(mapNormal);
+
+  const popupContent = `
+    <div style="font-size:12px; color:#0f172a; max-width:220px;">
+      <b style="color:#0284c7; font-size:13px;">${iconEmoji} ${pin.label}</b><br>
+      <b>Tipo:</b> ${typeLabel}<br>
+      <b>Operador:</b> ${pin.operator}<br>
+      <b>Coord:</b> ${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}<br>
+      ${pin.observation ? `<div style="margin-top:6px; padding:6px; background:#f1f5f9; border-left:3px solid #0284c7; font-style:italic;">"${pin.observation}"</div>` : ''}
+      ${pin.photoUrl ? `<img src="${pin.photoUrl}" style="width:100%; border-radius:4px; margin-top:6px;">` : ''}
+      <div style="font-size:9px; color:#64748b; margin-top:4px;">${new Date(pin.timestamp).toLocaleString()}</div>
+    </div>
+  `;
+  marker.bindPopup(popupContent);
+
+  marker.on('dragend', (event) => {
+    const newPos = event.target.getLatLng();
+    if (socket) {
+      socket.emit('update-tactical-pin-location', {
+        id: pin.id,
+        lat: newPos.lat,
+        lng: newPos.lng
+      });
+    }
+  });
+
+  activeTacticalMarkers[pin.id] = marker;
+}
   async function uploadAndBroadcastTacticalPhoto(imageBase64) {
     try {
       alert('⏳ Enviando foto tática...');
