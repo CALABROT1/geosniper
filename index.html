@@ -676,9 +676,11 @@
   let currentRoutePolyline = null;
   let mapBearing = 0;
   let weaponsCatalog = {};
-
   let pendingMarkerType = null;
   let activeTacticalMarkers = {};
+  const rifleSvgIcon = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 240"><g fill="%23000000"><rect x="25" y="86" width="10" height="8"/><rect x="35" y="88" width="165" height="4"/><polygon points="65,88 72,62 82,62 88,88"/><polygon points="175,88 190,68 205,68 200,88"/><path d="M 200,78 L 325,78 C 330,85 330,95 325,102 L 200,98 Z"/><rect x="325" y="76" width="135" height="24"/><rect x="325" y="100" width="135" height="20"/><path d="M 350,120 L 395,120 C 405,155 390,200 345,220 C 335,225 320,220 315,210 C 345,185 355,155 350,120 Z"/><path d="M 435,118 L 465,180 C 458,187 440,185 432,180 L 412,120 Z"/><path d="M 460,78 L 610,92 C 620,93 625,100 625,110 L 625,140 C 625,148 615,152 605,148 L 460,118 Z"/><rect x="618" y="93" width="9" height="52" rx="2"/></g></svg>`;
+
+ 
 
   const API_URL = 'https://geosniper-api.onrender.com/api/calculate-ballistics';
 
@@ -1294,13 +1296,18 @@
 
 function getEmojiForType(type) {
   switch (type) {
-    case 'drone': return '🕹️';          // Drone Quadricóptero
-    case 'barricade': return '🚧';      // Barricada
-    case 'target': return '🎯';         // Alvo / Hostil
-    case 'patrol': return '👮‍♂️👮‍♂️👮‍♂️';    // Patrulha (3 Operadores)
-    case 'sniper': return '🔭';         // Luneta / Sniper
-    case 'medical': return '🚑';        // APH Tático
-    case 'ammo': return '🔫🔫🔫';       // 3 Fuzis M16
+    case 'drone': return '🕹️';
+    case 'barricade': return '🚧';
+    case 'target': return '🎯';
+    case 'patrol': return '👮‍♂️👮‍♂️👮‍♂️';
+    case 'sniper': return '🔭';
+    case 'medical': return '🚑';
+    case 'ammo': 
+      return `<div style="display:inline-flex; align-items:center; gap:1px;">
+                <img src="${rifleSvgIcon}" style="width:26px; height:auto; filter:drop-shadow(0 0 2px #ffffff);"/>
+                <img src="${rifleSvgIcon}" style="width:26px; height:auto; filter:drop-shadow(0 0 2px #ffffff); margin-left:-12px;"/>
+                <img src="${rifleSvgIcon}" style="width:26px; height:auto; filter:drop-shadow(0 0 2px #ffffff); margin-left:-12px;"/>
+              </div>`;
     default: return '📍';
   }
 }
