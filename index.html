@@ -329,21 +329,25 @@
 
 <div id="tabNormal" class="tab-content">
   <div id="mapNormal" class="map"></div>
-  <!-- DOCK FLUTUANTE TÁTICO INFERIOR -->
-  <div id="tacticalDock" style="position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 8px 16px; border-radius: 40px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); backdrop-filter: blur(8px); pointer-events: auto !important;">
-    <button type="button" onclick="addTacticalMarker('drone')" title="Marcar Drone" style="background:none; border:none; font-size:20px; cursor:pointer;">🕹️</button>
-    <button type="button" onclick="addTacticalMarker('barricade')" title="Marcar Barricada" style="background:none; border:none; font-size:20px; cursor:pointer;">🚧</button>
-    <button type="button" onclick="addTacticalMarker('target')" title="Marcar Alvo" style="background:none; border:none; font-size:20px; cursor:pointer;">🎯</button>
-    <button type="button" onclick="addTacticalMarker('patrol')" title="Marcar Patrulha" style="background:none; border:none; font-size:20px; cursor:pointer;">👮‍♂️👮‍♂️👮‍♂️</button>
-    <button type="button" onclick="addTacticalMarker('sniper')" title="Marcar Posição Sniper" style="background:none; border:none; font-size:20px; cursor:pointer;">🔭</button>
-    <button type="button" onclick="addTacticalMarker('medical')" title="Marcar Ponto APH" style="background:none; border:none; font-size:20px; cursor:pointer;">🚑</button>
-    <button type="button" onclick="addTacticalMarker('ammo')" title="Marcar Ponto de Fuzis" style="background:none; border:none; cursor:pointer; display:flex; align-items:center;">
-      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 650 240'><g fill='%2338bdf8'><rect x='25' y='86' width='10' height='8'/><rect x='35' y='88' width='165' height='4'/><polygon points='65,88 72,62 82,62 88,88'/><polygon points='175,88 190,68 205,68 200,88'/><path d='M 200,78 L 325,78 C 330,85 330,95 325,102 L 200,98 Z'/><rect x='325' y='76' width='135' height='24'/><rect x='325' y='100' width='135' height='20'/><path d='M 350,120 L 395,120 C 405,155 390,200 345,220 C 335,225 320,220 315,210 C 345,185 355,155 350,120 Z'/><path d='M 435,118 L 465,180 C 458,187 440,185 432,180 L 412,120 Z'/><path d='M 460,78 L 610,92 C 620,93 625,100 625,110 L 625,140 C 625,148 615,152 605,148 L 460,118 Z'/><rect x='618' y='93' width='9' height='52' rx='2'/></g></svg>" style="width:28px; height:auto;"/>
-    </button>
-    <div style="width: 1px; height: 24px; background: #475569; margin: 0 2px;"></div>
-    <button type="button" onclick="toggleMilitaryGridOnActiveMap()" title="Alternar Grade Militar" style="background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; padding:5px 8px; border-radius:15px; font-weight:800; font-size:11px; cursor:pointer;">🌐 GRADE</button>
-    <button type="button" onclick="triggerTacticalCamera()" title="Capturar Foto Tática" style="background:#0284c7; border:none; color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer;">📷</button>
-  </div>
+<!-- DOCK LATERAL DIREITO (Ações Rápidas de Combate/Caçador) -->
+<div id="tacticalDockRight" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.92); border: 1px solid #334155; padding: 8px 6px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+  <button type="button" onclick="addTacticalMarker('target')" title="Alvo" style="background:none; border:none; cursor:pointer;"><img src="./icons/target.png" style="width:30px; height:30px; display:block;"/></button>
+  <button type="button" onclick="addTacticalMarker('threat')" title="Ameaça" style="background:none; border:none; cursor:pointer;"><img src="./icons/threat.png" style="width:30px; height:30px; display:block;"/></button>
+  <button type="button" onclick="addTacticalMarker('sniper')" title="Sniper" style="background:none; border:none; cursor:pointer;"><img src="./icons/sniper.png" style="width:30px; height:30px; display:block;"/></button>
+  <button type="button" onclick="addTacticalMarker('barricade')" title="Barricada" style="background:none; border:none; cursor:pointer;"><img src="./icons/barricade.png" style="width:30px; height:30px; display:block;"/></button>
+  <button type="button" onclick="addTacticalMarker('loophole')" title="Seteira" style="background:none; border:none; cursor:pointer;"><img src="./icons/loophole.png" style="width:30px; height:30px; display:block;"/></button>
+</div>
+
+<!-- DOCK INFERIOR HORIZONTAL (Logística, Apoio e Câmera) -->
+<div id="tacticalDockBottom" style="position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.92); border: 1px solid #334155; padding: 6px 12px; border-radius: 25px; display: flex; align-items: center; gap: 12px; max-width: 92vw; overflow-x: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+  <button type="button" onclick="addTacticalMarker('patrol')" title="Patrulha" style="background:none; border:none; cursor:pointer;"><img src="./icons/patrol.png" style="width:28px; height:28px;"/></button>
+  <button type="button" onclick="addTacticalMarker('armored')" title="Blindado" style="background:none; border:none; cursor:pointer;"><img src="./icons/armored.png" style="width:28px; height:28px;"/></button>
+  <button type="button" onclick="addTacticalMarker('drone')" title="Drone" style="background:none; border:none; cursor:pointer;"><img src="./icons/drone.png" style="width:28px; height:28px;"/></button>
+  <button type="button" onclick="addTacticalMarker('aph')" title="APH" style="background:none; border:none; cursor:pointer;"><img src="./icons/aph.png" style="width:28px; height:28px;"/></button>
+  <button type="button" onclick="addTacticalMarker('intel')" title="Informe" style="background:none; border:none; cursor:pointer;"><img src="./icons/intel.png" style="width:28px; height:28px;"/></button>
+  <button type="button" onclick="addTacticalMarker('priority')" title="Prioridade" style="background:none; border:none; cursor:pointer;"><img src="./icons/priority.png" style="width:28px; height:28px;"/></button>
+  <div style="width:1px; height:24px; background:#475569;"></div>
+  <button type="button" onclick="triggerTacticalCamera()" title="Capturar Foto Tática" style="background:#0284c7; border:none; color:#fff; padding:6px 12px; border-radius:15px; font-weight:bold; font-size:12px; display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;">📷 CÂMERA</button>
 </div>
 
 <!-- ABA RELEVO: PAINEL DO GERENCIADOR E VISÃO GLOBAL -->
@@ -1239,36 +1243,7 @@
     reader.readAsDataURL(file);
   });
 
-// ÍCONE SANITIZADO (SEM QUEBRA DE TEXTO CRUO)
-const rifleIconHtml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 240" width="36" height="18"><g fill="%23000000"><rect x="25" y="86" width="10" height="8"/><rect x="35" y="88" width="165" height="4"/><polygon points="65,88 72,62 82,62 88,88"/><polygon points="175,88 190,68 205,68 200,88"/><path d="M 200,78 L 325,78 C 330,85 330,95 325,102 L 200,98 Z"/><rect x="325" y="76" width="135" height="24"/><rect x="325" y="100" width="135" height="20"/><path d="M 350,120 L 395,120 C 405,155 390,200 345,220 C 335,225 320,220 315,210 C 345,185 355,155 350,120 Z"/><path d="M 435,118 L 465,180 C 458,187 440,185 432,180 L 412,120 Z"/><path d="M 460,78 L 610,92 C 620,93 625,100 625,110 L 625,140 C 625,148 615,152 605,148 L 460,118 Z"/><rect x="618" y="93" width="9" height="52" rx="2"/></g></svg>';
-
-function getEmojiForType(type) {
-  switch (type) {
-    case 'drone': return '🕹️';
-    case 'barricade': return '🚧';
-    case 'target': return '🎯';
-    case 'patrol': return '👮‍♂️';
-    case 'sniper': return '🔭';
-    case 'medical': return '🚑';
-    case 'ammo': 
-      return `<img src="data:image/svg+xml;utf8,${rifleIconHtml}" style="width:36px; height:auto; filter:drop-shadow(0 0 3px #ffffff);"/>`;
-    default: return '📍';
-  }
-}
-
-  function getLabelForType(type) {
-    switch (type) {
-      case 'drone': return 'DRONE';
-      case 'barricade': return 'BARRICADA';
-      case 'target': return 'ALVO';
-      case 'patrol': return 'PATRULHA';
-      case 'sniper': return 'SNIPER';
-      case 'medical': return 'APH';
-      case 'ammo': return 'FUZIS';
-      default: return 'PONTO TÁTICO';
-    }
-  }
-
+// FUNÇÕES DE ÍCONES NATIVOS DA PASTA ./icons/
   function addTacticalMarker(type) {
     pendingMarkerType = type;
     const labelTranslated = getLabelForType(type);
