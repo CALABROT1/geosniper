@@ -1237,6 +1237,9 @@
     reader.readAsDataURL(file);
   });
 
+// ÍCONE SANITIZADO (SEM QUEBRA DE TEXTO CRUO)
+const rifleIconHtml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 240" width="36" height="18"><g fill="%23000000"><rect x="25" y="86" width="10" height="8"/><rect x="35" y="88" width="165" height="4"/><polygon points="65,88 72,62 82,62 88,88"/><polygon points="175,88 190,68 205,68 200,88"/><path d="M 200,78 L 325,78 C 330,85 330,95 325,102 L 200,98 Z"/><rect x="325" y="76" width="135" height="24"/><rect x="325" y="100" width="135" height="20"/><path d="M 350,120 L 395,120 C 405,155 390,200 345,220 C 335,225 320,220 315,210 C 345,185 355,155 350,120 Z"/><path d="M 435,118 L 465,180 C 458,187 440,185 432,180 L 412,120 Z"/><path d="M 460,78 L 610,92 C 620,93 625,100 625,110 L 625,140 C 625,148 615,152 605,148 L 460,118 Z"/><rect x="618" y="93" width="9" height="52" rx="2"/></g></svg>';
+
 function getEmojiForType(type) {
   switch (type) {
     case 'drone': return '🕹️';
@@ -1246,7 +1249,7 @@ function getEmojiForType(type) {
     case 'sniper': return '🔭';
     case 'medical': return '🚑';
     case 'ammo': 
-      return `<img src="${rifleSvgIcon}" style="width:32px; height:auto; vertical-align:middle; filter:drop-shadow(0 0 2px #fff);"/>`;
+      return `<img src="data:image/svg+xml;utf8,${rifleIconHtml}" style="width:36px; height:auto; filter:drop-shadow(0 0 3px #ffffff);"/>`;
     default: return '📍';
   }
 }
@@ -1394,64 +1397,51 @@ function attachPhotoToMarker(pinId) {
     loadAdminTable();
   }
 
-  async function loadAdminTable() {
-    try {
-      const res = await fetch('https://geosniper-api.onrender.com/api/admin/markers');
-      const markers = await res.json();
-      const tbody = document.getElementById('adminTableBody');
-      if (!tbody) return;
+async function loadAdminTable() {
+  try {
+    const res = await fetch('https://geosniper-api.onrender.com/api/admin/markers');
+    const markers = await res.json();
+    const tbody = document.getElementById('adminTableBody');
+    if (!tbody) return;
 
-      tbody.innerHTML = '';
-      if (adminLayerGroup) adminLayerGroup.clearLayers();
-      const bounds = [];
+    tbody.innerHTML = '';
+    
+    markers.forEach(pin => {
+      const iconEmoji = getEmojiForType(pin.type);
+      const row = document.createElement('tr');
+      row.style.borderBottom = '1px solid #334155';
+      row.style.cursor = 'pointer';
+      
+      row.innerHTML = `
+        <td style="padding:8px;" onclick="focusMarkerFromTable('${pin.id}', ${pin.lat}, ${pin.lng})">${iconEmoji} ${pin.type ? pin.type.toUpperCase() : 'PONTO'}</td>
+        <td style="padding:8px; font-weight:bold; color:#38bdf8;" onclick="focusMarkerFromTable('${pin.id}', ${pin.lat}, ${pin.lng})">${pin.label}</td>
+        <td style="padding:8px; color:#cbd5e1;" onclick="focusMarkerFromTable('${pin.id}', ${pin.lat}, ${pin.lng})">${pin.observation || '-'}</td>
+        <td style="padding:8px;" onclick="focusMarkerFromTable('${pin.id}', ${pin.lat}, ${pin.lng})">${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}</td>
+        <td style="padding:8px;" onclick="focusMarkerFromTable('${pin.id}', ${pin.lat}, ${pin.lng})">${pin.operator}</td>
+        <td style="padding:8px; color:#94a3b8;">${new Date(pin.timestamp).toLocaleString()}</td>
+        <td style="padding:8px; text-align:center;">
+          ${pin.photoUrl ? `<button type="button" onclick="viewPhotoModal('${pin.photoUrl}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🖼️ FOTO</button>` : ''}
+          <button type="button" onclick="deleteMarkerAdmin('${pin.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-left:4px;">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    console.error('Erro ao carregar dados do gerenciador:', err);
+  }
+}
 
-      markers.forEach(pin => {
-        const iconEmoji = getEmojiForType(pin.type);
-
-        if (adminLayerGroup) {
-          const customIcon = L.divIcon({
-            className: 'custom-admin-pin',
-            html: `<div style="font-size:22px;">${iconEmoji}</div>`,
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
-          });
-
-          const marker = L.marker([pin.lat, pin.lng], { icon: customIcon }).addTo(adminLayerGroup);
-          marker.bindPopup(`
-            <div style="font-size:12px; color:#0f172a;">
-              <b style="color:#0284c7;">${pin.label}</b><br>
-              <b>Obs:</b> ${pin.observation || 'Sem notas'}<br>
-              <b>Operador:</b> ${pin.operator}
-            </div>
-          `);
-          bounds.push([pin.lat, pin.lng]);
-        }
-
-        const row = document.createElement('tr');
-        row.style.borderBottom = '1px solid #334155';
-        row.innerHTML = `
-          <td style="padding:6px;">${iconEmoji} ${getLabelForType(pin.type)}</td>
-          <td style="padding:6px; font-weight:bold; color:#38bdf8;">${pin.label}</td>
-          <td style="padding:6px; color:#cbd5e1;">${pin.observation || '-'}</td>
-          <td style="padding:6px;">${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}</td>
-          <td style="padding:6px;">${pin.operator}</td>
-          <td style="padding:6px; color:#94a3b8;">${new Date(pin.timestamp).toLocaleString()}</td>
-          <td style="padding:6px; text-align:center;">
-            <button type="button" onclick="editMarkerAdmin('${pin.id}', '${pin.label}', '${pin.observation || ''}')" style="background:#f59e0b; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer;">✏️</button>
-            <button type="button" onclick="deleteMarkerAdmin('${pin.id}')" style="background:#ef4444; color:#fff; border:none; padding:3px 7px; border-radius:3px; cursor:pointer; margin-left:4px;">🗑️</button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      if (bounds.length > 0 && mapRelevoAdmin) {
-        mapRelevoAdmin.fitBounds(bounds, { padding: [40, 40] });
-      }
-    } catch (err) {
-      console.error('Erro ao carregar dados do gerenciador:', err);
+function focusMarkerFromTable(id, lat, lng) {
+  openTab(null, 'tabNormal');
+  if (mapNormal) {
+    mapNormal.setView([lat, lng], 18, { animate: true });
+    if (activeTacticalMarkers[id]) {
+      activeTacticalMarkers[id].openPopup();
     }
   }
-
+}
+// A partir daqui continua seu código original da imagem:
+async function editMarkerAdmin(id, currentLabel, currentObs) {
   async function editMarkerAdmin(id, currentLabel, currentObs) {
     const newLabel = prompt("Nova descrição para este ponto tático:", currentLabel);
     if (!newLabel) return;
@@ -1521,11 +1511,19 @@ function toggleMilitaryGridOnActiveMap() {
   activeGridLayers[mapId] = gridGroup;
 }
 
-  async function uploadAndBroadcastTacticalPhoto(imageBase64) {
+ let targetPinForPhoto = null;
+
+function attachPhotoToMarker(pinId) {
+  targetPinForPhoto = pinId;
+  triggerTacticalCamera();
+}
+
+async function uploadAndBroadcastTacticalPhoto(imageBase64) {
   if (!targetPinForPhoto) {
-    alert("Selecione um ponto tático no mapa para vincular a foto.");
+    alert("Selecione um ponto tático no mapa para anexar a foto.");
     return;
   }
+
   try {
     const response = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
       method: 'POST',
@@ -1536,11 +1534,12 @@ function toggleMilitaryGridOnActiveMap() {
     const data = await response.json();
     if (data.success && socket) {
       socket.emit('update-tactical-pin-photo', { id: targetPinForPhoto, photoUrl: data.imageUrl });
-      alert('✅ Foto anexada ao ponto selecionado com sucesso!');
+      alert('✅ Foto tática anexada com sucesso!');
       targetPinForPhoto = null;
+      if (typeof loadAdminTable === 'function') loadAdminTable();
     }
   } catch (err) {
-    alert('❌ Falha ao enviar foto.');
+    alert('❌ Erro no envio da imagem.');
   }
 }
   function toggleNVGMode() {
