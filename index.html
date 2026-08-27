@@ -755,6 +755,7 @@
     mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite Padrão"]] }).setView(currentPos, 16);
     markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
+    // MEDIÇÃO DE ALVO COM MICRO-RETÍCULO E COMPARTILHAMENTO WHATSAPP
     mapMedir.on('click', async function(e) {
       const targetLat = e.latlng.lat;
       const targetLng = e.latlng.lng;
@@ -771,13 +772,63 @@
       const panelEl = document.getElementById('distPanel');
       if (sol) {
         panelEl.innerHTML = `
-          <div style="font-size: 14px; color: #38bdf8;">Distância: <b>${Math.round(distanceMeters)}m</b></div>
-          <div style="font-size: 13px; color: #f8fafc;"><b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
+          <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">Distância: <b>${Math.round(distanceMeters)}m</b></div>
+          <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;"><b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
+          <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
+          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
         `;
+        renderMiniReticle(sol.mradElev, sol.mradWind);
       } else {
-        panelEl.innerHTML = `Distância: <b>${Math.round(distanceMeters)}m</b>`;
+        panelEl.innerHTML = `
+          <div style="font-size: 14px; color: #38bdf8;">Distância: <b>${Math.round(distanceMeters)}m</b></div>
+          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer;">📲 Compartilhar Alvo no WhatsApp</button>
+        `;
       }
     });
+  }
+
+  function sharePointWhatsApp(lat, lng) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?tab=medir&targetLat=${lat}&targetLng=${lng}`;
+    const message = `🎯 *GEOSNIPER - Localização de Alvo/Ponto*\n\nConfira a medição e coordenadas marcadas no mapa:\n${shareUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+  }
+
+  function renderMiniReticle(mradElev = 0, mradWind = 0) {
+    const canvas = document.getElementById('mapReticleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = Math.min(width, height) / 2 - 4;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(15, 23, 42, 0.90)";
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#38bdf8";
+    ctx.stroke();
+    ctx.clip();
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#ffffff";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(cx - 60, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy - 60); ctx.lineTo(cx, cy + 60); ctx.stroke();
+
+    const scalePxPerMrad = 10.8;
+    const targetX = cx + (mradWind * scalePxPerMrad);
+    const targetY = cy + (mradElev * scalePxPerMrad);
+
+    ctx.beginPath(); ctx.arc(targetX, targetY, 5, 0, Math.PI * 2); ctx.fillStyle = "rgba(239, 68, 68, 0.85)"; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "#dc2626"; ctx.stroke();
+    ctx.restore();
   }
 
   function getTacticalIcon(type) {
@@ -920,6 +971,7 @@
     triggerTacticalCamera();
   }
 
+  // CÂMERA COM HUD E PROCESSAMENTO DE FOTO TÁTICA
   const cameraInput = document.createElement('input');
   cameraInput.type = 'file';
   cameraInput.accept = 'image/*';
@@ -943,6 +995,33 @@
         canvas.height = img.height;
 
         ctx.drawImage(img, 0, 0);
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = Math.max(3, Math.round(canvas.width / 300));
+        ctx.beginPath();
+        ctx.moveTo(cx - 120, cy); ctx.lineTo(cx + 120, cy);
+        ctx.moveTo(cx, cy - 120); ctx.lineTo(cx, cy + 120);
+        ctx.stroke();
+
+        ctx.beginPath(); ctx.arc(cx, cy, 60, 0, 2 * Math.PI); ctx.stroke();
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, 90);
+
+        const latStr = currentPos ? currentPos[0].toFixed(5) : '-22.82145';
+        const lngStr = currentPos ? currentPos[1].toFixed(5) : '-43.05123';
+        const timestamp = new Date().toLocaleString('pt-BR');
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`GEOSNIPER HUD | GPS: ${latStr}, ${lngStr}`, 20, 40);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = '20px monospace';
+        ctx.fillText(`DATA/HORA: ${timestamp}`, 20, 72);
+
         const processedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
         uploadAndBroadcastTacticalPhoto(processedImageBase64);
       };
@@ -1269,6 +1348,7 @@
     openTab(null, savedTab);
   });
 
+  // GPS ATIVO SENSÍVEL
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(
       (position) => {
