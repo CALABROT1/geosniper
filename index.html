@@ -260,6 +260,18 @@
     body.nvg-red-mode .leaflet-tile-container img {
       filter: sepia(100%) hue-rotate(310deg) saturate(600%) contrast(150%) brightness(70%);
     }
+
+    /* Dock Tático Responsivo */
+#tacticalDock {
+  position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 99999;
+  background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 6px 12px;
+  border-radius: 30px; display: flex; align-items: center; gap: 8px;
+  max-width: 95vw; overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+
+/* Ajuste de imagens nos ícones do mapa */
+.custom-tactical-pin img { display: block; max-width: 32px; height: auto; }
+    
   </style>
 </head>
 <body>
@@ -1225,19 +1237,19 @@
     reader.readAsDataURL(file);
   });
 
-  function getEmojiForType(type) {
-    switch (type) {
-      case 'drone': return '🕹️';
-      case 'barricade': return '🚧';
-      case 'target': return '🎯';
-      case 'patrol': return '👮‍♂️👮‍♂️👮‍♂️';
-      case 'sniper': return '🔭';
-      case 'medical': return '🚑';
-      case 'ammo': 
-        return '<img src="' + rifleSvgIcon + '" style="width:32px; height:auto; filter:drop-shadow(0 0 2px #ffffff);"/>';
-      default: return '📍';
-    }
+function getEmojiForType(type) {
+  switch (type) {
+    case 'drone': return '🕹️';
+    case 'barricade': return '🚧';
+    case 'target': return '🎯';
+    case 'patrol': return '👮‍♂️';
+    case 'sniper': return '🔭';
+    case 'medical': return '🚑';
+    case 'ammo': 
+      return `<img src="${rifleSvgIcon}" style="width:32px; height:auto; vertical-align:middle; filter:drop-shadow(0 0 2px #fff);"/>`;
+    default: return '📍';
   }
+}
 
   function getLabelForType(type) {
     switch (type) {
@@ -1295,51 +1307,53 @@
     });
   }
 
-  function renderTacticalMarkerOnMap(pin) {
-    if (!mapNormal) return;
+let targetPinForPhoto = null;
 
-    const iconEmoji = getEmojiForType(pin.type);
-    const typeLabel = getLabelForType(pin.type);
+function renderTacticalMarkerOnMap(pin) {
+  if (!mapNormal) return;
 
-    const customIcon = L.divIcon({
-      className: 'custom-tactical-pin',
-      html: `<div style="font-size:20px; white-space:nowrap; cursor:grab;" title="Arraste para ajustar">${iconEmoji}</div>`,
-      iconSize: [40, 30],
-      iconAnchor: [20, 15]
-    });
+  const iconEmoji = getEmojiForType(pin.type);
+  const typeLabel = getLabelForType(pin.type);
 
-    const marker = L.marker([pin.lat, pin.lng], {
-      icon: customIcon,
-      draggable: true
-    }).addTo(mapNormal);
+  const customIcon = L.divIcon({
+    className: 'custom-tactical-pin',
+    html: `<div style="font-size:18px; cursor:grab;">${iconEmoji}</div>`,
+    iconSize: [36, 30],
+    iconAnchor: [18, 15]
+  });
 
-    const popupContent = `
-      <div style="font-size:12px; color:#0f172a; max-width:220px;">
-        <b style="color:#0284c7; font-size:13px;">${pin.label}</b><br>
-        <b>Tipo:</b> ${typeLabel}<br>
-        <b>Operador:</b> ${pin.operator}<br>
-        <b>Coord:</b> ${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}<br>
-        ${pin.observation ? `<div style="margin-top:6px; padding:6px; background:#f1f5f9; border-left:3px solid #0284c7; font-style:italic;">"${pin.observation}"</div>` : ''}
-        ${pin.photoUrl ? `<img src="${pin.photoUrl}" style="width:100%; border-radius:4px; margin-top:6px;">` : ''}
-        <div style="font-size:9px; color:#64748b; margin-top:4px;">${new Date(pin.timestamp).toLocaleString()}</div>
-      </div>
-    `;
-    marker.bindPopup(popupContent);
+  const marker = L.marker([pin.lat, pin.lng], { icon: customIcon, draggable: true }).addTo(mapNormal);
 
-    marker.on('dragend', (event) => {
-      const newPos = event.target.getLatLng();
-      if (socket) {
-        socket.emit('update-tactical-pin-location', {
-          id: pin.id,
-          lat: newPos.lat,
-          lng: newPos.lng
-        });
-      }
-    });
+  const popupContent = `
+    <div style="font-size:12px; color:#0f172a; min-width:180px;">
+      <b style="color:#0284c7; font-size:13px;">${pin.label}</b><br>
+      <b>Tipo:</b> ${typeLabel}<br>
+      <b>Operador:</b> ${pin.operator}<br>
+      <b>Coord:</b> ${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}<br>
+      ${pin.observation ? `<div style="margin:4px 0; padding:4px; background:#f1f5f9; border-left:2px solid #0284c7; font-style:italic;">"${pin.observation}"</div>` : ''}
+      ${pin.photoUrl ? `<img src="${pin.photoUrl}" style="width:100%; border-radius:4px; margin-top:6px;">` : ''}
+      <button onclick="attachPhotoToMarker('${pin.id}')" style="width:100%; margin-top:8px; background:#0284c7; color:#fff; border:none; padding:6px; border-radius:4px; font-weight:800; cursor:pointer;">📷 ANEXAR FOTO TÁTICA</button>
+    </div>
+  `;
+  marker.bindPopup(popupContent);
 
-    activeTacticalMarkers[pin.id] = marker;
-  }
+  marker.on('dragend', (event) => {
+    const newPos = event.target.getLatLng();
+    if (socket) {
+      socket.emit('update-tactical-pin-location', { id: pin.id, lat: newPos.lat, lng: newPos.lng });
+    }
+  });
 
+  activeTacticalMarkers[pin.id] = marker;
+  
+  // Atualiza a tabela do Relevo automaticamente
+  if (typeof loadAdminTable === 'function') loadAdminTable();
+}
+
+function attachPhotoToMarker(pinId) {
+  targetPinForPhoto = pinId;
+  triggerTacticalCamera();
+}
   // GERENCIAMENTO DE SOCKET.IO
   if (socket) {
     socket.on('init-tactical-markers', (pins) => {
@@ -1480,59 +1494,55 @@
   // GRADE MILITAR
   let activeGridLayers = {};
 
-  function toggleMilitaryGridOnActiveMap() {
-    const activeMap = getActiveMapInstance();
-    if (!activeMap) return;
+function toggleMilitaryGridOnActiveMap() {
+  const activeMap = getActiveMapInstance();
+  if (!activeMap) return;
+  const mapId = activeMap._container.id;
 
-    const mapId = activeMap._container.id;
-
-    if (activeGridLayers[mapId]) {
-      activeMap.removeLayer(activeGridLayers[mapId]);
-      delete activeGridLayers[mapId];
-      return;
-    }
-
-    const gridGroup = L.layerGroup();
-    const bounds = activeMap.getBounds();
-    const step = 0.005;
-
-    for (let lat = Math.floor(bounds.getSouth() / step) * step; lat <= bounds.getNorth(); lat += step) {
-      L.polyline([[lat, bounds.getWest()], [lat, bounds.getEast()]], { color: '#38bdf8', weight: 1, opacity: 0.5, dashArray: '4, 4' }).addTo(gridGroup);
-    }
-
-    for (let lng = Math.floor(bounds.getWest() / step) * step; lng <= bounds.getNorth(); lng += step) {
-      L.polyline([[bounds.getSouth(), lng], [bounds.getNorth(), lng]], { color: '#38bdf8', weight: 1, opacity: 0.5, dashArray: '4, 4' }).addTo(gridGroup);
-    }
-
-    gridGroup.addTo(activeMap);
-    activeGridLayers[mapId] = gridGroup;
+  if (activeGridLayers[mapId]) {
+    activeMap.removeLayer(activeGridLayers[mapId]);
+    delete activeGridLayers[mapId];
+    return;
   }
+
+  const gridGroup = L.layerGroup();
+  const bounds = activeMap.getBounds();
+  const step = 0.003; // Quadrantes menores (~300m)
+
+  for (let lat = Math.floor(bounds.getSouth() / step) * step; lat <= bounds.getNorth(); lat += step) {
+    L.polyline([[lat, bounds.getWest()], [lat, bounds.getEast()]], { color: '#ef4444', weight: 2, opacity: 0.8, dashArray: '6, 4' }).addTo(gridGroup);
+  }
+
+  for (let lng = Math.floor(bounds.getWest() / step) * step; lng <= bounds.getNorth(); lng += step) {
+    L.polyline([[bounds.getSouth(), lng], [bounds.getNorth(), lng]], { color: '#ef4444', weight: 2, opacity: 0.8, dashArray: '6, 4' }).addTo(gridGroup);
+  }
+
+  gridGroup.addTo(activeMap);
+  activeGridLayers[mapId] = gridGroup;
+}
 
   async function uploadAndBroadcastTacticalPhoto(imageBase64) {
-    try {
-      alert('⏳ Enviando foto tática...');
-      const response = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64 })
-      });
-
-      const data = await response.json();
-      if (data.success && socket) {
-        const lat = currentPos ? currentPos[0] : -22.82145;
-        const lng = currentPos ? currentPos[1] : -43.05123;
-
-        socket.emit('new-tactical-pin', {
-          type: 'target', lat, lng, label: 'RECON / FOTO TÁTICA', observation: 'Foto de campo capturada via HUD', photoUrl: data.imageUrl, operator: 'Operador_Alfa'
-        });
-
-        alert('✅ Foto Tática gravada no mapa!');
-      }
-    } catch (err) {
-      alert('❌ Falha ao enviar foto.');
-    }
+  if (!targetPinForPhoto) {
+    alert("Selecione um ponto tático no mapa para vincular a foto.");
+    return;
   }
+  try {
+    const response = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64, markerId: targetPinForPhoto })
+    });
 
+    const data = await response.json();
+    if (data.success && socket) {
+      socket.emit('update-tactical-pin-photo', { id: targetPinForPhoto, photoUrl: data.imageUrl });
+      alert('✅ Foto anexada ao ponto selecionado com sucesso!');
+      targetPinForPhoto = null;
+    }
+  } catch (err) {
+    alert('❌ Falha ao enviar foto.');
+  }
+}
   function toggleNVGMode() {
     document.body.classList.toggle('nvg-red-mode');
     const isRed = document.body.classList.contains('nvg-red-mode');
