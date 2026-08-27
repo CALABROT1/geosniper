@@ -5,302 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
-  <!-- Leaflet CSS e JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-  <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /> 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
     body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; }
 
-    .brand-title {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 0 12px;
-      font-weight: 900;
-      font-size: 15px;
-      color: #f8fafc;
-      letter-spacing: 1px;
-      border-right: 1px solid #334155;
-      background: #0f172a;
-      white-space: nowrap;
-    }
-    
+    .brand-title { display: flex; flex-direction: column; justify-content: center; padding: 0 12px; font-weight: 900; font-size: 15px; color: #f8fafc; border-right: 1px solid #334155; background: #0f172a; white-space: nowrap; }
     .tabs { display: flex; background: #1e293b; height: 50px; overflow-x: auto; }
     .tab-btn { flex: 1; min-width: 75px; color: #94a3b8; background: none; border: none; font-weight: 700; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #0f172a; }
 
-    .tab-content { 
-      display: none; 
-      height: calc(100vh - 50px); 
-      width: 100%; 
-      position: relative; 
-      overflow: hidden; 
-    }
+    .tab-content { display: none; height: calc(100vh - 50px); width: 100%; position: relative; overflow: hidden; }
     .tab-content.active { display: block; }
-
-    #tabBalistica {
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch;
-    }
-
+    #tabBalistica { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
     .map { height: 100%; width: 100%; }
 
-    .radius-label {
-      background: rgba(255, 255, 255, 0.95);
-      font-size: 15px;
-      font-weight: 800;
-      padding: 3px 6px;
-      border-radius: 6px;
-      white-space: nowrap;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-      transition: transform 0.25s ease-out;
-      transform-origin: center center;
-      z-index: 500 !important;
-    }
+    .radius-label { background: rgba(255, 255, 255, 0.95); font-size: 15px; font-weight: 800; padding: 3px 6px; border-radius: 6px; white-space: nowrap; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); z-index: 500 !important; }
     .label-dist { border: 1px solid #b91c1c; color: #dc2626; }
     .label-num { border: 1px solid #0284c7; color: #0284c7; }
 
-    .dist-info-panel {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
-      background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 16px; border-radius: 16px;
-      font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid #334155; text-align: center;
-      pointer-events: auto; max-width: 320px; width: 90%;
-    }
+    .dist-info-panel { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 16px; border-radius: 16px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid #334155; text-align: center; pointer-events: auto; max-width: 320px; width: 90%; }
+    .ballistics-grid { display: grid; grid-template-columns: 1fr; gap: 15px; padding: 15px; padding-bottom: 40px; color: white; }
+    @media(min-width: 768px) { .ballistics-grid { grid-template-columns: 1fr 1fr; } }
 
-    .ballistics-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 15px;
-      padding: 15px;
-      padding-bottom: 40px;
-      color: white;
-    }
-    @media(min-width: 768px) {
-      .ballistics-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid #334155;
-    }
-
-    .card h3 { 
-      margin-top: 0; 
-      color: #38bdf8; 
-      font-size: 15px; 
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      border-bottom: 1px solid #334155; 
-      padding-bottom: 8px; 
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .section-divider {
-      border-top: 1px dashed #334155;
-      margin: 18px 0 12px 0;
-      padding-top: 12px;
-    }
+    .card { background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; }
+    .card h3 { margin-top: 0; color: #38bdf8; font-size: 15px; font-weight: 800; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
 
     .form-group { margin-bottom: 12px; }
-    
-    .form-group label { 
-      display: block; 
-      font-size: 11px; 
-      font-weight: 700;
-      color: #cbd5e1; 
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px; 
-    }
+    .form-group label { display: block; font-size: 11px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 5px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 8px; font-size: 14px; font-weight: 600; }
+    .form-row { display: flex; gap: 12px; } .form-row .form-group { flex: 1; }
 
-    .form-group input, .form-group select {
-      width: 100%; 
-      padding: 10px 12px; 
-      background: #0f172a; 
-      border: 1px solid #334155; 
-      color: #f8fafc; 
-      border-radius: 8px; 
-      font-size: 14px; 
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .form-group input:focus, .form-group select:focus {
-      outline: none;
-      border-color: #38bdf8;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
-    }
-
-    .form-row { display: flex; gap: 12px; }
-    .form-row .form-group { flex: 1; }
-
-    .btn-calc {
-      width: 100%; 
-      padding: 14px; 
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
-      color: #ffffff; 
-      border: none; 
-      font-weight: 800; 
-      border-radius: 8px; 
-      font-size: 15px; 
-      letter-spacing: 0.5px;
-      cursor: pointer; 
-      margin-top: 15px;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-      transition: all 0.2s;
-    }
-
-    .btn-calc:active { 
-      transform: scale(0.98);
-      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2);
-    }
-
+    .btn-calc { width: 100%; padding: 14px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; font-weight: 800; border-radius: 8px; font-size: 15px; cursor: pointer; margin-top: 15px; }
     .results-box { display: flex; gap: 10px; margin-bottom: 15px; }
     .res-item { flex: 1; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
     .res-item .val { font-size: 20px; font-weight: 900; color: #ef4444; }
     .res-item .lbl { font-size: 10px; color: #94a3b8; font-weight: 700; margin-top: 4px; }
 
-    .reticle-container { text-align: center; }
-    .zoom-badge {
-      display: inline-block;
-      background: #0f172a;
-      color: #38bdf8;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 800;
-      border: 1px solid #38bdf8;
-      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
-    }
-
-    .bal-summary-card { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; margin-bottom: 15px; }
-    .bal-metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-    .metric-box { background: #1e293b; padding: 8px 10px; border-radius: 6px; border: 1px solid #334155; text-align: center; }
-    .metric-box .label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
-    .metric-box .value { font-size: 15px; font-weight: 800; color: #f8fafc; margin-top: 2px; }
-
-    .bal-calc-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-    .bal-calc-table td { padding: 6px 8px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
-    .bal-calc-table td:last-child { text-align: right; font-weight: 700; color: #f8fafc; }
-    .bal-final-row { background: rgba(239, 68, 68, 0.1); border-radius: 6px; }
-    .bal-final-row td { border-bottom: none !important; color: #ef4444 !important; font-weight: 800 !important; font-size: 13px !important; }
-
-    #tabEquipamento { overflow-y: auto; max-height: calc(100vh - 70px); -webkit-overflow-scrolling: touch; padding-bottom: 30px; }
-    .equip-container { display: flex; flex-direction: column; gap: 15px; padding: 12px; max-width: 1200px; margin: 0 auto; }
-    .equip-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-    .equip-card.header-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-left: 4px solid #38bdf8; }
-    .card-title { font-size: 14px; font-weight: 800; color: #38bdf8; margin-bottom: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
-    .flex-between { display: flex; justify-content: space-between; align-items: center; }
-    .form-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .form-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-    .form-row-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-
-    .btn-sync, .btn-sensor {
-      background: #0284c7; color: #ffffff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.2s;
-    }
-    .btn-sync:hover, .btn-sensor:hover { background: #0369a1; }
-
-    /* MODO VISÃO NOTURNA */
-    body.nvg-red-mode {
-      background: #000000 !important;
-      color: #ff0000 !important;
-    }
-
-    body.nvg-red-mode .card,
-    body.nvg-red-mode .equip-card,
-    body.nvg-red-mode .tabs,
-    body.nvg-red-mode .dist-info-panel,
-    body.nvg-red-mode #trajectoryModal {
-      background: #0d0000 !important;
-      border-color: #660000 !important;
-      color: #ff3333 !important;
-    }
-
-    body.nvg-red-mode h3,
-    body.nvg-red-mode label,
-    body.nvg-red-mode .card-title,
-    body.nvg-red-mode .tab-btn {
-      color: #ff3333 !important;
-    }
-
-    body.nvg-red-mode .tab-btn.active {
-      color: #ff0000 !important;
-      border-bottom-color: #ff0000 !important;
-      background: #260000 !important;
-    }
-
-    body.nvg-red-mode input,
-    body.nvg-red-mode select {
-      background: #1a0000 !important;
-      border-color: #880000 !important;
-      color: #ff6666 !important;
-    }
-
-    body.nvg-red-mode .btn-calc,
-    body.nvg-red-mode .btn-sync,
-    body.nvg-red-mode .btn-sensor {
-      background: linear-gradient(135deg, #990000 0%, #440000 100%) !important;
-      color: #ffffff !important;
-      border: 1px solid #ff0000 !important;
-    }
-
-    body.nvg-red-mode .leaflet-tile-container img {
-      filter: sepia(100%) hue-rotate(310deg) saturate(600%) contrast(150%) brightness(70%);
-    }
+    body.nvg-red-mode { background: #000000 !important; color: #ff0000 !important; }
+    body.nvg-red-mode .card, body.nvg-red-mode .tabs, body.nvg-red-mode .dist-info-panel { background: #0d0000 !important; border-color: #660000 !important; }
   </style>
 </head>
 <body>
 
-<!-- BANNER DE AVISO FLUTUANTE -->
-<div id="tacticalToast" style="display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%); z-index:99999; background:#0284c7; color:#fff; padding:10px 20px; border-radius:20px; font-weight:800; font-size:13px; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none; text-align:center; border:1px solid #38bdf8;">
-  📍 CLIQUE EM QUALQUER LUGAR DO MAPA PARA POSICIONAR O PONTO
+<div id="tacticalToast" style="display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%); z-index:99999; background:#0284c7; color:#fff; padding:10px 20px; border-radius:20px; font-weight:800; font-size:13px; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none; border:1px solid #38bdf8;">
+  📍 CLIQUE NO MAPA PARA POSICIONAR O PONTO
 </div>
 
-<!-- MODAL DA TABELA DE TRAJETÓRIA -->
-<div id="trajectoryModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.95); z-index:9999; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #334155; padding-bottom:10px; flex-wrap:wrap; gap:10px;">
-    <h3 style="color:#38bdf8; margin:0; font-size:18px;">📋 CARD DE TIRO TÁTICO</h3>
-    <div style="display:flex; gap:8px;">
-      <button onclick="exportTrajectoryToCSV()" style="background:#10b981; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">📊 EXPORTAR EXCEL (CSV)</button>
-      <button onclick="window.print()" style="background:#0284c7; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">🖨️ IMPRIMIR / PDF</button>
-      <button onclick="closeTrajectoryModal()" style="background:#ef4444; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">❌ FECHAR</button>
-    </div>
-  </div>
-
-  <div style="overflow-x:auto;">
-    <table style="width:100%; border-collapse:collapse; font-size:13px; color:#f8fafc; text-align:center;">
-      <thead>
-        <tr style="background:#1e293b; color:#38bdf8; font-size:11px; text-transform:uppercase;">
-          <th style="padding:10px; border:1px solid #334155;">Dist (m)</th>
-          <th style="padding:10px; border:1px solid #334155;">Veloc (FPS)</th>
-          <th style="padding:10px; border:1px solid #334155;">Tempo (s)</th>
-          <th style="padding:10px; border:1px solid #334155;">Queda (cm)</th>
-          <th style="padding:10px; border:1px solid #334155;">Elevação (MOA)</th>
-          <th style="padding:10px; border:1px solid #334155;">Elevação (MRAD)</th>
-          <th style="padding:10px; border:1px solid #334155; color:#ef4444;">Cliques UP</th>
-        </tr>
-      </thead>
-      <tbody id="trajectoryTableBody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- NAVEGAÇÃO DE ABAS SUPERIOR -->
 <div class="tabs">
   <div class="brand-title">GEOSNIPER <span style="color: #38bdf8; font-size: 12px;">by Calabrot</span></div>
   <button class="tab-btn active" data-tab="tabBalistica" onclick="openTab(event, 'tabBalistica')">Balística</button>
@@ -312,48 +67,43 @@
   <button onclick="toggleNVGMode()" id="nvgBtn" style="background:#b91c1c; color:#fff; border:none; padding:0 10px; font-weight:800; font-size:12px; cursor:pointer; border-radius:4px; margin:8px 6px;">🚨 NVG RED</button>
 </div>
 
-<!-- CONTEÚDO DAS ABAS -->
 <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map"></div></div>
 
 <div id="tabNormal" class="tab-content">
   <div id="mapNormal" class="map"></div>
 
-  <!-- DOCK LATERAL DIREITO (Ações Rápidas de Combate) -->
-  <div id="tacticalDockRight" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.92); border: 1px solid #334155; padding: 8px 6px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-    <button type="button" onclick="addTacticalMarker('target')" title="Alvo" style="background:none; border:none; cursor:pointer;"><img src="./icons/target.png" style="width:30px; height:30px; display:block;"/></button>
-    <button type="button" onclick="addTacticalMarker('threat')" title="Ameaça" style="background:none; border:none; cursor:pointer;"><img src="./icons/threat.png" style="width:30px; height:30px; display:block;"/></button>
-    <button type="button" onclick="addTacticalMarker('sniper')" title="Sniper" style="background:none; border:none; cursor:pointer;"><img src="./icons/sniper.png" style="width:30px; height:30px; display:block;"/></button>
-    <button type="button" onclick="addTacticalMarker('barricade')" title="Barricada" style="background:none; border:none; cursor:pointer;"><img src="./icons/barricade.png" style="width:30px; height:30px; display:block;"/></button>
-    <button type="button" onclick="addTacticalMarker('loophole')" title="Seteira" style="background:none; border:none; cursor:pointer;"><img src="./icons/loophole.png" style="width:30px; height:30px; display:block;"/></button>
+  <!-- DOCK LATERAL DIREITO -->
+  <div id="tacticalDockRight" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.92); border: 1px solid #334155; padding: 8px 6px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+    <button type="button" onclick="addTacticalMarker('target')" style="background:none; border:none; cursor:pointer;"><img src="./icons/target.png" onerror="this.onerror=null;this.src='./icons/target.PNG';" style="width:30px; height:30px;"/></button>
+    <button type="button" onclick="addTacticalMarker('threat')" style="background:none; border:none; cursor:pointer;"><img src="./icons/threat.png" onerror="this.onerror=null;this.src='./icons/threat.PNG';" style="width:30px; height:30px;"/></button>
+    <button type="button" onclick="addTacticalMarker('sniper')" style="background:none; border:none; cursor:pointer;"><img src="./icons/sniper.png" onerror="this.onerror=null;this.src='./icons/sniper.PNG';" style="width:30px; height:30px;"/></button>
+    <button type="button" onclick="addTacticalMarker('barricade')" style="background:none; border:none; cursor:pointer;"><img src="./icons/barricade.png" onerror="this.onerror=null;this.src='./icons/barricade.PNG';" style="width:30px; height:30px;"/></button>
+    <button type="button" onclick="addTacticalMarker('loophole')" style="background:none; border:none; cursor:pointer;"><img src="./icons/loophole.png" onerror="this.onerror=null;this.src='./icons/loophole.PNG';" style="width:30px; height:30px;"/></button>
   </div>
 
-  <!-- DOCK INFERIOR HORIZONTAL (Apoio e Câmera) -->
-  <div id="tacticalDockBottom" style="position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.92); border: 1px solid #334155; padding: 6px 12px; border-radius: 25px; display: flex; align-items: center; gap: 12px; max-width: 92vw; overflow-x: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-    <button type="button" onclick="addTacticalMarker('patrol')" title="Patrulha" style="background:none; border:none; cursor:pointer;"><img src="./icons/patrol.png" style="width:28px; height:28px;"/></button>
-    <button type="button" onclick="addTacticalMarker('armored')" title="Blindado" style="background:none; border:none; cursor:pointer;"><img src="./icons/armored.png" style="width:28px; height:28px;"/></button>
-    <button type="button" onclick="addTacticalMarker('drone')" title="Drone" style="background:none; border:none; cursor:pointer;"><img src="./icons/drone.png" style="width:28px; height:28px;"/></button>
-    <button type="button" onclick="addTacticalMarker('aph')" title="APH" style="background:none; border:none; cursor:pointer;"><img src="./icons/aph.png" style="width:28px; height:28px;"/></button>
-    <button type="button" onclick="addTacticalMarker('intel')" title="Informe" style="background:none; border:none; cursor:pointer;"><img src="./icons/intel.png" style="width:28px; height:28px;"/></button>
-    <button type="button" onclick="addTacticalMarker('priority')" title="Prioridade" style="background:none; border:none; cursor:pointer;"><img src="./icons/priority.png" style="width:28px; height:28px;"/></button>
+  <!-- DOCK INFERIOR HORIZONTAL -->
+  <div id="tacticalDockBottom" style="position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(15, 23, 42, 0.92); border: 1px solid #334155; padding: 6px 12px; border-radius: 25px; display: flex; align-items: center; gap: 12px; max-width: 92vw; overflow-x: auto;">
+    <button type="button" onclick="addTacticalMarker('patrol')" style="background:none; border:none; cursor:pointer;"><img src="./icons/patrol.png" onerror="this.onerror=null;this.src='./icons/patrol.PNG';" style="width:28px; height:28px;"/></button>
+    <button type="button" onclick="addTacticalMarker('armored')" style="background:none; border:none; cursor:pointer;"><img src="./icons/armored.png" onerror="this.onerror=null;this.src='./icons/armored.PNG';" style="width:28px; height:28px;"/></button>
+    <button type="button" onclick="addTacticalMarker('drone')" style="background:none; border:none; cursor:pointer;"><img src="./icons/drone.png" onerror="this.onerror=null;this.src='./icons/drone.PNG';" style="width:28px; height:28px;"/></button>
+    <button type="button" onclick="addTacticalMarker('aph')" style="background:none; border:none; cursor:pointer;"><img src="./icons/aph.png" onerror="this.onerror=null;this.src='./icons/aph.PNG';" style="width:28px; height:28px;"/></button>
+    <button type="button" onclick="addTacticalMarker('intel')" style="background:none; border:none; cursor:pointer;"><img src="./icons/intel.png" onerror="this.onerror=null;this.src='./icons/intel.PNG';" style="width:28px; height:28px;"/></button>
+    <button type="button" onclick="addTacticalMarker('priority')" style="background:none; border:none; cursor:pointer;"><img src="./icons/priority.png" onerror="this.onerror=null;this.src='./icons/priority.PNG';" style="width:28px; height:28px;"/></button>
     <div style="width:1px; height:24px; background:#475569;"></div>
-    <button type="button" onclick="triggerTacticalCamera()" title="Capturar Foto Tática" style="background:#0284c7; border:none; color:#fff; padding:6px 12px; border-radius:15px; font-weight:bold; font-size:12px; display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;">📷 CÂMERA</button>
+    <button type="button" onclick="triggerTacticalCamera()" style="background:#0284c7; border:none; color:#fff; padding:6px 12px; border-radius:15px; font-weight:bold; font-size:12px; cursor:pointer; white-space:nowrap;">📷 CÂMERA</button>
   </div>
 </div>
 
-<!-- ABA RELEVO -->
 <div id="tabRelevo" class="tab-content">
   <div id="mapRelevo" class="map" style="height: 55vh;"></div>
   <div style="padding: 12px; background: #0f172a; border-top: 2px solid #0284c7; color: #fff;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
       <h3 style="margin: 0; font-size: 13px; color: #38bdf8;">⚙️ PAINEL DO GERENCIADOR (SQLITE)</h3>
-      <div>
-        <button type="button" onclick="exportToKML()" style="background: #10b981; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">🌍 EXPORTAR KML</button>
-        <button type="button" onclick="loadAdminTable()" style="background: #0284c7; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; margin-left: 6px;">🔄 ATUALIZAR LISTA</button>
-      </div>
+      <button type="button" onclick="loadAdminTable()" style="background: #0284c7; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">🔄 ATUALIZAR LISTA</button>
     </div>
-    <div style="max-height: 25vh; overflow-y: auto; border: 1px solid #334155; border-radius: 4px; background: #1e293b;">
+    <div style="max-height: 25vh; overflow-y: auto; border: 1px solid #334155; background: #1e293b;">
       <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
-        <thead style="background: #0f172a; color: #94a3b8; position: sticky; top: 0;">
+        <thead style="background: #0f172a; color: #94a3b8;">
           <tr>
             <th style="padding: 8px;">TIPO</th>
             <th style="padding: 8px;">IDENTIFICAÇÃO</th>
@@ -382,29 +132,20 @@
       <div class="form-row">
         <div class="form-group">
           <label>Peso Projétil (Grains)</label>
-          <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
+          <input type="number" id="balWeight" value="168">
         </div>
         <div class="form-group">
           <label for="balTurret">Torre / Graduação</label>
-          <select id="balTurret" onchange="syncTurretFromBalistica()">
+          <select id="balTurret">
             <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
-            <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
-            <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
             <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
-            <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
           </select>
         </div>
       </div>
 
       <div class="form-group">
         <label>Velocidade de Boca (FPS)</label>
-        <select id="balPresetSpeed" onchange="document.getElementById('balSpeed').value = this.value !== 'custom' ? this.value : document.getElementById('balSpeed').value">
-          <option value="custom">Personalizada (Digite abaixo)</option>
-          <option value="2600">Carga 1 - Média: 2600 FPS</option>
-          <option value="2680" selected>Carga 2 - Média: 2680 FPS</option>
-          <option value="2750">Carga 3 - Média: 2750 FPS</option>
-        </select>
-        <input type="number" id="balSpeed" value="2680" style="margin-top: 6px;">
+        <input type="number" id="balSpeed" value="2680">
       </div>
 
       <div class="form-row">
@@ -422,50 +163,11 @@
       </div>
 
       <div class="form-group">
-        <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
+        <label>Distância do Alvo (Metros)</label>
         <input type="number" id="balDistance" value="600" step="25">
       </div>
 
-      <div class="form-group">
-        <label for="eqReticleType">Estilo de Retículo (Luneta)</label>
-        <select id="eqReticleType" onchange="runBallistics()">
-          <option value="mildot" selected>Mil-Dot Tradicional (Pontos)</option>
-          <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
-          <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
-          <option value="duplex">Duplex / BDC Simples</option>
-        </select>
-      </div>
-
-      <div class="section-divider">
-        <h3 style="border-bottom:none; margin-bottom: 8px;">💨 Condição de Vento (Opcional)</h3>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Velocidade (km/h)</label>
-          <input type="number" id="balWindSpeed" value="0" placeholder="0 = Sem Vento">
-        </div>
-        <div class="form-group">
-          <label>Direção do Vento</label>
-          <select id="balWindDir">
-            <option value="3">3 Horas (Direita ➔ Esquerda)</option>
-            <option value="9">9 Horas (Esquerda ➔ Direita)</option>
-            <option value="12">12 Horas (Frontal)</option>
-            <option value="6">6 Horas (Traseiro)</option>
-            <option value="1">1 Hora</option>
-            <option value="2">2 Horas</option>
-            <option value="4">4 Horas</option>
-            <option value="5">5 Horas</option>
-            <option value="7">7 Horas</option>
-            <option value="8">8 Horas</option>
-            <option value="10">10 Horas</option>
-            <option value="11">11 Horas</option>
-          </select>
-        </div>
-      </div>
-
       <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
-      <button onclick="openTrajectoryModal()" style="width: 100%; margin-top: 10px; background: #334155; color: #38bdf8; border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer;">📊 GERAR CARD DE TIRO / TABELA DE TRAJETÓRIA</button>
     </div>
       
     <div class="card">
@@ -483,200 +185,43 @@
 
       <div id="resDetails">Aguardando cálculo...</div>
 
-      <div class="reticle-container" style="text-align: center; margin-top: 15px;">
-        <div id="zoomBadge" class="zoom-badge" style="display: inline-block; margin-bottom: 10px; background: #0284c7; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 800;">Zoom Sugerido: --</div>
-        <canvas id="reticleCanvas" width="300" height="300" style="background:#fff; border-radius:50%; border:4px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto;"></canvas>
+      <div style="text-align: center; margin-top: 15px;">
+        <canvas id="reticleCanvas" width="280" height="280" style="background:#fff; border-radius:50%; border:4px solid #334155; display:block; margin: 0 auto;"></canvas>
       </div>
     </div>
   </div>
 </div>
 
 <div id="tabEquipamento" class="tab-content">
-  <div class="equip-container">
-    <div class="equip-card header-card">
-      <div class="card-title flex-between">
-        <span>🌐 UNIDADES E IDIOMA</span>
-        <span class="badge-status" id="profileStatusBadge">PERFIL ATIVO: PADRÃO</span>
-      </div>
-      <div class="form-row-3">
-        <div class="form-group">
-          <label for="sysLanguage">Idioma / Language</label>
-          <select id="sysLanguage">
-            <option value="pt" selected>🇧🇷 Português (BR)</option>
-            <option value="en">🇺🇸 English (US)</option>
-            <option value="es">🇪🇸 Español</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="sysUnits">Sistema de Medidas</label>
-          <select id="sysUnits">
-            <option value="metric" selected>Métrico (m, km/h, °C, hPa, cm)</option>
-            <option value="imperial">Imperial (yd, mph, °F, inHg, in)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="gunPresetSelect">Preset de Fuzil / Arma</label>
-          <select id="gunPresetSelect" onchange="loadSelectedWeaponPreset()">
-            <option value="custom">-- Fuzil Personalizado --</option>
-          </select>
-        </div>
-      </div>
+  <div style="padding:20px; color:#fff;">
+    <h3>⚙️ Configurações de Equipamento</h3>
+    <div class="form-group">
+      <label>Velocidade Boca (FPS)</label>
+      <input type="number" id="eqFps" value="2680">
     </div>
-
-    <div class="equip-card">
-      <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
-      <div class="form-grid-4">
-        <div class="form-group">
-          <label for="eqFps">Velocidade Boca (FPS)</label>
-          <input type="number" id="eqFps" value="2680" step="10" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqBC">Coeficiente Balístico (BC)</label>
-          <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqProfile">Perfil de Arraste</label>
-          <select id="eqProfile" onchange="saveGunProfile()">
-            <option value="G1" selected>G1 (Padrão/Comercial)</option>
-            <option value="G7">G7 (Boat-tail / Longa Distância)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="eqTurret">Ajuste da Torre</label>
-          <select id="eqTurret" onchange="syncTurretFromEquipamento()">
-            <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
-            <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
-            <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
-            <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
-            <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="eqTwist">Passo de Raia (Twist 1:X")</label>
-          <input type="number" id="eqTwist" value="10" step="0.5" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqTwistDir">Sentido do Raiamento</label>
-          <select id="eqTwistDir" onchange="saveGunProfile()">
-            <option value="RIGHT" selected>Direita (RH / Right-Hand)</option>
-            <option value="LEFT">Esquerda (LH / Left-Hand)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="eqBarrelLen">Comprimento do Cano (Pol.)</label>
-          <input type="number" id="eqBarrelLen" value="20" step="0.5" onchange="saveGunProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqScopeHeight">Altura da Luneta (cm)</label>
-          <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
-        </div>
-      </div>
-    </div>
-
-    <div class="equip-card" style="border-left: 4px solid #f59e0b;">
-      <div class="card-title" style="color:#f59e0b;">🎯 CALIBRAÇÃO DE CAMPO (VELOCITY TRUING)</div>
-      <div class="form-grid-3">
-        <div class="form-group">
-          <label>Distância do Teste (Metros)</label>
-          <input type="number" id="truingDist" value="500" placeholder="Ex: 500">
-        </div>
-        <div class="form-group">
-          <label>Queda Observada / Impacto Real (cm)</label>
-          <input type="number" id="truingActualDrop" value="180" placeholder="Ex: 180">
-        </div>
-        <div class="form-group" style="display:flex; align-items:flex-end;">
-          <button onclick="runVelocityTruing()" style="width:100%; background:#f59e0b; color:#0f172a; border:none; padding:12px; border-radius:8px; font-weight:800; cursor:pointer;">⚙️ CALIBRAR FPS REAL</button>
-        </div>
-      </div>
-      <div id="truingResultBox" style="margin-top:10px; font-size:13px; font-weight:700;"></div>
-    </div>
-
-    <div class="equip-card">
-      <div class="card-title flex-between">
-        <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
-        <button type="button" class="btn-sync" onclick="syncWeatherFromGPS()">🔄 Sincronizar Clima via GPS</button>
-      </div>
-      <div class="form-grid-4">
-        <div class="form-group">
-          <label for="eqTemp">Temperatura (°C)</label>
-          <input type="number" id="eqTemp" value="15" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqPressure">Pressão Atmosférica (hPa)</label>
-          <input type="number" id="eqPressure" value="1013" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqHumidity">Umidade Relativa (%)</label>
-          <input type="number" id="eqHumidity" value="50" step="5" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqWindSpeed">Vento (km/h)</label>
-          <input type="number" id="eqWindSpeed" value="0" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group" style="grid-column: span 2;">
-          <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
-          <select id="eqWindClock" onchange="saveEnvironmentProfile()">
-            <option value="12">12h (Vento de Frente)</option>
-            <option value="1">1h</option>
-            <option value="2">2h</option>
-            <option value="3" selected>3h (Vento da Direita)</option>
-            <option value="4">4h</option>
-            <option value="5">5h</option>
-            <option value="6">6h (Vento de Cauda)</option>
-            <option value="7">7h</option>
-            <option value="8">8h</option>
-            <option value="9">9h (Vento da Esquerda)</option>
-            <option value="10">10h</option>
-            <option value="11">11h</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div class="equip-card">
-      <div class="card-title flex-between">
-        <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
-        <button type="button" class="btn-sensor" onclick="triggerTacticalCamera()">📷 Abrir Câmera Tática</button>
-      </div>
-      <div class="form-grid-3">
-        <div class="form-group">
-          <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
-          <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
-          <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="saveEnvironmentProfile()">
-        </div>
-        <div class="form-group">
-          <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
-          <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
-        </div>
-      </div>
+    <div class="form-group">
+      <label>Coeficiente Balístico (BC)</label>
+      <input type="number" id="eqBC" value="0.447" step="0.001">
     </div>
   </div>
 </div>
 
-<!-- CONEXÃO WEBSOCKET -->
 <script>
   const socket = typeof io !== 'undefined' ? io('https://geosniper-api.onrender.com') : null;
 </script>
 
-<!-- SCRIPT UNIFICADO PRINCIPAL -->
 <script>
   let currentPos = null;
   let mapRaios, mapNormal, mapRelevo, mapMedir;
   let markers = {};
   let circlesAndLabelsGroup = L.layerGroup();
   let measureMarker = null, measureLine = null;
-  let currentRoutePolyline = null;
-  let mapBearing = 0;
   let pendingMarkerType = null;
   let activeTacticalMarkers = {};
   let targetPinForPhoto = null;
 
   const API_URL = 'https://geosniper-api.onrender.com/api/calculate-ballistics';
 
-  // NAVEGAÇÃO ENTRE ABAS
   function openTab(evt, tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -706,7 +251,6 @@
     }
   }
 
-  // CONFIGURAÇÃO DOS MAPAS
   function createOperatorIcon() {
     return L.divIcon({
       className: 'user-operator-marker',
@@ -717,49 +261,11 @@
   }
 
   function createTileLayers() {
-    const part1 = 'pk.eyJ1IjoiZmFiaW9jYWxhYnJvdCIsImEiOiJjbXQ2YXZ5N3gxdTdkMndwdDYyOXdidW';
-    const part2 = '9uIn0.8Wqi1dqir8FRPfUdLtZezg';
-    const MAPBOX_TOKEN = part1 + part2;
-
-    const mapboxSatellite = L.tileLayer(
-      'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + MAPBOX_TOKEN, {
-        maxZoom: 22, maxNativeZoom: 19, attribution: '© Mapbox © Maxar'
-      }
-    );
-
     return {
-      "Mapbox Satélite (HD)": mapboxSatellite,
-      "Satélite Padrão": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' }),
-      "Mapa Vias": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
-      "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' })
+      "Satélite Padrão": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+      "Mapa Vias": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
+      "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 })
     };
-  }
-
-  function getOffsetPoint(lat, lng, meters) {
-    const earthRadius = 6378137;
-    const dLat = meters / earthRadius;
-    return [lat + (dLat * 180 / Math.PI), lng];
-  }
-
-  function updateRaios(lat, lng) {
-    circlesAndLabelsGroup.clearLayers();
-    for (let r = 100; r <= 900; r += 100) {
-      const indice = r / 100;
-      L.circle([lat, lng], {
-        radius: r, color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.02, weight: 2, dashArray: '5, 5'
-      }).addTo(circlesAndLabelsGroup);
-
-      const labelPosNorte = getOffsetPoint(lat, lng, r);
-      const labelPosSul = getOffsetPoint(lat, lng, -r);
-
-      L.marker(labelPosNorte, {
-        icon: L.divIcon({ className: 'radius-label label-dist', html: `${r}m`, iconSize: [60, 26], iconAnchor: [30, 13] })
-      }).addTo(circlesAndLabelsGroup);
-
-      L.marker(labelPosSul, {
-        icon: L.divIcon({ className: 'radius-label label-num', html: `#${indice}`, iconSize: [40, 26], iconAnchor: [20, 13] })
-      }).addTo(circlesAndLabelsGroup);
-    }
   }
 
   function initMaps(lat, lng) {
@@ -769,15 +275,11 @@
     const layersRaios = createTileLayers();
     if (mapRaios) mapRaios.remove();
     mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite Padrão"]] }).setView(currentPos, 17);
-    L.control.layers(layersRaios).addTo(mapRaios);
-    markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
-    circlesAndLabelsGroup.addTo(mapRaios);
-    updateRaios(lat, lng);
+    markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios);
 
     const layersNormal = createTileLayers();
     if (mapNormal) mapNormal.remove();
     mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]] }).setView(currentPos, 17);
-    L.control.layers(layersNormal).addTo(mapNormal);
     markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
 
     setupMapClickForMarkers(mapNormal);
@@ -785,13 +287,11 @@
     const layersRelevo = createTileLayers();
     if (mapRelevo) mapRelevo.remove();
     mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
-    L.control.layers(layersRelevo).addTo(mapRelevo);
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
     const layersMedir = createTileLayers();
     if (mapMedir) mapMedir.remove();
-    mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
-    L.control.layers(layersMedir).addTo(mapMedir);
+    mapMedir = L.map('mapMedir', { layers: [layersMedir["Satélite Padrão"]] }).setView(currentPos, 16);
     markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
     mapMedir.on('click', async function(e) {
@@ -806,23 +306,21 @@
 
       const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
       const sol = await getBallisticSolutionForDistance(distanceMeters);
-      if (!sol) return;
 
       const panelEl = document.getElementById('distPanel');
-      panelEl.innerHTML = `
-        <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">Distância: <b>${Math.round(distanceMeters)}m</b></div>
-        <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;"><b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
-      `;
+      if (sol) {
+        panelEl.innerHTML = `
+          <div style="font-size: 14px; color: #38bdf8;">Distância: <b>${Math.round(distanceMeters)}m</b></div>
+          <div style="font-size: 13px; color: #f8fafc;"><b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
+        `;
+      } else {
+        panelEl.innerHTML = `Distância: <b>${Math.round(distanceMeters)}m</b>`;
+      }
     });
   }
 
-  // GERENCIAMENTO DE MARCADORES E DOCK TÁTICO
   function getTacticalIcon(type) {
-    const validTypes = [
-      'sniper', 'threat', 'target', 'barricade', 
-      'aph', 'priority', 'patrol', 'intel', 
-      'drone', 'armored', 'loophole'
-    ];
+    const validTypes = ['sniper', 'threat', 'target', 'barricade', 'aph', 'priority', 'patrol', 'intel', 'drone', 'armored', 'loophole'];
     const iconName = validTypes.includes(type) ? type : 'target';
     
     return L.icon({
@@ -834,13 +332,9 @@
   }
 
   function getEmojiForType(type) {
-    const validTypes = [
-      'sniper', 'threat', 'target', 'barricade', 
-      'aph', 'priority', 'patrol', 'intel', 
-      'drone', 'armored', 'loophole'
-    ];
+    const validTypes = ['sniper', 'threat', 'target', 'barricade', 'aph', 'priority', 'patrol', 'intel', 'drone', 'armored', 'loophole'];
     const iconName = validTypes.includes(type) ? type : 'target';
-    return `<img src="./icons/${iconName}.png" style="width:24px; height:24px; vertical-align:middle; filter:drop-shadow(0 0 2px rgba(0,0,0,0.5));"/>`;
+    return `<img src="./icons/${iconName}.png" onerror="this.onerror=null;this.src='./icons/${iconName}.PNG';" style="width:24px; height:24px; vertical-align:middle;"/>`;
   }
 
   function getLabelForType(type) {
@@ -886,7 +380,7 @@
       const label = prompt("Título / Identificação do Ponto:", getLabelForType(currentType));
       if (!label) return;
 
-      const observation = prompt("Observação Tática (Texto Livre):", "") || "";
+      const observation = prompt("Observação Tática:", "") || "";
 
       if (socket) {
         socket.emit('new-tactical-pin', {
@@ -898,7 +392,7 @@
           operator: localStorage.getItem('geoOperatorID') || 'Operador_Alfa'
         });
       } else {
-        alert("Erro: Conexão com o servidor indisponível.");
+        alert("Erro de conexão com o servidor.");
       }
     });
   }
@@ -935,12 +429,36 @@
     if (typeof loadAdminTable === 'function') loadAdminTable();
   }
 
+  if (socket) {
+    socket.on('init-tactical-markers', (pins) => {
+      pins.forEach(pin => renderTacticalMarkerOnMap(pin));
+    });
+
+    socket.on('tactical-pin-added', (pin) => {
+      renderTacticalMarkerOnMap(pin);
+    });
+
+    socket.on('tactical-pin-updated', (data) => {
+      if (activeTacticalMarkers[data.id]) {
+        activeTacticalMarkers[data.id].setLatLng([data.lat, data.lng]);
+      }
+      if (typeof loadAdminTable === 'function') loadAdminTable();
+    });
+
+    socket.on('tactical-pin-deleted', (id) => {
+      if (activeTacticalMarkers[id] && mapNormal) {
+        mapNormal.removeLayer(activeTacticalMarkers[id]);
+        delete activeTacticalMarkers[id];
+      }
+      if (typeof loadAdminTable === 'function') loadAdminTable();
+    });
+  }
+
   function attachPhotoToMarker(pinId) {
     targetPinForPhoto = pinId;
     triggerTacticalCamera();
   }
 
-  // CÂMERA & UPLOAD DE IMAGEM
   const cameraInput = document.createElement('input');
   cameraInput.type = 'file';
   cameraInput.accept = 'image/*';
@@ -948,58 +466,8 @@
   document.body.appendChild(cameraInput);
   cameraInput.style.display = 'none';
 
-  function triggerTacticalCamera() {
-    cameraInput.click();
-  }
+  function triggerTacticalCamera() { cameraInput.click(); }
 
-  cameraInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        ctx.drawImage(img, 0, 0);
-        const processedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
-        uploadAndBroadcastTacticalPhoto(processedImageBase64);
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  async function uploadAndBroadcastTacticalPhoto(imageBase64) {
-    if (!targetPinForPhoto) {
-      alert("Selecione um ponto tático no mapa para anexar a foto.");
-      return;
-    }
-
-    try {
-      const response = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64, markerId: targetPinForPhoto })
-      });
-
-      const data = await response.json();
-      if (data.success && socket) {
-        socket.emit('update-tactical-pin-photo', { id: targetPinForPhoto, photoUrl: data.imageUrl });
-        alert('✅ Foto tática anexada com sucesso!');
-        targetPinForPhoto = null;
-        if (typeof loadAdminTable === 'function') loadAdminTable();
-      }
-    } catch (err) {
-      alert('❌ Erro no envio da imagem.');
-    }
-  }
-
-  // GERENCIADOR SQLITE & ABA RELEVO
   function initRelevoMap() {
     if (!mapRelevo) return;
     loadAdminTable();
@@ -1055,27 +523,6 @@
     loadAdminTable();
   }
 
-  async function exportToKML() {
-    try {
-      const res = await fetch('https://geosniper-api.onrender.com/api/admin/markers');
-      const markers = await res.json();
-      let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>GeoSniper - Pontos Táticos</name>`;
-      markers.forEach(m => {
-        kmlContent += `\n    <Placemark>\n      <name>${m.label}</name>\n      <description>Operador: ${m.operator} | Obs: ${m.observation || 'Sem notas'}</description>\n      <Point>\n        <coordinates>${m.lng},${m.lat},0</coordinates>\n      </Point>\n    </Placemark>`;
-      });
-      kmlContent += `\n  </Document>\n</kml>`;
-
-      const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `GeoSniper_Export_${Date.now()}.kml`;
-      a.click();
-    } catch (err) {
-      alert("Erro ao gerar KML.");
-    }
-  }
-
-  // CÁLCULO BALÍSTICO
   async function getBallisticSolutionForDistance(dist) {
     try {
       const response = await fetch(API_URL, {
@@ -1085,10 +532,8 @@
           dist: dist,
           fps: parseFloat(document.getElementById('eqFps')?.value || document.getElementById('balSpeed')?.value) || 2680,
           bc: parseFloat(document.getElementById('eqBC')?.value || document.getElementById('balBC')?.value) || 0.447,
-          profile: document.getElementById('eqProfile')?.value || document.getElementById('balDragProfile')?.value || 'G1',
-          turret: document.getElementById('eqTurret')?.value || document.getElementById('balTurret')?.value || '1/4_MOA',
-          windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value || document.getElementById('balWindSpeed')?.value) || 0,
-          windClock: parseInt(document.getElementById('eqWindClock')?.value || document.getElementById('balWindDir')?.value) || 3
+          profile: document.getElementById('balDragProfile')?.value || 'G1',
+          turret: document.getElementById('balTurret')?.value || '1/4_MOA'
         })
       });
 
@@ -1108,19 +553,47 @@
     const elWind = document.getElementById('resWindage');
     if (elElev) elElev.innerText = `${data.clicksElev} UP`;
     if (elWind) elWind.innerText = `${Math.abs(data.clicksWind)} ${data.clicksWind >= 0 ? 'R' : 'L'}`;
+
+    renderReticle(data.mradElev, data.mradWind);
+  }
+
+  function renderReticle(mradElev = 0, mradWind = 0) {
+    const canvas = document.getElementById('reticleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.beginPath();
+    ctx.arc(cx, cy, cx - 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#0f172a";
+    ctx.stroke();
+
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(10, cy); ctx.lineTo(width - 10, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, 10); ctx.lineTo(cx, height - 10); ctx.stroke();
+
+    const targetX = cx + (mradWind * 10);
+    const targetY = cy + (mradElev * 10);
+
+    ctx.beginPath();
+    ctx.arc(targetX, targetY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#ef4444";
+    ctx.fill();
   }
 
   function toggleNVGMode() {
     document.body.classList.toggle('nvg-red-mode');
-    const isRed = document.body.classList.contains('nvg-red-mode');
-    const btn = document.getElementById('nvgBtn');
-    if (btn) {
-      btn.innerText = isRed ? '☀️ MODO DIA' : '🚨 NVG RED';
-      btn.style.background = isRed ? '#15803d' : '#b91c1c';
-    }
   }
 
-  // EVENTOS INICIAIS
   window.addEventListener('DOMContentLoaded', () => {
     runBallistics();
     const savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
@@ -1142,7 +615,6 @@
           if (markers.normal) markers.normal.setLatLng(newPos);
           if (markers.relevo) markers.relevo.setLatLng(newPos);
           if (markers.medir) markers.medir.setLatLng(newPos);
-          updateRaios(lat, lng);
         }
       },
       (err) => console.warn("Erro GPS:", err.message),
