@@ -1215,119 +1215,66 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   ctx.fillText(`Zoom: ${zoomLevel}.0x`, 15, 36);
 }
   
-    function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
-      const canvas = document.getElementById('mapReticleCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
+function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
+  const canvas = document.getElementById('mapReticleCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
 
-      const width = canvas.width;
-      const height = canvas.height;
-      const cx = width / 2;
-      const cy = height / 2;
-      const radius = Math.min(width, height) / 2 - 4;
+  const width = canvas.width;
+  const height = canvas.height;
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = Math.min(width, height) / 2 - 4;
+  const pxPerMrad = 12; // Escala proporcional compacta para o Mini Canvas
 
-      const reticleStyleEl = document.getElementById('eqReticleType');
-      const reticleStyle = reticleStyleEl ? reticleStyleEl.value : 'mildot';
+  ctx.clearRect(0, 0, width, height);
+  ctx.save();
+  
+  // Fundo Circular
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#38bdf8";
+  ctx.stroke();
+  ctx.clip();
 
-      const scalePxPerMrad = 10.8;
+  // Cruzeta
+  ctx.strokeStyle = "#ffffff";
+  ctx.fillStyle = "#ffffff";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(cx - 60, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - 60); ctx.lineTo(cx, cy + 60); ctx.stroke();
 
-      ctx.clearRect(0, 0, width, height);
+  // Escala MILs (Pontos brancos)
+  for (let i = -5; i <= 5; i++) {
+    if (i === 0) continue;
+    ctx.beginPath(); ctx.arc(cx + (i * pxPerMrad), cy, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy + (i * pxPerMrad), 1.8, 0, Math.PI * 2); ctx.fill();
+  }
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(15, 23, 42, 0.90)";
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#38bdf8";
-      ctx.stroke();
-      ctx.clip();
+  // Posição de Impacto Calculada
+  const targetX = cx + (mradWind * pxPerMrad);
+  const targetY = cy + (mradElev * pxPerMrad);
 
-      ctx.strokeStyle = "#ffffff";
-      ctx.fillStyle = "#ffffff";
+  // Marcador do Alvo (Ponto Vermelho Tático)
+  ctx.beginPath(); 
+  ctx.arc(targetX, targetY, 5, 0, Math.PI * 2); 
+  ctx.fillStyle = "rgba(239, 68, 68, 0.9)"; 
+  ctx.fill();
+  ctx.lineWidth = 1.5; 
+  ctx.strokeStyle = "#dc2626"; 
+  ctx.stroke();
 
-      if (reticleStyle === 'duplex') {
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 20, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 20, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 20); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 20); ctx.stroke();
+  // Centro Branco do Alvo
+  ctx.beginPath(); 
+  ctx.arc(targetX, targetY, 1.5, 0, Math.PI * 2); 
+  ctx.fillStyle = "#ffffff"; 
+  ctx.fill();
 
-        ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(cx - 20, cy); ctx.lineTo(cx + 20, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - 20); ctx.lineTo(cx, cy + 20); ctx.stroke();
-
-        [10, 20, 30].forEach(offset => {
-          ctx.beginPath(); ctx.moveTo(cx - 5, cy + offset); ctx.lineTo(cx + 5, cy + offset); ctx.stroke();
-        });
-
-      } else if (reticleStyle === 'moa_hash') {
-        ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
-
-        const step = 7.2;
-        for (let i = -10; i <= 10; i++) {
-          if (i === 0) continue;
-          const pos = i * step;
-          const isMajor = i % 5 === 0;
-          const tickSize = isMajor ? 6 : 3;
-          ctx.beginPath(); ctx.moveTo(cx + pos, cy - tickSize); ctx.lineTo(cx + pos, cy + tickSize); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(cx - tickSize, cy + pos); ctx.lineTo(cx + tickSize, cy + pos); ctx.stroke();
-        }
-
-      } else if (reticleStyle === 'tree') {
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
-
-        const step = 9;
-        for (let y = 1; y <= 8; y++) {
-          const yPos = cy + (y * step);
-          for (let x = -y; x <= y; x++) {
-            if (x === 0) continue;
-            ctx.beginPath(); ctx.arc(cx + (x * step), yPos, 1.2, 0, Math.PI * 2); ctx.fill();
-          }
-          ctx.beginPath(); ctx.moveTo(cx - 3, yPos); ctx.lineTo(cx + 3, yPos); ctx.stroke();
-        }
-
-      } else {
-        ctx.lineWidth = 3.5;
-        ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - 60, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - 60); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + 60); ctx.stroke();
-
-        ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(cx - 60, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - 60); ctx.lineTo(cx, cy + 60); ctx.stroke();
-
-        const dotSpacing = 10.8;
-        for (let i = -5; i <= 5; i++) {
-          if (i === 0) continue;
-          ctx.beginPath(); ctx.arc(cx + (i * dotSpacing), cy, 1.8, 0, Math.PI * 2); ctx.fill();
-          ctx.beginPath(); ctx.arc(cx, cy + (i * dotSpacing), 1.8, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-
-      const targetX = cx + (mradWind * scalePxPerMrad);
-      const targetY = cy + (mradElev * scalePxPerMrad);
-
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, 5, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(239, 68, 68, 0.85)";
-      ctx.fill();
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = "#dc2626";
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, 1.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-
-      ctx.restore();
-    }
+  ctx.restore();
+}
 
     async function fetchWeaponsCatalog() {
       try {
