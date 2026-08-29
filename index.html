@@ -1112,7 +1112,7 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLev
   ctx.clearRect(0, 0, width, height);
   ctx.save();
   
-  // Fundo da Luneta
+  // Moldura do Retículo (Visão Circular da Lente)
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
@@ -1120,7 +1120,7 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLev
   ctx.lineWidth = 6;
   ctx.strokeStyle = "#0f172a";
   ctx.stroke();
-  ctx.clip(); // Limita o desenho à área circular da lente
+  ctx.clip();
 
   // Cruzeta Principal
   ctx.strokeStyle = "#000000";
@@ -1129,62 +1129,93 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLev
   ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
 
-  // Escala Mil-Dot (1 MRAD = 25px no Canvas)
-  const pxPerMrad = 25;
-  for (let i = -6; i <= 6; i++) {
+  // ESCALA MIL-DOT REALÍSTICA (1 MRAD escala dinamicamente com o Zoom)
+  // Quanto maior o zoom, mais afastados ficam os pontos MIL no Canvas
+  const pxPerMrad = Math.max(18, Math.min(32, (zoomLevel / 15) * 24));
+
+  // Desenha as marcas Mil-Dot padrão (1 a 8 MILs para cada lado)
+  for (let i = -8; i <= 8; i++) {
     if (i === 0) continue;
-    ctx.beginPath(); ctx.arc(cx + (i * pxPerMrad), cy, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx, cy + (i * pxPerMrad), 2.5, 0, Math.PI * 2); ctx.fill();
+    // Marcadores Horizontais
+    ctx.beginPath(); ctx.arc(cx + (i * pxPerMrad), cy, 2.2, 0, Math.PI * 2); ctx.fill();
+    // Marcadores Verticais (Eixo de Queda)
+    ctx.beginPath(); ctx.arc(cx, cy + (i * pxPerMrad), 2.2, 0, Math.PI * 2); ctx.fill();
+    
+    // Numeração discreta dos MILs na haste vertical inferior (1 MIL, 2 MIL, 3 MIL...)
+    if (i > 0 && i <= 6 && (cy + (i * pxPerMrad) < cy + radius - 15)) {
+      ctx.fillStyle = "#64748b";
+      ctx.font = "9px sans-serif";
+      ctx.fillText(`${i}M`, cx - 18, cy + (i * pxPerMrad) + 3);
+      ctx.fillStyle = "#000000";
+    }
   }
 
-  // Marcadores de Sub-distâncias no Eixo Vertical
+  // POSIÇÃO DO IMPACTO REAL DO ALVO
+  // mradElev desce a visada (soma em Y), mradWind desloca lateralmente
+  const targetX = cx + (mradWind * pxPerMrad);
+  const targetY = cy + (mradElev * pxPerMrad);
+
+  // Desenho das Sub-marcas de Distância Tática (200m, 300m, 400m, 500m, 600m...)
+  // Calculadas em relação à parábola balística do disparo
+  const fps = parseFloat(document.getElementById('eqFps')?.value || document.getElementById('balSpeed')?.value) || 2680;
+  const scopeH = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
   const refDistances = [200, 300, 400, 500, 600, 700, 800];
+
   refDistances.forEach(d => {
-    let refMrad = Math.pow(d / 100, 1.35) * 0.45;
-    let refY = cy + (refMrad * pxPerMrad);
-    if (refY < cy + radius - 15) {
-      ctx.fillStyle = "#475569";
+    const t = d / (fps * 0.3048);
+    const dropM = 0.5 * 9.81 * Math.pow(t, 2);
+    const t100 = 100 / (fps * 0.3048);
+    const drop100 = 0.5 * 9.81 * Math.pow(t100, 2);
+    const zeroAngle = (drop100 + scopeH) / 100;
+    const netDropCm = (dropM - (d * zeroAngle) + scopeH) * 100;
+    
+    const dMrad = d <= 100 ? 0 : netDropCm / (d * 0.1);
+    const refY = cy + (dMrad * pxPerMrad);
+
+    if (refY > cy + 8 && refY < cy + radius - 12) {
+      // Ponto Azul Tático da sub-distância
+      ctx.beginPath();
+      ctx.arc(cx, refY, 3, 0, Math.PI * 2);
+      ctx.fillStyle = "#0284c7";
+      ctx.fill();
+
+      // Rótulo da distância à direita da haste
+      ctx.fillStyle = "#0369a1";
       ctx.font = "bold 9px sans-serif";
       ctx.fillText(`- ${d}m`, cx + 8, refY + 3);
     }
   });
 
-  // POSIÇÃO DO PONTO DO ALVO (MIRA VERMELHA)
-  // mradElev desce a visada (soma em Y), mradWind desloca lateralmente (soma em X)
-  const targetX = cx + (mradWind * pxPerMrad);
-  const targetY = cy + (mradElev * pxPerMrad);
-
-  // Desenho do Círculo Externo do Alvo
+  // DESENHO DO PONTO DO ALVO ATUAL (MIRA VERMELHA DE PRECISÃO)
   ctx.beginPath();
-  ctx.arc(targetX, targetY, 7, 0, Math.PI * 2);
+  ctx.arc(targetX, targetY, 6, 0, Math.PI * 2);
   ctx.fillStyle = "#ef4444";
   ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#b91c1c";
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "#991b1b";
   ctx.stroke();
 
-  // Centro Branco do Alvo para Contraste
+  // Centro do Alvo
   ctx.beginPath();
-  ctx.arc(targetX, targetY, 2.5, 0, Math.PI * 2);
+  ctx.arc(targetX, targetY, 2, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
 
-  // Rótulo da Posição do Alvo
+  // Identificação Visual do Alvo
   ctx.fillStyle = "#dc2626";
   ctx.font = "bold 11px sans-serif";
-  ctx.fillText(`🎯 ${Math.round(distanceMeters)}m`, targetX + 10, targetY + 4);
+  ctx.fillText(`🎯 ${Math.round(distanceMeters)}m`, targetX + 10, targetY + 3);
 
   ctx.restore();
 
-  // Legenda de Telemetria
+  // Telemetria no Topo do Retículo
   ctx.textAlign = "left";
-  ctx.font = "bold 15px sans-serif";
-  ctx.fillStyle = "#0284c7";
-  ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 65, 55);
-
-  ctx.font = "bold 14px sans-serif";
-  ctx.fillStyle = "#64748b";
-  ctx.fillText(`Zoom: ${zoomLevel}.0x`, 45, 75);
+  ctx.font = "bold 12px sans-serif"; 
+  ctx.fillStyle = "#0284c7"; 
+  ctx.fillText(`Dist: ${Math.round(distanceMeters)}m`, 15, 22);
+  ctx.font = "bold 11px sans-serif"; 
+  ctx.fillStyle = "#64748b"; 
+  ctx.fillText(`Zoom: ${zoomLevel}.0x`, 15, 36);
 }
   
     function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 16) {
