@@ -354,127 +354,126 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
   </div>
 
-  <div id="tabBalistica" class="tab-content active">
-    <div class="ballistics-grid">
-      <div class="card">
-        <h3>🎯 Configurações de Tiro & Projétil</h3>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label>Peso Projétil (Grains)</label>
-            <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
-          </div>
-          <div class="form-group">
-            <label for="balTurret">Torre / Graduação</label>
-            <select id="balTurret" onchange="syncTurretFromBalistica()">
-              <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
-              <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
-              <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
-              <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
-              <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
-            </select>
-          </div>
-        </div>
-
+<div id="tabBalistica" class="tab-content active">
+  <div class="ballistics-grid">
+    
+    <!-- CARD 1: CONFIGURAÇÕES & BOTÕES DE AÇÃO -->
+    <div class="card">
+      <h3>🎯 Configurações de Tiro & Projétil</h3>
+      <div class="form-row">
         <div class="form-group">
-          <label>Velocidade de Boca (FPS)</label>
-          <select id="balPresetSpeed" onchange="document.getElementById('balSpeed').value = this.value !== 'custom' ? this.value : document.getElementById('balSpeed').value">
-            <option value="custom">Personalizada (Digite abaixo)</option>
-            <option value="2600">Carga 1 - Média: 2600 FPS</option>
-            <option value="2680" selected>Carga 2 - Média: 2680 FPS</option>
-            <option value="2750">Carga 3 - Média: 2750 FPS</option>
-          </select>
-          <input type="number" id="balSpeed" value="2680" style="margin-top: 6px;">
+          <label>Peso Projétil (Grains)</label>
+          <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Perfil Drag</label>
-            <select id="balDragProfile">
-              <option value="G1">G1 (Padrão)</option>
-              <option value="G7">G7 (VLD/Boat Tail)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Coef. Balístico (CB)</label>
-            <input type="number" step="0.001" id="balBC" value="0.447">
-          </div>
-        </div>
-
         <div class="form-group">
-          <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
-          <input type="number" id="balDistance" value="600" step="25">
-        </div>
-
-        <div class="form-group">
-          <label for="eqReticleType">Estilo de Retículo (Luneta)</label>
-          <select id="eqReticleType" onchange="runBallistics()">
-            <option value="mildot" selected>Mil-Dot Tradicional (Pontos)</option>
-            <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
-            <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
-            <option value="duplex">Duplex / BDC Simples</option>
+          <label for="balTurret">Torre / Graduação</label>
+          <select id="balTurret" onchange="syncTurretFromBalistica()">
+            <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
+            <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
+            <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
+            <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
+            <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
           </select>
         </div>
-
-        <div class="section-divider">
-          <h3 style="border-bottom:none; margin-bottom: 8px;">💨 Condição de Vento (Opcional)</h3>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Velocidade (km/h)</label>
-            <input type="number" id="balWindSpeed" value="0" placeholder="0 = Sem Vento">
-          </div>
-          <div class="form-group">
-            <label>Direção do Vento</label>
-            <select id="balWindDir">
-              <option value="3">3 Horas (Direita ➔ Esquerda)</option>
-              <option value="9">9 Horas (Esquerda ➔ Direita)</option>
-              <option value="12">12 Horas (Frontal)</option>
-              <option value="6">6 Horas (Traseiro)</option>
-              <option value="1">1 Hora</option>
-              <option value="2">2 Horas</option>
-              <option value="4">4 Horas</option>
-              <option value="5">5 Horas</option>
-              <option value="7">7 Horas</option>
-              <option value="8">8 Horas</option>
-              <option value="10">10 Horas</option>
-              <option value="11">11 Horas</option>
-            </select>
-          </div>
-        </div>
-
-        <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
       </div>
-      <button onclick="openTrajectoryModal()" style="width: 100%; margin-top: 10px; background: #334155; color: #38bdf8; border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer;">
-  📊 GERAR CARD DE TIRO / TABELA DE TRAJETÓRIA
-</button>
-        
-      <div class="card">
-        <h3>Solução Tática & Retículo</h3>
 
-        <div class="results-box">
-          <div class="res-item">
-            <div id="resElevation" class="val">0</div>
-            <div class="lbl">ELEVAÇÃO (CLIQUES)</div>
-          </div>
-          <div class="res-item">
-            <div id="resWindage" class="val" style="color: #38bdf8;">0</div>
-            <div class="lbl">DERIVA VENTO (CLIQUES)</div>
-          </div>
+      <div class="form-group">
+        <label>Velocidade de Boca (FPS)</label>
+        <select id="balPresetSpeed" onchange="document.getElementById('balSpeed').value = this.value !== 'custom' ? this.value : document.getElementById('balSpeed').value">
+          <option value="custom">Personalizada (Digite abaixo)</option>
+          <option value="2600">Carga 1 - Média: 2600 FPS</option>
+          <option value="2680" selected>Carga 2 - Média: 2680 FPS</option>
+          <option value="2750">Carga 3 - Média: 2750 FPS</option>
+        </select>
+        <input type="number" id="balSpeed" value="2680" style="margin-top: 6px;">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Perfil Drag</label>
+          <select id="balDragProfile">
+            <option value="G1">G1 (Padrão)</option>
+            <option value="G7">G7 (VLD/Boat Tail)</option>
+          </select>
         </div>
+        <div class="form-group">
+          <label>Coef. Balístico (CB)</label>
+          <input type="number" step="0.001" id="balBC" value="0.447">
+        </div>
+      </div>
 
-        <div id="resDetails">Aguardando cálculo...</div>
+      <div class="form-group">
+        <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
+        <input type="number" id="balDistance" value="600" step="25">
+      </div>
 
-        <div class="reticle-container" style="text-align: center; margin-top: 15px;">
-  <div id="zoomBadge" class="zoom-badge" style="display: inline-block; margin-bottom: 10px; background: #0284c7; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 800;">
-    Zoom Sugerido: --
-  </div>
-  <canvas id="reticleCanvas" width="300" height="300" style="background:#fff; border-radius:50%; border:4px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto;"></canvas>
-</div>
+      <div class="form-group">
+        <label for="eqReticleType">Estilo de Retículo (Luneta)</label>
+        <select id="eqReticleType" onchange="runBallistics()">
+          <option value="mildot" selected>Mil-Dot Tradicional (Pontos)</option>
+          <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
+          <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
+          <option value="duplex">Duplex / BDC Simples</option>
+        </select>
+      </div>
+
+      <div class="section-divider">
+        <h3 style="border-bottom:none; margin-bottom: 8px;">💨 Condição de Vento (Opcional)</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Velocidade (km/h)</label>
+          <input type="number" id="balWindSpeed" value="0" placeholder="0 = Sem Vento">
+        </div>
+        <div class="form-group">
+          <label>Direção do Vento</label>
+          <select id="balWindDir">
+            <option value="3">3 Horas (Direita ➔ Esquerda)</option>
+            <option value="9">9 Horas (Esquerda ➔ Direita)</option>
+            <option value="12">12 Horas (Frontal)</option>
+            <option value="6">6 Horas (Traseiro)</option>
+            <option value="1">1 Hora</option>
+            <option value="2">2 Horas</option>
+            <option value="4">4 Horas</option>
+            <option value="5">5 Horas</option>
+            <option value="7">7 Horas</option>
+            <option value="8">8 Horas</option>
+            <option value="10">10 Horas</option>
+            <option value="11">11 Horas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- BOTÕES DE AÇÃO REORGANIZADOS NA MESMA COLUNA -->
+      <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
+      <button onclick="openTrajectoryModal()" style="width: 100%; margin-top: 10px; background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;">📊 GERAR CARD DE TIRO / TABELA DE TRAJETÓRIA</button>
+    </div>
+      
+    <!-- CARD 2: PAINEL DE RESULTADOS & CANVAS DO RETÍCULO -->
+    <div class="card">
+      <h3>Solução Tática & Retículo</h3>
+      <div class="results-box">
+        <div class="res-item">
+          <div id="resElevation" class="val">0</div>
+          <div class="lbl">ELEVAÇÃO (CLIQUES)</div>
+        </div>
+        <div class="res-item">
+          <div id="resWindage" class="val" style="color: #38bdf8;">0</div>
+          <div class="lbl">DERIVA VENTO (CLIQUES)</div>
+        </div>
+      </div>
+
+      <div id="resDetails">Aguardando cálculo...</div>
+
+      <div class="reticle-container" style="text-align: center; margin-top: 15px;">
+        <div id="zoomBadge" class="zoom-badge" style="display: inline-block; margin-bottom: 10px; background: #0284c7; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 800;">Zoom Sugerido: --</div>
+        <canvas id="reticleCanvas" width="300" height="300" style="background:#fff; border-radius:50%; border:4px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto;"></canvas>
       </div>
     </div>
+
   </div>
+</div>
 
   <div id="tabEquipamento" class="tab-content">
     <div class="equip-container">
