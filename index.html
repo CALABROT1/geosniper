@@ -1043,68 +1043,62 @@ body.nvg-red-mode .leaflet-tile-container img {
       }
     }
 
-    async function runBallistics() {
-      const parseVal = (id, defaultVal) => {
-        const el = document.getElementById(id);
-        if (!el) return defaultVal;
-        const raw = el.value.toString().replace(',', '.');
-        const parsed = parseFloat(raw);
-        return isNaN(parsed) ? defaultVal : parsed;
-      };
+   async function runBallistics() {
+  const parseVal = (id, defaultVal) => {
+    const el = document.getElementById(id);
+    if (!el) return defaultVal;
+    const raw = el.value.toString().replace(',', '.');
+    const parsed = parseFloat(raw);
+    return isNaN(parsed) ? defaultVal : parsed;
+  };
 
-      const dist = parseVal('balDistance', 100);
-      const data = await getBallisticSolutionForDistance(dist);
+  const dist = parseVal('balDistance', 100);
+  const data = await getBallisticSolutionForDistance(dist);
+  if (!data) return;
 
-      if (!data) return;
+  // Atualiza blocos numéricos
+  const elElev = document.getElementById('resElevation');
+  const elWind = document.getElementById('resWindage');
+  if (elElev) elElev.innerText = `${data.clicksElev} UP`;
+  if (elWind) elWind.innerText = `${Math.abs(data.clicksWind)} ${data.clicksWind >= 0 ? 'R' : 'L'}`;
 
-      const elElev = document.getElementById('resElevation');
-      const elWind = document.getElementById('resWindage');
-      if (elElev) elElev.innerText = `${data.clicksElev} UP`;
-      if (elWind) elWind.innerText = `${Math.abs(data.clicksWind)} ${data.clicksWind >= 0 ? 'R' : 'L'}`;
-
-      const rawTurret = document.getElementById('balTurret')?.value || '1/4_MOA';
-
-      let summaryHTML = `
-        <div class="bal-summary-card">
-          <div class="bal-metrics-grid">
-            <div class="metric-box">
-              <div class="label">Velocidade no Alvo</div>
-              <div class="value" style="color: #38bdf8;">${data.v_target_fps} <span style="font-size:10px;">FPS</span></div>
-            </div>
-            <div class="metric-box">
-              <div class="label">Tempo de Vôo</div>
-              <div class="value" style="color: #38bdf8;">${data.t_flight} <span style="font-size:10px;">s</span></div>
-            </div>
-            <div class="metric-box" style="grid-column: span 2;">
-              <div class="label">Queda Real (Drop)</div>
-              <div class="value" style="color: #f59e0b;">${data.netDropCm} cm <span style="font-size:11px; color:#94a3b8;">(${(data.netDropCm/100).toFixed(2)} m)</span></div>
-            </div>
-          </div>
-
-          <table class="bal-calc-table">
-            <tr>
-              <td>Ângulo Correção (MOA)</td>
-              <td>${data.moaElev} MOA</td>
-            </tr>
-            <tr>
-              <td>Ângulo Correção (MRAD)</td>
-              <td>${data.mradElev} MRAD</td>
-            </tr>
-            <tr class="bal-final-row">
-              <td>Ajuste da Torre (${rawTurret})</td>
-              <td>${data.clicksElev} CLIQUES UP</td>
-            </tr>
-          </table>
+  // Atualiza painel explicativo
+  const rawTurret = document.getElementById('balTurret')?.value || '1/4_MOA';
+  let summaryHTML = `
+    <div class="bal-summary-card">
+      <div class="bal-metrics-grid">
+        <div class="metric-box">
+          <div class="label">Velocidade no Alvo</div>
+          <div class="value" style="color: #38bdf8;">${data.v_target_fps} <span style="font-size:10px;">FPS</span></div>
         </div>
-      `;
+        <div class="metric-box">
+          <div class="label">Tempo de Vôo</div>
+          <div class="value" style="color: #38bdf8;">${data.t_flight} <span style="font-size:10px;">s</span></div>
+        </div>
+        <div class="metric-box" style="grid-column: span 2;">
+          <div class="label">Queda Real (Drop)</div>
+          <div class="value" style="color: #f59e0b;">${data.netDropCm} cm <span style="font-size:11px; color:#94a3b8;">(${(data.netDropCm/100).toFixed(2)} m)</span></div>
+        </div>
+      </div>
+      <table class="bal-calc-table">
+        <tr><td>Ângulo Correção (MOA)</td><td>${data.moaElev} MOA</td></tr>
+        <tr><td>Ângulo Correção (MRAD)</td><td>${data.mradElev} MRAD</td></tr>
+        <tr class="bal-final-row"><td>Ajuste da Torre (${rawTurret})</td><td>${data.clicksElev} CLIQUES UP</td></tr>
+      </table>
+    </div>
+  `;
 
-      document.getElementById('resDetails').innerHTML = summaryHTML;
-      document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${data.recommendedZoom}x`;
+  document.getElementById('resDetails').innerHTML = summaryHTML;
+  document.getElementById('zoomBadge').innerText = `Zoom Recomendado na Luneta: ${data.recommendedZoom || 15}x`;
 
-      renderReticle(data.mradElev, data.mradWind, dist, data.recommendedZoom);
-    }
+  // CHAMADA CORRIGIDA: Força a conversão para Float garantido
+  const mradElevVal = parseFloat(data.mradElev) || 0;
+  const mradWindVal = parseFloat(data.mradWind) || 0;
+  
+  renderReticle(mradElevVal, mradWindVal, dist, data.recommendedZoom || 15);
+}
 
- function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 15) {
+function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoomLevel = 15) {
   const canvas = document.getElementById('reticleCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -1113,11 +1107,12 @@ body.nvg-red-mode .leaflet-tile-container img {
   const height = canvas.height;
   const cx = width / 2;
   const cy = height / 2;
-  const radius = Math.min(width, height) / 2 - 10;
+  const radius = Math.min(width, height) / 2 - 12;
 
   ctx.clearRect(0, 0, width, height);
-
   ctx.save();
+  
+  // Fundo da Luneta
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
@@ -1125,64 +1120,59 @@ body.nvg-red-mode .leaflet-tile-container img {
   ctx.lineWidth = 6;
   ctx.strokeStyle = "#0f172a";
   ctx.stroke();
-  ctx.clip();
+  ctx.clip(); // Limita o desenho à área circular da lente
 
-  // Desenho da Cruz Guia
+  // Cruzeta Principal
   ctx.strokeStyle = "#000000";
   ctx.fillStyle = "#000000";
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.8;
   ctx.beginPath(); ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius); ctx.stroke();
 
-  // Desenho dos Mil-Dots (Pontos de 1 MRAD)
-  const dotSpacing = 18;
-  for (let i = -5; i <= 5; i++) {
+  // Escala Mil-Dot (1 MRAD = 25px no Canvas)
+  const pxPerMrad = 25;
+  for (let i = -6; i <= 6; i++) {
     if (i === 0) continue;
-    ctx.beginPath(); ctx.arc(cx + (i * dotSpacing), cy, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx, cy + (i * dotSpacing), 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + (i * pxPerMrad), cy, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy + (i * pxPerMrad), 2.5, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Escala Dinâmica (Pixels por MRAD)
-  const scalePxPerMrad = 18;
-
-  // --- RENDERING DO RETÍCULO MESTRE MULTI-DISTÂNCIA ---
-  // Array de distâncias padrão para projeção simultânea de balística
-  const multiDistances = [200, 300, 400, 500, 600, 700, 800];
-  
-  // Fórmula Simplificada de Aproximação MRAD por Distância para Múltiplos Pontos
-  multiDistances.forEach(d => {
-    // Estimativa de Elevação em MRAD para o calibramento visual
-    let estMrad = Math.pow(d / 100, 1.45) * 0.35; 
-    let pY = cy + (estMrad * scalePxPerMrad);
-    let pX = cx + (mradWind * scalePxPerMrad);
-
-    if (pY < cy + radius && pY > cy - radius) {
-      if (Math.round(d) === Math.round(distanceMeters)) {
-        // ALVO PRINCIPAL SELECIONADO (MARCADOR VERMELHO COM ANEL)
-        ctx.beginPath();
-        ctx.arc(pX, pY, 7, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#dc2626";
-        ctx.stroke();
-
-        ctx.fillStyle = "#dc2626";
-        ctx.font = "bold 11px sans-serif";
-        ctx.fillText(`🎯 ${d}m`, pX + 10, pY + 4);
-      } else {
-        // SUB-MARCADORES SECUNDÁRIOS (PONTOS AZUIS DE REFERÊNCIA)
-        ctx.beginPath();
-        ctx.arc(pX, pY, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = "#0284c7";
-        ctx.fill();
-
-        ctx.fillStyle = "#475569";
-        ctx.font = "bold 9px sans-serif";
-        ctx.fillText(`${d}m`, pX + 6, pY + 3);
-      }
+  // Marcadores de Sub-distâncias no Eixo Vertical
+  const refDistances = [200, 300, 400, 500, 600, 700, 800];
+  refDistances.forEach(d => {
+    let refMrad = Math.pow(d / 100, 1.35) * 0.45;
+    let refY = cy + (refMrad * pxPerMrad);
+    if (refY < cy + radius - 15) {
+      ctx.fillStyle = "#475569";
+      ctx.font = "bold 9px sans-serif";
+      ctx.fillText(`- ${d}m`, cx + 8, refY + 3);
     }
   });
+
+  // POSIÇÃO DO PONTO DO ALVO (MIRA VERMELHA)
+  // mradElev desce a visada (soma em Y), mradWind desloca lateralmente (soma em X)
+  const targetX = cx + (mradWind * pxPerMrad);
+  const targetY = cy + (mradElev * pxPerMrad);
+
+  // Desenho do Círculo Externo do Alvo
+  ctx.beginPath();
+  ctx.arc(targetX, targetY, 7, 0, Math.PI * 2);
+  ctx.fillStyle = "#ef4444";
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#b91c1c";
+  ctx.stroke();
+
+  // Centro Branco do Alvo para Contraste
+  ctx.beginPath();
+  ctx.arc(targetX, targetY, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  // Rótulo da Posição do Alvo
+  ctx.fillStyle = "#dc2626";
+  ctx.font = "bold 11px sans-serif";
+  ctx.fillText(`🎯 ${Math.round(distanceMeters)}m`, targetX + 10, targetY + 4);
 
   ctx.restore();
 
