@@ -355,7 +355,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   
 </div>
 
-  <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
+<div id="tabRaios" class="tab-content"><div id="mapRaios" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
 <div id="tabNormal" class="tab-content"><div id="mapNormal" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
 <div id="tabRelevo" class="tab-content"><div id="mapRelevo" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
 
@@ -485,200 +485,202 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 </div>
 
-  <div id="tabEquipamento" class="tab-content">
-    <div class="equip-container">
-      
-      <div class="equip-card header-card">
-        <div class="card-title flex-between">
-          <span>🌐 UNIDADES E IDIOMA</span>
-          <span class="badge-status" id="profileStatusBadge">PERFIL ATIVO: PADRÃO</span>
-        </div>
-        <div class="form-row-3">
-          <div class="form-group">
-            <label for="sysLanguage">Idioma / Language</label>
-            <select id="sysLanguage">
-              <option value="pt" selected>🇧🇷 Português (BR)</option>
-              <option value="en">🇺🇸 English (US)</option>
-              <option value="es">🇪🇸 Español</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="sysUnits">Sistema de Medidas</label>
-            <select id="sysUnits">
-              <option value="metric" selected>Métrico (m, km/h, °C, hPa, cm)</option>
-              <option value="imperial">Imperial (yd, mph, °F, inHg, in)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="gunPresetSelect">Preset de Fuzil / Arma</label>
-            <select id="gunPresetSelect" onchange="loadSelectedWeaponPreset()">
-              <option value="custom">-- Fuzil Personalizado --</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="equip-card">
-        <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
-        <div class="form-grid-4">
-          <div class="form-group">
-            <label for="eqFps">Velocidade Boca (FPS)</label>
-            <input type="number" id="eqFps" value="2680" step="10" onchange="saveGunProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqBC">Coeficiente Balístico (BC)</label>
-            <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqProfile">Perfil de Arraste</label>
-            <select id="eqProfile" onchange="saveGunProfile()">
-              <option value="G1" selected>G1 (Padrão/Comercial)</option>
-              <option value="G7">G7 (Boat-tail / Longa Distância)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="eqTurret">Ajuste da Torre</label>
-            <select id="eqTurret" onchange="syncTurretFromEquipamento()">
-              <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
-              <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
-              <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
-              <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
-              <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="eqTwist">Passo de Raia (Twist 1:X")</label>
-            <input type="number" id="eqTwist" value="10" step="0.5" onchange="saveGunProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqTwistDir">Sentido do Raiamento</label>
-            <select id="eqTwistDir" onchange="saveGunProfile()">
-              <option value="RIGHT" selected>Direita (RH / Right-Hand)</option>
-              <option value="LEFT">Esquerda (LH / Left-Hand)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="eqBarrelLen">Comprimento do Cano (Pol.)</label>
-            <input type="number" id="eqBarrelLen" value="20" step="0.5" onchange="saveGunProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqScopeHeight">Altura da Luneta (cm)</label>
-            <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
-          </div>
-        </div>
-      </div>
-<div class="equip-card" style="border-left: 4px solid #f59e0b;">
-  <div class="card-title" style="color:#f59e0b;">🎯 CALIBRAÇÃO DE CAMPO (VELOCITY TRUING)</div>
-  <div class="form-grid-3">
-    <div class="form-group">
-      <label>Distância do Teste (Metros)</label>
-      <input type="number" id="truingDist" value="500" placeholder="Ex: 500">
-    </div>
-    <div class="form-group">
-      <label>Queda Observada / Impacto Real (cm)</label>
-      <input type="number" id="truingActualDrop" value="180" placeholder="Ex: 180">
-    </div>
-    <div class="form-group" style="display:flex; align-items:flex-end;">
-      <button onclick="runVelocityTruing()" style="width:100%; background:#f59e0b; color:#0f172a; border:none; padding:12px; border-radius:8px; font-weight:800; cursor:pointer;">
-        ⚙️ CALIBRAR FPS REAL
-      </button>
-    </div>
-  </div>
-  <div id="truingResultBox" style="margin-top:10px; font-size:13px; font-weight:700;"></div>
-</div>
-      <div class="equip-card">
-        <div class="card-title flex-between">
-          <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
-          <button type="button" class="btn-sync" onclick="syncWeatherFromGPS()">
-            🔄 Sincronizar Clima via GPS
-          </button>
-        </div>
-        <div class="form-grid-4">
-          <div class="form-group">
-            <label for="eqTemp">Temperatura (°C)</label>
-            <input type="number" id="eqTemp" value="15" step="1" onchange="saveEnvironmentProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqPressure">Pressão Atmosférica (hPa)</label>
-            <input type="number" id="eqPressure" value="1013" step="1" onchange="saveEnvironmentProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqHumidity">Umidade Relativa (%)</label>
-            <input type="number" id="eqHumidity" value="50" step="5" onchange="saveEnvironmentProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqWindSpeed">Vento (km/h)</label>
-            <input type="number" id="eqWindSpeed" value="0" step="1" onchange="saveEnvironmentProfile()">
-          </div>
-          <div class="form-group" style="grid-column: span 2;">
-            <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
-            <select id="eqWindClock" onchange="saveEnvironmentProfile()">
-              <option value="12">12h (Vento de Frente / Headwind)</option>
-              <option value="1">1h</option>
-              <option value="2">2h</option>
-              <option value="3" selected>3h (Vento da Direita / Full Crosswind)</option>
-              <option value="4">4h</option>
-              <option value="5">5h</option>
-              <option value="6">6h (Vento de Cauda / Tailwind)</option>
-              <option value="7">7h</option>
-              <option value="8">8h</option>
-              <option value="9">9h (Vento da Esquerda / Full Crosswind)</option>
-              <option value="10">10h</option>
-              <option value="11">11h</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="equip-card">
-        <div class="card-title flex-between">
-          <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
-          <button type="button" class="btn-sensor" onclick="openTacticalCameraFromEquip()">
-            📷 Abrir Câmera Tática (Captura de Visada)
-          </button>
-        </div>
-        <div class="form-grid-3">
-          <div class="form-group">
-            <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
-            <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="saveEnvironmentProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
-            <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="saveEnvironmentProfile()">
-          </div>
-          <div class="form-group">
-            <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
-            <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
-    <video id="cameraVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+<div id="tabEquipamento" class="tab-content">
+  <div class="equip-container">
     
-    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); pointer-events:none;">
-      <svg width="220" height="220" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="45" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.8"/>
-        <line x1="100" y1="10" x2="100" y2="190" stroke="#ef4444" stroke-width="2" />
-        <line x1="10" y1="100" x2="190" y2="100" stroke="#ef4444" stroke-width="2" />
-        <circle cx="100" cy="100" r="3" fill="#ef4444"/>
-      </svg>
+    <div class="equip-card header-card">
+      <div class="card-title flex-between">
+        <span>🌐 UNIDADES E IDIOMA</span>
+        <span class="badge-status" id="profileStatusBadge">PERFIL ATIVO: PADRÃO</span>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="sysLanguage">Idioma / Language</label>
+          <select id="sysLanguage">
+            <option value="pt" selected>🇧🇷 Português (BR)</option>
+            <option value="en">🇺🇸 English (US)</option>
+            <option value="es">🇪🇸 Español</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sysUnits">Sistema de Medidas</label>
+          <select id="sysUnits">
+            <option value="metric" selected>Métrico (m, km/h, °C, hPa, cm)</option>
+            <option value="imperial">Imperial (yd, mph, °F, inHg, in)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="gunPresetSelect">Preset de Fuzil / Arma</label>
+          <select id="gunPresetSelect" onchange="loadSelectedWeaponPreset()">
+            <option value="custom">-- Fuzil Personalizado --</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div id="cameraHUD" style="position:absolute; top:20px; background:rgba(15,23,42,0.9); color:#38bdf8; padding:10px 18px; border-radius:10px; font-weight:800; font-size:13px; border:1px solid #334155; text-align:center;">
-      SÍTIO (PITCH): <span id="hudInclination" style="color:#fff;">0°</span> | AZIMUTE: <span id="hudAzimuth" style="color:#fff;">0°</span>
+    <div class="equip-card">
+      <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
+      <div class="form-grid-4">
+        <div class="form-group">
+          <label for="eqFps">Velocidade Boca (FPS)</label>
+          <input type="number" id="eqFps" value="2680" step="10" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqBC">Coeficiente Balístico (BC)</label>
+          <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqProfile">Perfil de Arraste</label>
+          <select id="eqProfile" onchange="saveGunProfile()">
+            <option value="G1" selected>G1 (Padrão/Comercial)</option>
+            <option value="G7">G7 (Boat-tail / Longa Distância)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqTurret">Ajuste da Torre</label>
+          <select id="eqTurret" onchange="syncTurretFromEquipamento()">
+            <option value="1/4_MOA" selected>1/4 MOA (0.73cm / 100m)</option>
+            <option value="1/8_MOA">1/8 MOA (0.36cm / 100m)</option>
+            <option value="1/2_MOA">1/2 MOA (1.45cm / 100m)</option>
+            <option value="0.1_MRAD">0.1 MRAD / 1/10 MIL (1cm / 100m)</option>
+            <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqTwist">Passo de Raia (Twist 1:X")</label>
+          <input type="number" id="eqTwist" value="10" step="0.5" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqTwistDir">Sentido do Raiamento</label>
+          <select id="eqTwistDir" onchange="saveGunProfile()">
+            <option value="RIGHT" selected>Direita (RH / Right-Hand)</option>
+            <option value="LEFT">Esquerda (LH / Left-Hand)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqBarrelLen">Comprimento do Cano (Pol.)</label>
+          <input type="number" id="eqBarrelLen" value="20" step="0.5" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqScopeHeight">Altura da Luneta (cm)</label>
+          <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
+        </div>
+      </div>
     </div>
 
-    <div style="position:absolute; bottom:30px; display:flex; gap:15px; width:90%; max-width:400px;">
-      <button onclick="closeCameraModal()" style="flex:1; padding:14px; background:#334155; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer;">❌ CANCELAR</button>
-      <button onclick="captureAndProcessTacticalPhoto()" style="flex:2; padding:14px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 0 12px rgba(2,132,199,0.6);">📷 CAPTURAR & VINCULAR</button>
+    <div class="equip-card" style="border-left: 4px solid #f59e0b;">
+      <div class="card-title" style="color:#f59e0b;">🎯 CALIBRAÇÃO DE CAMPO (VELOCITY TRUING)</div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label>Distância do Teste (Metros)</label>
+          <input type="number" id="truingDist" value="500" placeholder="Ex: 500">
+        </div>
+        <div class="form-group">
+          <label>Queda Observada / Impacto Real (cm)</label>
+          <input type="number" id="truingActualDrop" value="180" placeholder="Ex: 180">
+        </div>
+        <div class="form-group" style="display:flex; align-items:flex-end;">
+          <button onclick="runVelocityTruing()" style="width:100%; background:#f59e0b; color:#0f172a; border:none; padding:12px; border-radius:8px; font-weight:800; cursor:pointer;">
+            ⚙️ CALIBRAR FPS REAL
+          </button>
+        </div>
+      </div>
+      <div id="truingResultBox" style="margin-top:10px; font-size:13px; font-weight:700;"></div>
     </div>
 
-    <canvas id="photoCanvas" style="display:none;"></canvas>
+    <div class="equip-card">
+      <div class="card-title flex-between">
+        <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
+        <button type="button" class="btn-sync" onclick="syncWeatherFromGPS()">
+          🔄 Sincronizar Clima via GPS
+        </button>
+      </div>
+      <div class="form-grid-4">
+        <div class="form-group">
+          <label for="eqTemp">Temperatura (°C)</label>
+          <input type="number" id="eqTemp" value="15" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqPressure">Pressão Atmosférica (hPa)</label>
+          <input type="number" id="eqPressure" value="1013" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqHumidity">Umidade Relativa (%)</label>
+          <input type="number" id="eqHumidity" value="50" step="5" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqWindSpeed">Vento (km/h)</label>
+          <input type="number" id="eqWindSpeed" value="0" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
+          <select id="eqWindClock" onchange="saveEnvironmentProfile()">
+            <option value="12">12h (Vento de Frente / Headwind)</option>
+            <option value="1">1h</option>
+            <option value="2">2h</option>
+            <option value="3" selected>3h (Vento da Direita / Full Crosswind)</option>
+            <option value="4">4h</option>
+            <option value="5">5h</option>
+            <option value="6">6h (Vento de Cauda / Tailwind)</option>
+            <option value="7">7h</option>
+            <option value="8">8h</option>
+            <option value="9">9h (Vento da Esquerda / Full Crosswind)</option>
+            <option value="10">10h</option>
+            <option value="11">11h</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="equip-card">
+      <div class="card-title flex-between">
+        <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
+        <button type="button" class="btn-sensor" onclick="readDeviceSensors()">
+          📱 Ler Sensores do Celular
+        </button>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
+          <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
+          <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="saveEnvironmentProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
+          <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
+        </div>
+      </div>
+    </div>
+
   </div>
+</div>
+
+<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
+  <video id="cameraVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+  
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); pointer-events:none;">
+    <svg width="220" height="220" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="45" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.8"/>
+      <line x1="100" y1="10" x2="100" y2="190" stroke="#ef4444" stroke-width="2" />
+      <line x1="10" y1="100" x2="190" y2="100" stroke="#ef4444" stroke-width="2" />
+      <circle cx="100" cy="100" r="3" fill="#ef4444"/>
+    </svg>
+  </div>
+
+  <div id="cameraHUD" style="position:absolute; top:20px; background:rgba(15,23,42,0.9); color:#38bdf8; padding:10px 18px; border-radius:10px; font-weight:800; font-size:13px; border:1px solid #334155; text-align:center;">
+    SÍTIO (PITCH): <span id="hudInclination" style="color:#fff;">0°</span> | AZIMUTE: <span id="hudAzimuth" style="color:#fff;">0°</span>
+  </div>
+
+  <div style="position:absolute; bottom:30px; display:flex; gap:15px; width:90%; max-width:400px;">
+    <button onclick="closeCameraModal()" style="flex:1; padding:14px; background:#334155; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer;">❌ CANCELAR</button>
+    <button onclick="captureAndProcessTacticalPhoto()" style="flex:2; padding:14px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 0 12px rgba(2,132,199,0.6);">📷 CAPTURAR & VINCULAR</button>
+  </div>
+
+  <canvas id="photoCanvas" style="display:none;"></canvas>
+</div>
 
 <script>
     let currentPos = null;
@@ -796,19 +798,6 @@ function openTab(evt, tabName) {
   }, 100);
 }
 
-  // Recálculo forçado imediato das dimensões dos mapas
-  setTimeout(() => {
-    if (tabName === 'tabRaios' && mapRaios) mapRaios.invalidateSize();
-    if (tabName === 'tabNormal' && mapNormal) mapNormal.invalidateSize();
-    if (tabName === 'tabRelevo') {
-      if (mapRelevo) mapRelevo.invalidateSize();
-      if (typeof initRelevoMap === 'function') initRelevoMap();
-    }
-    if (tabName === 'tabMedir' && mapMedir) mapMedir.invalidateSize();
-    if (tabName === 'tabBalistica' && typeof runBallistics === 'function') runBallistics();
-  }, 100);
-}
-
     function getOffsetPoint(lat, lng, meters) {
       const earthRadius = 6378137;
       const dLat = meters / earthRadius;
@@ -857,18 +846,20 @@ function initMaps(lat, lng) {
     mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]] }).setView(currentPos, 17);
     L.control.layers(layersNormal).addTo(mapNormal);
     markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
-    setupMapClickForMarkers(mapNormal);
-    // RELEVO
-if (mapRelevo) mapRelevo.remove();
-mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
-L.control.layers(layersRelevo).addTo(mapRelevo);
-markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
+    
+    // 3. RELEVO
+    const layersRelevo = createTileLayers();
+    if (mapRelevo) mapRelevo.remove();
+    mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
+    L.control.layers(layersRelevo).addTo(mapRelevo);
+    markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
-// MEDIR
-if (mapMedir) mapMedir.remove();
-mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
-L.control.layers(layersMedir).addTo(mapMedir);
-markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
+    // 4. MEDIR
+    const layersMedir = createTileLayers();
+    if (mapMedir) mapMedir.remove();
+    mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
+    L.control.layers(layersMedir).addTo(mapMedir);
+    markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
     // EVENTO DE CLIQUE DO MAPA MEDIR
     mapMedir.on('click', async function(e) {
@@ -897,7 +888,7 @@ markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
       renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom || 16);
     });
-  }
+}
 
     async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
       if (!mapMedir) return;
@@ -1336,7 +1327,8 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       };
       localStorage.setItem('geosniper_env_profile', JSON.stringify(envData));
     }
-function readDeviceSensors() {
+
+    function readDeviceSensors() {
       const btn = document.querySelector('.btn-sensor');
       if (btn) btn.innerText = "⏳ Lendo Sensores...";
 
@@ -1381,7 +1373,6 @@ function readDeviceSensors() {
 
         if (event.beta !== null) {
           let pitch = event.beta;
-          // Ajuste fino: Celular na vertical paralela à luneta (90° = linha de visada 0°)
           let inclination = Math.round(pitch > 0 ? pitch - 90 : pitch + 90);
           if (inclination > 90) inclination = 90;
           if (inclination < -90) inclination = -90;
@@ -1468,7 +1459,7 @@ function readDeviceSensors() {
         if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
       }
     }
-  
+
     function calculateBearing(lat1, lon1, lat2, lon2) {
       const toRad = deg => deg * Math.PI / 180;
       const toDeg = rad => rad * 180 / Math.PI;
@@ -1797,7 +1788,6 @@ function closeTrajectoryModal() {
     const cols = rows[i].querySelectorAll('td, th');
     
     for (let j = 0; j < cols.length; j++) {
-      // Limpa espaços extras e substitui quebras de linha
       let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/;/g, ',');
       row.push(`"${data}"`);
     }
@@ -1813,6 +1803,7 @@ function closeTrajectoryModal() {
   downloadLink.click();
   document.body.removeChild(downloadLink);
 }
+
 // MODO NVG
 function toggleNVGMode() {
   document.body.classList.toggle('nvg-red-mode');
@@ -1825,7 +1816,7 @@ function toggleNVGMode() {
   if (typeof runBallistics === 'function') runBallistics();
 }
 
-// CALIBRAÇÃO TRUING (Se ainda não tiver colado, fica aqui também)
+// CALIBRAÇÃO TRUING
 async function runVelocityTruing() {
   const truingDist = parseFloat(document.getElementById('truingDist')?.value);
   const actualDropCm = parseFloat(document.getElementById('truingActualDrop')?.value);
@@ -1861,10 +1852,6 @@ async function runVelocityTruing() {
     if (resBox) resBox.innerHTML = '<span style="color:#ef4444;">Erro ao calcular Truing. Verifique a API.</span>';
   }
 }
-</script>
-</body>
-</html>
-  
 </script>
 </body>
 </html>
