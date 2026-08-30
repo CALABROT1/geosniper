@@ -284,6 +284,23 @@ body.nvg-red-mode .btn-sensor {
 body.nvg-red-mode .leaflet-tile-container img {
   filter: sepia(100%) hue-rotate(310deg) saturate(600%) contrast(150%) brightness(70%);
 }
+    /* Garante que o container da aba e o mapa ocupem a tela corretamente */
+.tab-content {
+  display: none;
+  width: 100%;
+  height: calc(100vh - 120px); /* Ajusta a altura descontando o menu/topo */
+  min-height: 450px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+}
   </style>
 </head>
 <body>
@@ -750,13 +767,16 @@ body.nvg-red-mode .leaflet-tile-container img {
       };
     }
 
-   function openTab(evt, tabName) {
+function openTab(evt, tabName) {
+  // 1. Remove classe ativa de todas as abas e botões
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
+  // 2. Torna a aba selecionada visível PRIMEIRO (Adiciona .active)
   const activeTabEl = document.getElementById(tabName);
   if (activeTabEl) activeTabEl.classList.add('active');
 
+  // 3. Marca o botão selecionado como ativo
   if (evt && evt.currentTarget) {
     evt.currentTarget.classList.add('active');
   } else {
@@ -765,6 +785,16 @@ body.nvg-red-mode .leaflet-tile-container img {
   }
 
   localStorage.setItem('geosniper_active_tab', tabName);
+
+  // 4. DEPOIS da aba ficar visível, força o Leaflet a recalcular o tamanho real da div
+  setTimeout(() => {
+    if (tabName === 'tabMedir' && mapMedir) mapMedir.invalidateSize();
+    if (tabName === 'tabRelevo' && mapRelevo) mapRelevo.invalidateSize();
+    if (tabName === 'tabNormal' && mapNormal) mapNormal.invalidateSize();
+    if (tabName === 'tabRaios' && mapRaios) mapRaios.invalidateSize();
+    if (tabName === 'tabBalistica' && typeof runBallistics === 'function') runBallistics();
+  }, 100);
+}
 
   // Recálculo forçado imediato das dimensões dos mapas
   setTimeout(() => {
