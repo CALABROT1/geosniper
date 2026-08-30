@@ -821,83 +821,70 @@ body.nvg-red-mode .leaflet-tile-container img {
       }
     }
 
-    function initMaps(lat, lng) {
-      currentPos = [lat, lng];
-      const opIcon = createOperatorIcon();
+function initMaps(lat, lng) {
+    currentPos = [lat, lng];
+    const opIcon = createOperatorIcon();
 
-      const layersRaios = createTileLayers();
-// MAPA RAIOS
-  if (mapRaios) mapRaios.remove();
-  mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite Padrão"]] }).setView(currentPos, 17);
-  L.control.layers(layersRaios).addTo(mapRaios);
-  markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
-  circlesAndLabelsGroup.addTo(mapRaios);
-  updateRaios(lat, lng);
+    // 1. MAPA RAIOS
+    const layersRaios = createTileLayers();
+    if (mapRaios) mapRaios.remove();
+    mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite Padrão"]] }).setView(currentPos, 17);
+    L.control.layers(layersRaios).addTo(mapRaios);
+    markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
+    circlesAndLabelsGroup.addTo(mapRaios);
+    updateRaios(lat, lng);
 
-      const layersNormal = createTileLayers();
-if (mapNormal) mapNormal.remove();
-  mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]] }).setView(currentPos, 17);
-  L.control.layers(layersNormal).addTo(mapNormal);
-  markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
-  setupMapClickForMarkers(mapNormal);
+    // 2. MAPA NORMAL (Aba Mapa)
+    const layersNormal = createTileLayers();
+    if (mapNormal) mapNormal.remove();
+    mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]] }).setView(currentPos, 17);
+    L.control.layers(layersNormal).addTo(mapNormal);
+    markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
+    setupMapClickForMarkers(mapNormal);
 
-      const layersRelevo = createTileLayers();
-if (mapRelevo) mapRelevo.remove();
-  mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
-  L.control.layers(layersRelevo).addTo(mapRelevo);
-  L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
-  markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
+    // 3. MAPA RELEVO
+    const layersRelevo = createTileLayers();
+    if (mapRelevo) mapRelevo.remove();
+    mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
+    L.control.layers(layersRelevo).addTo(mapRelevo);
+    L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
+    markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
-      const layersMedir = createTileLayers();
-if (mapMedir) mapMedir.remove();
-  mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
-  L.control.layers(layersMedir).addTo(mapMedir);
-  markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
+    // 4. MAPA MEDIR
+    const layersMedir = createTileLayers();
+    if (mapMedir) mapMedir.remove();
+    mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
+    L.control.layers(layersMedir).addTo(mapMedir);
+    markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
-      mapMedir.on('click', async function(e) {
-        const targetLat = e.latlng.lat;
-        const targetLng = e.latlng.lng;
+    // EVENTO DE CLIQUE DO MAPA MEDIR
+    mapMedir.on('click', async function(e) {
+      const targetLat = e.latlng.lat;
+      const targetLng = e.latlng.lng;
 
-        if (measureMarker) mapMedir.removeLayer(measureMarker);
-        if (measureLine) mapMedir.removeLayer(measureLine);
+      if (measureMarker) mapMedir.removeLayer(measureMarker);
+      if (measureLine) mapMedir.removeLayer(measureLine);
 
-        measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
-        measureLine = L.polyline([currentPos, [targetLat, targetLng]], { 
-          color: '#ff4500', 
-          weight: 3, 
-          dashArray: '6, 6',
-          smoothFactor: 0,
-          noClip: true
-        }).addTo(mapMedir);
+      measureMarker = L.marker([targetLat, targetLng]).addTo(mapMedir);
+      measureLine = L.polyline([currentPos, [targetLat, targetLng]], { color: '#ff4500', weight: 3, dashArray: '6, 6', smoothFactor: 0, noClip: true }).addTo(mapMedir);
 
-        if (currentPos) {
-          drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
-        }
+      const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
+      const sol = await getBallisticSolutionForDistance(distanceMeters);
+      if (!sol) return;
 
-        const distanceMeters = L.latLng(currentPos).distanceTo([targetLat, targetLng]);
-        const sol = await getBallisticSolutionForDistance(distanceMeters);
-
-        if (!sol) return;
-
-        const panelEl = document.getElementById('distPanel');
+      const panelEl = document.getElementById('distPanel');
+      if (panelEl) {
         panelEl.innerHTML = `
-          <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">
-            Distância: <b>${Math.round(distanceMeters)}m</b>
-          </div>
-          <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;">
-            <b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
-          </div>
+          <div style="font-size: 14px; color: #38bdf8; margin-bottom: 3px;">Distância: <b>${Math.round(distanceMeters)}m</b></div>
+          <div style="font-size: 13px; color: #f8fafc; margin-bottom: 8px;"><b style="color: #ef4444;">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
           <canvas id="mapReticleCanvas" width="180" height="180" style="background:#fff; border-radius:50%; border:3px solid #334155; display:block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"></canvas>
-          <div id="targetGuidanceBox"></div>
-          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            📲 Compartilhar Alvo no WhatsApp
-          </button>
+          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 10px; background: #25D366; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
         `;
+      }
 
-        startTargetGuidance(targetLat, targetLng);
-        renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
-      });
-    }
+      renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom || 16);
+    });
+  }
 
     async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
       if (!mapMedir) return;
