@@ -338,12 +338,6 @@ body.nvg-red-mode .leaflet-tile-container img {
   
 </div>
 
-<div class="rotate-controls">
-  <button onclick="rotateMap(-30)" title="Girar 30° para Esquerda">↩️ -30°</button>
-  <button onclick="resetNorth()" title="Resetar para o Norte">🧭 NORTE</button>
-  <button onclick="rotateMap(30)" title="Girar 30° para Direita">↪️ +30°</button>
-</div>
-
   <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map"></div></div>
   <div id="tabNormal" class="tab-content"><div id="mapNormal" class="map"></div></div>
   <div id="tabRelevo" class="tab-content"><div id="mapRelevo" class="map"></div></div>
@@ -756,41 +750,34 @@ body.nvg-red-mode .leaflet-tile-container img {
       };
     }
 
-    function openTab(evt, tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+   function openTab(evt, tabName) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
 
-      const activeTabEl = document.getElementById(tabName);
-      if (activeTabEl) activeTabEl.classList.add('active');
+  const activeTabEl = document.getElementById(tabName);
+  if (activeTabEl) activeTabEl.classList.add('active');
 
-      if (evt && evt.currentTarget) {
-        evt.currentTarget.classList.add('active');
-      } else {
-        const btn = document.querySelector(`[data-tab="${tabName}"]`);
-        if (btn) btn.classList.add('active');
-      }
+  if (evt && evt.currentTarget) {
+    evt.currentTarget.classList.add('active');
+  } else {
+    const btn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (btn) btn.classList.add('active');
+  }
 
-      localStorage.setItem('geosniper_active_tab', tabName);
+  localStorage.setItem('geosniper_active_tab', tabName);
 
-      const rotateControls = document.querySelector('.rotate-controls');
-      if (rotateControls) {
-        if (tabName === 'tabBalistica' || tabName === 'tabEquipamento') {
-          rotateControls.style.display = 'none';
-        } else {
-          rotateControls.style.display = 'flex';
-        }
-      }
-
-      setTimeout(() => {
-        if (mapRaios) mapRaios.invalidateSize();
-        if (mapNormal) mapNormal.invalidateSize();
-        if (mapRelevo) mapRelevo.invalidateSize();
-        if (mapMedir) mapMedir.invalidateSize();
-        if (tabName === 'tabBalistica') runBallistics();
-        
-        applyMapRotation(mapBearing);
-      }, 150);
+  // Recálculo forçado imediato das dimensões dos mapas
+  setTimeout(() => {
+    if (tabName === 'tabRaios' && mapRaios) mapRaios.invalidateSize();
+    if (tabName === 'tabNormal' && mapNormal) mapNormal.invalidateSize();
+    if (tabName === 'tabRelevo') {
+      if (mapRelevo) mapRelevo.invalidateSize();
+      if (typeof initRelevoMap === 'function') initRelevoMap();
     }
+    if (tabName === 'tabMedir' && mapMedir) mapMedir.invalidateSize();
+    if (tabName === 'tabBalistica' && typeof runBallistics === 'function') runBallistics();
+  }, 100);
+}
 
     function getOffsetPoint(lat, lng, meters) {
       const earthRadius = 6378137;
@@ -1323,8 +1310,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       };
       localStorage.setItem('geosniper_env_profile', JSON.stringify(envData));
     }
-
-    function readDeviceSensors() {
+function readDeviceSensors() {
       const btn = document.querySelector('.btn-sensor');
       if (btn) btn.innerText = "⏳ Lendo Sensores...";
 
@@ -1369,7 +1355,8 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
 
         if (event.beta !== null) {
           let pitch = event.beta;
-          let inclination = Math.round(pitch - 90);
+          // Ajuste fino: Celular na vertical paralela à luneta (90° = linha de visada 0°)
+          let inclination = Math.round(pitch > 0 ? pitch - 90 : pitch + 90);
           if (inclination > 90) inclination = 90;
           if (inclination < -90) inclination = -90;
 
@@ -1377,7 +1364,9 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
           if (incEl) incEl.value = inclination;
         }
 
-        saveEnvironmentProfile();
+        if (typeof saveEnvironmentProfile === 'function') {
+          saveEnvironmentProfile();
+        }
       }
 
       window.addEventListener('deviceorientation', handleOrientation, true);
@@ -1438,7 +1427,9 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
           if (clockEl) clockEl.value = clockHour.toString();
         }
 
-        saveEnvironmentProfile();
+        if (typeof saveEnvironmentProfile === 'function') {
+          saveEnvironmentProfile();
+        }
 
         if (btn) btn.innerText = "✅ Clima Atualizado!";
         setTimeout(() => {
@@ -1451,7 +1442,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
         if (btn) btn.innerText = "🔄 Sincronizar Clima via GPS";
       }
     }
-
+  
     function calculateBearing(lat1, lon1, lat2, lon2) {
       const toRad = deg => deg * Math.PI / 180;
       const toDeg = rad => rad * 180 / Math.PI;
