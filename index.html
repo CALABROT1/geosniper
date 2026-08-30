@@ -858,21 +858,17 @@ function initMaps(lat, lng) {
     L.control.layers(layersNormal).addTo(mapNormal);
     markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
     setupMapClickForMarkers(mapNormal);
+    // RELEVO
+if (mapRelevo) mapRelevo.remove();
+mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
+L.control.layers(layersRelevo).addTo(mapRelevo);
+markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
 
-    // 3. MAPA RELEVO
-    const layersRelevo = createTileLayers();
-    if (mapRelevo) mapRelevo.remove();
-    mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
-    L.control.layers(layersRelevo).addTo(mapRelevo);
-    L.control.scale({ imperial: false, metric: true, position: 'bottomleft' }).addTo(mapRelevo);
-    markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
-
-    // 4. MAPA MEDIR
-    const layersMedir = createTileLayers();
-    if (mapMedir) mapMedir.remove();
-    mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
-    L.control.layers(layersMedir).addTo(mapMedir);
-    markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
+// MEDIR
+if (mapMedir) mapMedir.remove();
+mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]] }).setView(currentPos, 16);
+L.control.layers(layersMedir).addTo(mapMedir);
+markers.medir = L.marker(currentPos, { icon: opIcon }).addTo(mapMedir);
 
     // EVENTO DE CLIQUE DO MAPA MEDIR
     mapMedir.on('click', async function(e) {
