@@ -692,7 +692,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     let mapBearing = 0;
     let weaponsCatalog = {};
 
-    const API_URL = 'https://geosniper-api.onrender.com/api/calculate-ballistics';
+    const API_URL = 'https://api.geosniper.com.br/api/calculate-ballistics';
 
     function createOperatorIcon() {
       return L.divIcon({
@@ -1265,7 +1265,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
 
     async function fetchWeaponsCatalog() {
       try {
-        const response = await fetch('https://geosniper-api.onrender.com/api/weapons');
+        const response = await fetch('https://api.geosniper.com.br/api/weapons');
         if (!response.ok) return;
         weaponsCatalog = await response.json();
         
@@ -1621,7 +1621,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       saveEnvironmentProfile();
 
       try {
-        const res = await fetch('https://geosniper-api.onrender.com/api/upload-tactical-image', {
+        const res = await fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1727,7 +1727,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
   modal.style.display = 'flex';
 
   try {
-    const response = await fetch('https://geosniper-api.onrender.com/api/calculate-trajectory-table', {
+    const response = await fetch('https://api.geosniper.com.br/api/calculate-trajectory-table', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1827,7 +1827,7 @@ async function runVelocityTruing() {
   if (resBox) resBox.innerHTML = '<span style="color:#38bdf8;">⏳ Processando cálculo de Truing...</span>';
 
   try {
-    const response = await fetch('https://geosniper-api.onrender.com/api/calibrate-truing', {
+    const response = await fetch('https://api.geosniper.com.br/api/calibrate-truing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ truingDist, actualDropCm, currentFps, bc })
