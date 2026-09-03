@@ -1638,21 +1638,20 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
         }
       }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      restoreEnvironmentProfileOnLoad();
+      window.addEventListener('deviceorientation', handleOrientation, true);
 
-      fetchWeaponsCatalog().then(() => {
-        restoreGunProfileOnLoad();
-        runBallistics();
-      });
-
-      checkSharedPointFromURL();
-
-      const savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
-      openTab(null, savedTab);
-    });
+      clearTimeout(sensorTimeout);
+      sensorTimeout = setTimeout(() => {
+        window.removeEventListener('deviceorientation', handleOrientation, true);
+        if (btn) btn.innerText = "✅ Sensores Atualizados!";
+        setTimeout(() => {
+          if (btn) btn.innerText = "📱 Ler Sensores do Celular";
+        }, 2500);
+      }, 3500);
+    }
 
     async function syncWeatherFromGPS() {
+      
       const btn = document.querySelector('.btn-sync');
       
       if (!currentPos || !currentPos[0] || !currentPos[1]) {
@@ -1927,8 +1926,13 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      fetchWeaponsCatalog();
-      runBallistics();
+      restoreEnvironmentProfileOnLoad();
+
+      fetchWeaponsCatalog().then(() => {
+        restoreGunProfileOnLoad();
+        runBallistics();
+      });
+
       checkSharedPointFromURL();
 
       const savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
