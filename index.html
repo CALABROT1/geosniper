@@ -528,12 +528,14 @@ body.nvg-red-mode .leaflet-tile-container img {
             <option value="">-- Nenhuma carga salva --</option>
           </select>
         </div>
-        <div class="form-group" style="display:flex; align-items:flex-end;">
-          <button type="button" class="btn-sync" style="width:100%; padding:10px;" onclick="saveCurrentLoad(true)">
+                <div class="form-group" style="display:flex; align-items:flex-end; gap:6px;">
+          <button type="button" class="btn-sync" style="flex:1; padding:10px; font-size:11px;" onclick="saveCurrentLoad(true)">
             ➕ Nova Carga
           </button>
+          <button type="button" class="btn-sync" style="flex:1; padding:10px; font-size:11px; background:#475569;" onclick="restoreCatalogDefault()" title="Restaura os valores padrão do catálogo para esta arma (sobrescreve a carga ativa)">
+            🔄 Restaurar Padrão
+          </button>
         </div>
-      </div>
 
       <div class="form-grid-4">
         <div class="form-group">
