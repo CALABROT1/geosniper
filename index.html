@@ -1569,6 +1569,28 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       saveCurrentLoad(false);
     }
 
+    function restoreCatalogDefault() {
+      const selectedKey = document.getElementById('gunPresetSelect').value;
+      if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) {
+        alert('Selecione uma arma do catálogo (não "Fuzil Personalizado") para restaurar o padrão.');
+        return;
+      }
+
+      const w = weaponsCatalog[selectedKey];
+      const defaultAmmo = (w.ammoOptions && w.ammoOptions[0]) || {};
+
+      document.getElementById('eqFps').value = defaultAmmo.fps || '';
+      document.getElementById('eqBC').value = defaultAmmo.bc || '';
+      document.getElementById('eqWeight').value = defaultAmmo.weightGrains || '';
+      document.getElementById('eqProfile').value = defaultAmmo.profile || 'G1';
+      document.getElementById('eqTwist').value = w.twist || 10;
+      document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
+      document.getElementById('eqBarrelLen').value = w.barrelLen || 20;
+      document.getElementById('eqScopeHeight').value = w.scopeHeight || 3.8;
+
+      saveGunProfile(); // sobrescreve a carga ativa desta arma com os dados corretos do catálogo
+    }
+  
     function saveEnvironmentProfile() {
       const envData = {
         temp: parseFloat(document.getElementById('eqTemp').value),
