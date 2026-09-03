@@ -520,6 +520,21 @@ body.nvg-red-mode .leaflet-tile-container img {
 
     <div class="equip-card">
       <div class="card-title">🎯 PERFIL DO FUZIL & ESPECIFICAÇÕES DE CANO</div>
+
+      <div class="form-row-3" style="margin-bottom: 14px;">
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="loadProfileSelect">Carga Salva (Perfil desta Arma)</label>
+          <select id="loadProfileSelect" onchange="onLoadProfileSelected()">
+            <option value="">-- Nenhuma carga salva --</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex; align-items:flex-end;">
+          <button type="button" class="btn-sync" style="width:100%; padding:10px;" onclick="saveCurrentLoad(true)">
+            ➕ Nova Carga
+          </button>
+        </div>
+      </div>
+
       <div class="form-grid-4">
         <div class="form-group">
           <label for="eqFps">Velocidade Boca (FPS)</label>
@@ -528,6 +543,10 @@ body.nvg-red-mode .leaflet-tile-container img {
         <div class="form-group">
           <label for="eqBC">Coeficiente Balístico (BC)</label>
           <input type="number" id="eqBC" value="0.447" step="0.001" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqWeight">Peso do Projétil (Grains)</label>
+          <input type="number" id="eqWeight" value="175" step="1" onchange="saveGunProfile()">
         </div>
         <div class="form-group">
           <label for="eqProfile">Perfil de Arraste</label>
@@ -1285,35 +1304,267 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       }
     }
 
+        // ============ BIBLIOTECA DE PERFIS DE CARGA (Stage 1) ============
+    const GUN_LIBRARY_KEY = 'geosniper_gun_library_v2';
+
+    function getProfileLibrary() {
+      try {
+        const raw = localStorage.getItem(GUN_LIBRARY_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.weapons) return parsed;
+        }
+      } catch (e) {
+        console.warn('Biblioteca de cargas corrompida, recriando.', e);
+      }
+      return { weapons: {}, activeWeaponKey: 'custom' };
+    }
+
+    function saveProfileLibrary(lib) {
+      localStorage.setItem(GUN_LIBRARY_KEY, JSON.stringify(lib));
+    }
+
+    function currentWeaponKey() {
+      const sel = document.getElementById('gunPresetSelect');
+      return (sel && sel.value) || 'custom';
+    }
+
+    function weaponDisplayName(weaponKey) {
+      if (weaponKey !== 'custom' && weaponsCatalog[weaponKey]) return weaponsCatalog[weaponKey].name;
+      return 'Fuzil Personalizado';
+    }
+
+    function updateProfileStatusBadge(weaponName, loadLabel) {
+      const badge = document.getElementById('profileStatusBadge');
+      if (badge) badge.innerText = `PERFIL ATIVO: ${weaponName.toUpperCase()}${loadLabel ? ' — ' + loadLabel : ''}`;
+    }
+
+    function readEquipFieldsAsLoad() {
+      return {
+        fps: parseFloat(document.getElementById('eqFps').value) || 0,
+        bc: parseFloat(document.getElementById('eqBC').value) || 0,
+        weightGrains: parseFloat(document.getElementById('eqWeight').value) || 0,
+        profile: document.getElementById('eqProfile').value,
+        turret: document.getElementById('eqTurret').value,
+        twist: parseFloat(document.getElementById('eqTwist').value) || 0,
+        twistDir: document.getElementById('eqTwistDir').value,
+        barrelLen: parseFloat(document.getElementById('eqBarrelLen').value) || 0,
+        scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value) || 0
+      };
+    }
+
+    function makeLoadLabel(load) {
+      const parts = [];
+      if (load.weightGrains) parts.push(`${load.weightGrains}gr`);
+      if (load.fps) parts.push(`${load.fps}fps`);
+      return parts.length ? parts.join(' / ') : 'Carga sem nome';
+    }
+
+    function applyLoadToEquipFields(load) {
+      if (!load) return;
+      document.getElementById('eqFps').value = load.fps ?? '';
+      document.getElementById('eqBC').value = load.bc ?? '';
+      document.getElementById('eqWeight').value = load.weightGrains ?? '';
+      document.getElementById('eqProfile').value = load.profile || 'G1';
+      document.getElementById('eqTurret').value = load.turret || '1/4_MOA';
+      document.getElementById('eqTwist').value = load.twist ?? 10;
+      document.getElementById('eqTwistDir').value = load.twistDir || 'RIGHT';
+      document.getElementById('eqBarrelLen').value = load.barrelLen ?? 20;
+      document.getElementById('eqScopeHeight').value = load.scopeHeight ?? 3.8;
+
+      // Espelha a torre na aba Balística sem disparar novo salvamento (evita loop)
+      const balTurretEl = document.getElementById('balTurret');
+      if (balTurretEl) balTurretEl.value = load.turret || '1/4_MOA';
+    }
+
+    function refreshLoadProfileSelect(weaponKey, selectLoadId) {
+      const sel = document.getElementById('loadProfileSelect');
+      if (!sel) return;
+
+      const lib = getProfileLibrary();
+      const weapon = lib.weapons[weaponKey];
+
+      sel.innerHTML = '';
+      if (!weapon || !weapon.loads || Object.keys(weapon.loads).length === 0) {
+        sel.innerHTML = '<option value="">-- Nenhuma carga salva --</option>';
+        return;
+      }
+
+      for (const id in weapon.loads) {
+        const ld = weapon.loads[id];
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.innerText = ld.label;
+        sel.appendChild(opt);
+      }
+
+      const activeId = selectLoadId || weapon.activeLoadId;
+      if (activeId && weapon.loads[activeId]) sel.value = activeId;
+    }
+
+    function onLoadProfileSelected() {
+      const weaponKey = currentWeaponKey();
+      const loadId = document.getElementById('loadProfileSelect').value;
+      const lib = getProfileLibrary();
+      const weapon = lib.weapons[weaponKey];
+      if (!weapon || !loadId || !weapon.loads[loadId]) return;
+
+      applyLoadToEquipFields(weapon.loads[loadId]);
+      weapon.activeLoadId = loadId;
+      lib.activeWeaponKey = weaponKey;
+      saveProfileLibrary(lib);
+      updateProfileStatusBadge(weapon.weaponName, weapon.loads[loadId].label);
+    }
+
+    function saveCurrentLoad(forceNew) {
+      const weaponKey = currentWeaponKey();
+      const weaponName = weaponDisplayName(weaponKey);
+      const lib = getProfileLibrary();
+      if (!lib.weapons[weaponKey]) lib.weapons[weaponKey] = { weaponName, loads: {}, activeLoadId: null };
+      const weapon = lib.weapons[weaponKey];
+      weapon.weaponName = weaponName;
+
+      const loadData = readEquipFieldsAsLoad();
+      const loadId = forceNew
+        ? ('load_' + Date.now())
+        : (weapon.activeLoadId && weapon.loads[weapon.activeLoadId] ? weapon.activeLoadId : 'load_' + Date.now());
+
+      loadData.id = loadId;
+      loadData.label = makeLoadLabel(loadData);
+      loadData.updatedAt = new Date().toISOString();
+
+      weapon.loads[loadId] = loadData;
+      weapon.activeLoadId = loadId;
+      lib.activeWeaponKey = weaponKey;
+      saveProfileLibrary(lib);
+
+      refreshLoadProfileSelect(weaponKey, loadId);
+      updateProfileStatusBadge(weaponName, loadData.label);
+    }
+
+    function migrateLegacyGunProfileIfNeeded() {
+      const legacyRaw = localStorage.getItem('geosniper_gun_profile');
+      if (!legacyRaw) return;
+
+      try {
+        const legacy = JSON.parse(legacyRaw);
+        const lib = getProfileLibrary();
+
+        if (Object.keys(lib.weapons).length === 0) {
+          const loadId = 'load_migrated_' + Date.now();
+          const load = {
+            id: loadId,
+            label: 'Padrão (migrado)',
+            fps: legacy.fps || 0,
+            bc: legacy.bc || 0,
+            weightGrains: legacy.weightGrains || 175,
+            profile: legacy.profile || 'G1',
+            turret: legacy.turret || '1/4_MOA',
+            twist: legacy.twist || 10,
+            twistDir: legacy.twistDir || 'RIGHT',
+            barrelLen: legacy.barrelLen || 20,
+            scopeHeight: legacy.scopeHeight || 3.8,
+            updatedAt: new Date().toISOString()
+          };
+          lib.weapons['custom'] = { weaponName: 'Fuzil Personalizado', loads: { [loadId]: load }, activeLoadId: loadId };
+          lib.activeWeaponKey = 'custom';
+          saveProfileLibrary(lib);
+        }
+      } catch (e) {
+        console.warn('Falha ao migrar perfil antigo:', e);
+      }
+
+      localStorage.removeItem('geosniper_gun_profile');
+    }
+
+    function restoreGunProfileOnLoad() {
+      migrateLegacyGunProfileIfNeeded();
+
+      const lib = getProfileLibrary();
+      const weaponKey = lib.activeWeaponKey;
+      const weapon = weaponKey && lib.weapons[weaponKey];
+      if (!weapon) return;
+
+      const loadId = weapon.activeLoadId;
+      const load = loadId && weapon.loads[loadId];
+      if (!load) return;
+
+      if (weaponKey !== 'custom') {
+        const weaponSel = document.getElementById('gunPresetSelect');
+        if (weaponSel) {
+          const exists = Array.from(weaponSel.options).some(o => o.value === weaponKey);
+          if (exists) weaponSel.value = weaponKey;
+        }
+      }
+
+      applyLoadToEquipFields(load);
+      refreshLoadProfileSelect(weaponKey, loadId);
+      updateProfileStatusBadge(weapon.weaponName, load.label);
+    }
+
+    function restoreEnvironmentProfileOnLoad() {
+      try {
+        const raw = localStorage.getItem('geosniper_env_profile');
+        if (!raw) return;
+        const env = JSON.parse(raw);
+
+        const setIfDefined = (id, val) => {
+          if (val === undefined || val === null || Number.isNaN(val)) return;
+          const el = document.getElementById(id);
+          if (el) el.value = val;
+        };
+
+        setIfDefined('eqTemp', env.temp);
+        setIfDefined('eqPressure', env.pressure);
+        setIfDefined('eqHumidity', env.humidity);
+        setIfDefined('eqWindSpeed', env.windSpeed);
+        setIfDefined('eqWindClock', env.windClock);
+        setIfDefined('eqInclination', env.inclination);
+        setIfDefined('eqAzimuth', env.azimuth);
+      } catch (e) {
+        console.warn('Falha ao restaurar perfil de ambiente:', e);
+      }
+    }
+
     function loadSelectedWeaponPreset() {
       const selectedKey = document.getElementById('gunPresetSelect').value;
-      if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) return;
 
-  const w = weaponsCatalog[selectedKey];
-  const defaultAmmo = (w.ammoOptions && w.ammoOptions[0]) || {};
-  document.getElementById('eqFps').value = defaultAmmo.fps || '';
-  document.getElementById('eqBC').value = defaultAmmo.bc || '';
-  document.getElementById('eqProfile').value = defaultAmmo.profile || 'G1';
-  document.getElementById('eqTwist').value = w.twist || 10;
-  document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
-  document.getElementById('eqBarrelLen').value = w.barrelLen || 20;
+      if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) {
+        refreshLoadProfileSelect('custom');
+        return;
+      }
 
-      document.getElementById('profileStatusBadge').innerText = `PERFIL ATIVO: ${w.name.toUpperCase()}`;
-      saveGunProfile();
+      const lib = getProfileLibrary();
+      const existingWeapon = lib.weapons[selectedKey];
+      const w = weaponsCatalog[selectedKey];
+
+      if (existingWeapon && existingWeapon.activeLoadId && existingWeapon.loads[existingWeapon.activeLoadId]) {
+        // Já existe carga salva para esta arma: restaura em vez de sobrescrever com o padrão do catálogo
+        const load = existingWeapon.loads[existingWeapon.activeLoadId];
+        applyLoadToEquipFields(load);
+        lib.activeWeaponKey = selectedKey;
+        saveProfileLibrary(lib);
+        refreshLoadProfileSelect(selectedKey, existingWeapon.activeLoadId);
+        updateProfileStatusBadge(existingWeapon.weaponName, load.label);
+        return;
+      }
+
+      // Nenhuma carga salva ainda para esta arma: usa a munição padrão do catálogo como carga inicial
+      const defaultAmmo = (w.ammoOptions && w.ammoOptions[0]) || {};
+      document.getElementById('eqFps').value = defaultAmmo.fps || '';
+      document.getElementById('eqBC').value = defaultAmmo.bc || '';
+      document.getElementById('eqWeight').value = defaultAmmo.weightGrains || 175;
+      document.getElementById('eqProfile').value = defaultAmmo.profile || 'G1';
+      document.getElementById('eqTwist').value = w.twist || 10;
+      document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
+      document.getElementById('eqBarrelLen').value = w.barrelLen || 20;
+      document.getElementById('eqScopeHeight').value = w.scopeHeight || 3.8;
+
+      saveCurrentLoad(true); // cria a primeira carga ("Padrão") para esta arma
     }
 
     function saveGunProfile() {
-      const profileData = {
-        fps: parseFloat(document.getElementById('eqFps').value),
-        bc: parseFloat(document.getElementById('eqBC').value),
-        profile: document.getElementById('eqProfile').value,
-        turret: document.getElementById('eqTurret').value,
-        twist: parseFloat(document.getElementById('eqTwist').value),
-        twistDir: document.getElementById('eqTwistDir').value,
-        barrelLen: parseFloat(document.getElementById('eqBarrelLen').value),
-        scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value)
-      };
-      localStorage.setItem('geosniper_gun_profile', JSON.stringify(profileData));
+      saveCurrentLoad(false);
     }
 
     function saveEnvironmentProfile() {
@@ -1387,17 +1638,19 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
         }
       }
 
-      window.addEventListener('deviceorientation', handleOrientation, true);
+    window.addEventListener('DOMContentLoaded', () => {
+      restoreEnvironmentProfileOnLoad();
 
-      clearTimeout(sensorTimeout);
-      sensorTimeout = setTimeout(() => {
-        window.removeEventListener('deviceorientation', handleOrientation, true);
-        if (btn) btn.innerText = "✅ Sensores Atualizados!";
-        setTimeout(() => {
-          if (btn) btn.innerText = "📱 Ler Sensores do Celular";
-        }, 2500);
-      }, 3500);
-    }
+      fetchWeaponsCatalog().then(() => {
+        restoreGunProfileOnLoad();
+        runBallistics();
+      });
+
+      checkSharedPointFromURL();
+
+      const savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
+      openTab(null, savedTab);
+    });
 
     async function syncWeatherFromGPS() {
       const btn = document.querySelector('.btn-sync');
