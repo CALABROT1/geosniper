@@ -366,15 +366,17 @@ body.nvg-red-mode .leaflet-tile-container img {
 
 <div id="tabBalistica" class="tab-content active">
   <div class="ballistics-grid">
-    
+
     <!-- CARD 1: CONFIGURAÇÕES & BOTÕES DE AÇÃO -->
     <div class="card">
       <h3>🎯 Configurações de Tiro & Projétil</h3>
+
+      <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <div style="font-weight:800; color:#38bdf8; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; font-size:11px;">📋 Perfil Ativo (definido na aba Equipamento)</div>
+        <div id="balProfileMirrorText" style="font-size:12px; color:#cbd5e1;">Carregando perfil...</div>
+      </div>
+
       <div class="form-row">
-        <div class="form-group">
-          <label>Peso Projétil (Grains)</label>
-          <input type="number" id="balWeight" value="168" placeholder="Ex: 168">
-        </div>
         <div class="form-group">
           <label for="balTurret">Torre / Graduação</label>
           <select id="balTurret" onchange="syncTurretFromBalistica()">
@@ -385,36 +387,10 @@ body.nvg-red-mode .leaflet-tile-container img {
             <option value="0.05_MRAD">0.05 MRAD (0.5cm / 100m)</option>
           </select>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label>Velocidade de Boca (FPS)</label>
-        <select id="balPresetSpeed" onchange="document.getElementById('balSpeed').value = this.value !== 'custom' ? this.value : document.getElementById('balSpeed').value">
-          <option value="custom">Personalizada (Digite abaixo)</option>
-          <option value="2600">Carga 1 - Média: 2600 FPS</option>
-          <option value="2680" selected>Carga 2 - Média: 2680 FPS</option>
-          <option value="2750">Carga 3 - Média: 2750 FPS</option>
-        </select>
-        <input type="number" id="balSpeed" value="2680" style="margin-top: 6px;">
-      </div>
-
-      <div class="form-row">
         <div class="form-group">
-          <label>Perfil Drag</label>
-          <select id="balDragProfile">
-            <option value="G1">G1 (Padrão)</option>
-            <option value="G7">G7 (VLD/Boat Tail)</option>
-          </select>
+          <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
+          <input type="number" id="balDistance" value="600" step="25">
         </div>
-        <div class="form-group">
-          <label>Coef. Balístico (CB)</label>
-          <input type="number" step="0.001" id="balBC" value="0.447">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Distância do Alvo (Metros) <span style="color:#38bdf8; font-weight:normal;">[Zeragem: 100m]</span></label>
-        <input type="number" id="balDistance" value="600" step="25">
       </div>
 
       <div class="form-group">
@@ -427,39 +403,11 @@ body.nvg-red-mode .leaflet-tile-container img {
         </select>
       </div>
 
-      <div class="section-divider">
-        <h3 style="border-bottom:none; margin-bottom: 8px;">💨 Condição de Vento (Opcional)</h3>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Velocidade (km/h)</label>
-          <input type="number" id="balWindSpeed" value="0" placeholder="0 = Sem Vento">
-        </div>
-        <div class="form-group">
-          <label>Direção do Vento</label>
-          <select id="balWindDir">
-            <option value="3">3 Horas (Direita ➔ Esquerda)</option>
-            <option value="9">9 Horas (Esquerda ➔ Direita)</option>
-            <option value="12">12 Horas (Frontal)</option>
-            <option value="6">6 Horas (Traseiro)</option>
-            <option value="1">1 Hora</option>
-            <option value="2">2 Horas</option>
-            <option value="4">4 Horas</option>
-            <option value="5">5 Horas</option>
-            <option value="7">7 Horas</option>
-            <option value="8">8 Horas</option>
-            <option value="10">10 Horas</option>
-            <option value="11">11 Horas</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- BOTÕES DE AÇÃO REORGANIZADOS NA MESMA COLUNA -->
+      <!-- BOTÕES DE AÇÃO -->
       <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
       <button onclick="openTrajectoryModal()" style="width: 100%; margin-top: 10px; background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;">📊 GERAR CARD DE TIRO / TABELA DE TRAJETÓRIA</button>
     </div>
-      
+
     <!-- CARD 2: PAINEL DE RESULTADOS & CANVAS DO RETÍCULO -->
     <div class="card">
       <h3>Solução Tática & Retículo</h3>
@@ -482,8 +430,78 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
+    <!-- CARD 3: ATMOSFERA & METEOROLOGIA (espelhado / sincronizado com a aba Equipamento) -->
+    <div class="equip-card">
+      <div class="card-title flex-between">
+        <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
+        <button type="button" class="btn-sync" onclick="syncWeatherFromGPS(this)">
+          🔄 Sincronizar Clima via GPS
+        </button>
+      </div>
+      <div class="form-grid-4">
+        <div class="form-group">
+          <label for="balTemp">Temperatura (°C)</label>
+          <input type="number" id="balTemp" value="15" step="1" onchange="syncEnvFromBalistica()">
+        </div>
+        <div class="form-group">
+          <label for="balPressure">Pressão Atmosférica (hPa)</label>
+          <input type="number" id="balPressure" value="1013" step="1" onchange="syncEnvFromBalistica()">
+        </div>
+        <div class="form-group">
+          <label for="balHumidity">Umidade Relativa (%)</label>
+          <input type="number" id="balHumidity" value="50" step="5" onchange="syncEnvFromBalistica()">
+        </div>
+        <div class="form-group">
+          <label for="balWindSpeed">Vento (km/h)</label>
+          <input type="number" id="balWindSpeed" value="0" step="1" onchange="syncEnvFromBalistica()">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="balWindDir">Direção do Vento (Relógio 1-12h)</label>
+          <select id="balWindDir" onchange="syncEnvFromBalistica()">
+            <option value="12">12h (Vento de Frente / Headwind)</option>
+            <option value="1">1h</option>
+            <option value="2">2h</option>
+            <option value="3" selected>3h (Vento da Direita / Full Crosswind)</option>
+            <option value="4">4h</option>
+            <option value="5">5h</option>
+            <option value="6">6h (Vento de Cauda / Tailwind)</option>
+            <option value="7">7h</option>
+            <option value="8">8h</option>
+            <option value="9">9h (Vento da Esquerda / Full Crosswind)</option>
+            <option value="10">10h</option>
+            <option value="11">11h</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4: TELEMETRIA & POSIÇÃO DE DISPARO (espelhado / sincronizado com a aba Equipamento) -->
+    <div class="equip-card">
+      <div class="card-title flex-between">
+        <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
+        <button type="button" class="btn-sensor" onclick="readDeviceSensors(this)">
+          📱 Ler Sensores do Celular
+        </button>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label for="balInclination">Ângulo de Sítio / Inclinação (°)</label>
+          <input type="number" id="balInclination" value="0" min="-90" max="90" step="1" onchange="syncEnvFromBalistica()">
+        </div>
+        <div class="form-group">
+          <label for="balAzimuth">Azimute de Disparo (° / Bússola)</label>
+          <input type="number" id="balAzimuth" value="90" min="0" max="360" step="1" onchange="syncEnvFromBalistica()">
+        </div>
+        <div class="form-group">
+          <label for="balLatitude">Latitude do Operador (Coriolis)</label>
+          <input type="number" id="balLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
+
 
 <div id="tabEquipamento" class="tab-content">
   <div class="equip-container">
@@ -1021,19 +1039,19 @@ function initMaps(lat, lng) {
       saveGunProfile();
     }
 
-    async function getBallisticSolutionForDistance(dist) {
+async function getBallisticSolutionForDistance(dist) {
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             dist: dist,
-            fps: parseFloat(document.getElementById('eqFps')?.value || document.getElementById('balSpeed')?.value) || 2680,
-            bc: parseFloat(document.getElementById('eqBC')?.value || document.getElementById('balBC')?.value) || 0.447,
-            profile: document.getElementById('eqProfile')?.value || document.getElementById('balDragProfile')?.value || 'G1',
-            turret: document.getElementById('eqTurret')?.value || document.getElementById('balTurret')?.value || '1/4_MOA',
-            windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value || document.getElementById('balWindSpeed')?.value) || 0,
-            windClock: parseInt(document.getElementById('eqWindClock')?.value || document.getElementById('balWindDir')?.value) || 3,
+            fps: parseFloat(document.getElementById('eqFps')?.value) || 2680,
+            bc: parseFloat(document.getElementById('eqBC')?.value) || 0.447,
+            profile: document.getElementById('eqProfile')?.value || 'G1',
+            turret: document.getElementById('eqTurret')?.value || '1/4_MOA',
+            windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value) || 0,
+            windClock: parseInt(document.getElementById('eqWindClock')?.value) || 3,
             inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
             tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
             pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
@@ -1505,7 +1523,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       updateProfileStatusBadge(weapon.weaponName, load.label);
     }
 
-    function restoreEnvironmentProfileOnLoad() {
+   function restoreEnvironmentProfileOnLoad() {
       try {
         const raw = localStorage.getItem('geosniper_env_profile');
         if (!raw) return;
@@ -1524,6 +1542,15 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
         setIfDefined('eqWindClock', env.windClock);
         setIfDefined('eqInclination', env.inclination);
         setIfDefined('eqAzimuth', env.azimuth);
+
+        // Espelha os mesmos valores nos campos correspondentes da aba Balística
+        setIfDefined('balTemp', env.temp);
+        setIfDefined('balPressure', env.pressure);
+        setIfDefined('balHumidity', env.humidity);
+        setIfDefined('balWindSpeed', env.windSpeed);
+        setIfDefined('balWindDir', env.windClock);
+        setIfDefined('balInclination', env.inclination);
+        setIfDefined('balAzimuth', env.azimuth);
       } catch (e) {
         console.warn('Falha ao restaurar perfil de ambiente:', e);
       }
@@ -1605,8 +1632,38 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       localStorage.setItem('geosniper_env_profile', JSON.stringify(envData));
     }
 
-    function readDeviceSensors() {
-      const btn = document.querySelector('.btn-sensor');
+    // Espelha os campos de atmosfera/telemetria entre Equipamento e Balística,
+    // nos dois sentidos, e persiste o resultado.
+    const ENV_MIRROR_FIELD_PAIRS = [
+      ['eqTemp', 'balTemp'],
+      ['eqPressure', 'balPressure'],
+      ['eqHumidity', 'balHumidity'],
+      ['eqWindSpeed', 'balWindSpeed'],
+      ['eqWindClock', 'balWindDir'],
+      ['eqInclination', 'balInclination'],
+      ['eqAzimuth', 'balAzimuth']
+    ];
+
+    function syncEnvFromEquipamento() {
+      ENV_MIRROR_FIELD_PAIRS.forEach(([eqId, balId]) => {
+        const src = document.getElementById(eqId);
+        const tgt = document.getElementById(balId);
+        if (src && tgt) tgt.value = src.value;
+      });
+      saveEnvironmentProfile();
+    }
+
+    function syncEnvFromBalistica() {
+      ENV_MIRROR_FIELD_PAIRS.forEach(([eqId, balId]) => {
+        const src = document.getElementById(balId);
+        const tgt = document.getElementById(eqId);
+        if (src && tgt) tgt.value = src.value;
+      });
+      saveEnvironmentProfile();
+    }
+
+   function readDeviceSensors(clickedBtn) {
+      const btn = clickedBtn || document.querySelector('.btn-sensor');
       if (btn) btn.innerText = "⏳ Lendo Sensores...";
 
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -1658,8 +1715,8 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
           if (incEl) incEl.value = inclination;
         }
 
-        if (typeof saveEnvironmentProfile === 'function') {
-          saveEnvironmentProfile();
+        if (typeof syncEnvFromEquipamento === 'function') {
+          syncEnvFromEquipamento();
         }
       }
 
@@ -1675,10 +1732,10 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       }, 3500);
     }
 
-    async function syncWeatherFromGPS() {
-      
-      const btn = document.querySelector('.btn-sync');
-      
+    async function syncWeatherFromGPS(clickedBtn) {
+
+      const btn = clickedBtn || document.querySelector('.btn-sync');
+
       if (!currentPos || !currentPos[0] || !currentPos[1]) {
         alert("GPS ainda não obtido. Ative a localização.");
         return;
@@ -1689,12 +1746,14 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
 
       const latEl = document.getElementById('eqLatitude');
       if (latEl) latEl.value = parseFloat(lat.toFixed(4));
+      const balLatEl = document.getElementById('balLatitude');
+      if (balLatEl) balLatEl.value = parseFloat(lat.toFixed(4));
 
       if (btn) btn.innerText = "⏳ Sincronizando Clima...";
 
       try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m`;
-        
+
         const response = await fetch(url);
         if (!response.ok) throw new Error("Erro na API Meteorológica");
 
@@ -1717,13 +1776,13 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
           const degrees = current.wind_direction_10m;
           let clockHour = Math.round(degrees / 30);
           if (clockHour === 0) clockHour = 12;
-          
+
           const clockEl = document.getElementById('eqWindClock');
           if (clockEl) clockEl.value = clockHour.toString();
         }
 
-        if (typeof saveEnvironmentProfile === 'function') {
-          saveEnvironmentProfile();
+        if (typeof syncEnvFromEquipamento === 'function') {
+          syncEnvFromEquipamento();
         }
 
         if (btn) btn.innerText = "✅ Clima Atualizado!";
