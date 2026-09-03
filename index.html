@@ -1289,13 +1289,14 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       const selectedKey = document.getElementById('gunPresetSelect').value;
       if (selectedKey === 'custom' || !weaponsCatalog[selectedKey]) return;
 
-      const w = weaponsCatalog[selectedKey];
-      document.getElementById('eqFps').value = w.fps;
-      document.getElementById('eqBC').value = w.bc;
-      document.getElementById('eqProfile').value = w.profile || 'G1';
-      document.getElementById('eqTwist').value = w.twist || 10;
-      document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
-      document.getElementById('eqBarrelLen').value = w.barrelLengthInches || 20;
+  const w = weaponsCatalog[selectedKey];
+  const defaultAmmo = (w.ammoOptions && w.ammoOptions[0]) || {};
+  document.getElementById('eqFps').value = defaultAmmo.fps || '';
+  document.getElementById('eqBC').value = defaultAmmo.bc || '';
+  document.getElementById('eqProfile').value = defaultAmmo.profile || 'G1';
+  document.getElementById('eqTwist').value = w.twist || 10;
+  document.getElementById('eqTwistDir').value = w.twistDir || 'RIGHT';
+  document.getElementById('eqBarrelLen').value = w.barrelLen || 20;
 
       document.getElementById('profileStatusBadge').innerText = `PERFIL ATIVO: ${w.name.toUpperCase()}`;
       saveGunProfile();
