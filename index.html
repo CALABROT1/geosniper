@@ -431,7 +431,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
 
     <!-- CARD 3: ATMOSFERA & METEOROLOGIA (espelhado / sincronizado com a aba Equipamento) -->
-    <div class="equip-card">
+      <div class="equip-card">
       <div class="card-title flex-between">
         <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
         <button type="button" class="btn-sync" onclick="syncWeatherFromGPS(this)">
@@ -440,24 +440,24 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
       <div class="form-grid-4">
         <div class="form-group">
-          <label for="balTemp">Temperatura (°C)</label>
-          <input type="number" id="balTemp" value="15" step="1" onchange="syncEnvFromBalistica()">
+          <label for="eqTemp">Temperatura (°C)</label>
+          <input type="number" id="eqTemp" value="15" step="1" onchange="syncEnvFromEquipamento()">
         </div>
         <div class="form-group">
-          <label for="balPressure">Pressão Atmosférica (hPa)</label>
-          <input type="number" id="balPressure" value="1013" step="1" onchange="syncEnvFromBalistica()">
+          <label for="eqPressure">Pressão Atmosférica (hPa)</label>
+          <input type="number" id="eqPressure" value="1013" step="1" onchange="syncEnvFromEquipamento()">
         </div>
         <div class="form-group">
-          <label for="balHumidity">Umidade Relativa (%)</label>
-          <input type="number" id="balHumidity" value="50" step="5" onchange="syncEnvFromBalistica()">
+          <label for="eqHumidity">Umidade Relativa (%)</label>
+          <input type="number" id="eqHumidity" value="50" step="5" onchange="syncEnvFromEquipamento()">
         </div>
         <div class="form-group">
-          <label for="balWindSpeed">Vento (km/h)</label>
-          <input type="number" id="balWindSpeed" value="0" step="1" onchange="syncEnvFromBalistica()">
+          <label for="eqWindSpeed">Vento (km/h)</label>
+          <input type="number" id="eqWindSpeed" value="0" step="1" onchange="syncEnvFromEquipamento()">
         </div>
         <div class="form-group" style="grid-column: span 2;">
-          <label for="balWindDir">Direção do Vento (Relógio 1-12h)</label>
-          <select id="balWindDir" onchange="syncEnvFromBalistica()">
+          <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
+          <select id="eqWindClock" onchange="syncEnvFromEquipamento()">
             <option value="12">12h (Vento de Frente / Headwind)</option>
             <option value="1">1h</option>
             <option value="2">2h</option>
@@ -475,7 +475,6 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
-    <!-- CARD 4: TELEMETRIA & POSIÇÃO DE DISPARO (espelhado / sincronizado com a aba Equipamento) -->
     <div class="equip-card">
       <div class="card-title flex-between">
         <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
@@ -485,20 +484,19 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
       <div class="form-grid-3">
         <div class="form-group">
-          <label for="balInclination">Ângulo de Sítio / Inclinação (°)</label>
-          <input type="number" id="balInclination" value="0" min="-90" max="90" step="1" onchange="syncEnvFromBalistica()">
+          <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
+          <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="syncEnvFromEquipamento()">
         </div>
         <div class="form-group">
-          <label for="balAzimuth">Azimute de Disparo (° / Bússola)</label>
-          <input type="number" id="balAzimuth" value="90" min="0" max="360" step="1" onchange="syncEnvFromBalistica()">
+          <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
+          <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="syncEnvFromEquipamento()">
         </div>
         <div class="form-group">
-          <label for="balLatitude">Latitude do Operador (Coriolis)</label>
-          <input type="number" id="balLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
+          <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
+          <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -1070,7 +1068,18 @@ async function getBallisticSolutionForDistance(dist) {
       }
     }
 
+   function refreshBalisticaProfileMirror() {
+  const el = document.getElementById('balProfileMirrorText');
+  if (!el) return;
+  const weight = document.getElementById('eqWeight')?.value || '--';
+  const fps = document.getElementById('eqFps')?.value || '--';
+  const bc = document.getElementById('eqBC')?.value || '--';
+  const profiFle = document.getElementById('eqProfile')?.value || '--';
+  el.innerHTML = `<b style="color:#f8fafc;">${weight}gr</b> · ${fps} FPS · BC ${bc} · Perfil ${profile}`;
+}
+
    async function runBallistics() {
+  refreshBalisticaProfileMirror();
   const parseVal = (id, defaultVal) => {
     const el = document.getElementById(id);
     if (!el) return defaultVal;
@@ -1174,8 +1183,8 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   }
 
   // SUB-DISTÂNCIAS TÁTICAS (200m a 800m)
-  const fps = parseFloat(document.getElementById('eqFps')?.value || document.getElementById('balSpeed')?.value) || 2680;
-  const bcVal = parseFloat(document.getElementById('eqBC')?.value || document.getElementById('balBC')?.value) || 0.447;
+  const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
+  const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
   const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
   
   const refDistances = [200, 300, 400, 500, 600, 700, 800];
@@ -2075,12 +2084,12 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
       body: JSON.stringify({
         maxDist: 1000,
         step: 50,
-        fps: parseFloat(document.getElementById('eqFps')?.value || document.getElementById('balSpeed')?.value) || 2680,
-        bc: parseFloat(document.getElementById('eqBC')?.value || document.getElementById('balBC')?.value) || 0.447,
-        profile: document.getElementById('eqProfile')?.value || document.getElementById('balDragProfile')?.value || 'G1',
-        turret: document.getElementById('eqTurret')?.value || document.getElementById('balTurret')?.value || '1/4_MOA',
-        windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value || document.getElementById('balWindSpeed')?.value) || 0,
-        windClock: parseInt(document.getElementById('eqWindClock')?.value || document.getElementById('balWindDir')?.value) || 3,
+        fps: parseFloat(document.getElementById('eqFps')?.value) || 2680,
+        bc: parseFloat(document.getElementById('eqBC')?.value) || 0.447,
+        profile: document.getElementById('eqProfile')?.value || 'G1',
+        turret: document.getElementById('eqTurret')?.value || '1/4_MOA',
+        windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value) || 0,
+        windClock: parseInt(document.getElementById('eqWindClock')?.value) || 3,
         inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
         tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
         pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
