@@ -431,7 +431,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
 
     <!-- CARD 3: ATMOSFERA & METEOROLOGIA (espelhado / sincronizado com a aba Equipamento) -->
-          <div class="equip-card">
+    <div class="equip-card">
       <div class="card-title flex-between">
         <span>🌤️ ATMOSFERA & METEOROLOGIA</span>
         <button type="button" class="btn-sync" onclick="syncWeatherFromGPS(this)">
@@ -440,24 +440,24 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
       <div class="form-grid-4">
         <div class="form-group">
-          <label for="eqTemp">Temperatura (°C)</label>
-          <input type="number" id="eqTemp" value="15" step="1" onchange="syncEnvFromEquipamento()">
+          <label for="balTemp">Temperatura (°C)</label>
+          <input type="number" id="balTemp" value="15" step="1" onchange="syncEnvFromBalistica()">
         </div>
         <div class="form-group">
-          <label for="eqPressure">Pressão Atmosférica (hPa)</label>
-          <input type="number" id="eqPressure" value="1013" step="1" onchange="syncEnvFromEquipamento()">
+          <label for="balPressure">Pressão Atmosférica (hPa)</label>
+          <input type="number" id="balPressure" value="1013" step="1" onchange="syncEnvFromBalistica()">
         </div>
         <div class="form-group">
-          <label for="eqHumidity">Umidade Relativa (%)</label>
-          <input type="number" id="eqHumidity" value="50" step="5" onchange="syncEnvFromEquipamento()">
+          <label for="balHumidity">Umidade Relativa (%)</label>
+          <input type="number" id="balHumidity" value="50" step="5" onchange="syncEnvFromBalistica()">
         </div>
         <div class="form-group">
-          <label for="eqWindSpeed">Vento (km/h)</label>
-          <input type="number" id="eqWindSpeed" value="0" step="1" onchange="syncEnvFromEquipamento()">
+          <label for="balWindSpeed">Vento (km/h)</label>
+          <input type="number" id="balWindSpeed" value="0" step="1" onchange="syncEnvFromBalistica()">
         </div>
         <div class="form-group" style="grid-column: span 2;">
-          <label for="eqWindClock">Direção do Vento (Relógio 1-12h)</label>
-          <select id="eqWindClock" onchange="syncEnvFromEquipamento()">
+          <label for="balWindDir">Direção do Vento (Relógio 1-12h)</label>
+          <select id="balWindDir" onchange="syncEnvFromBalistica()">
             <option value="12">12h (Vento de Frente / Headwind)</option>
             <option value="1">1h</option>
             <option value="2">2h</option>
@@ -475,6 +475,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
+    <!-- CARD 4: TELEMETRIA & POSIÇÃO DE DISPARO (espelhado / sincronizado com a aba Equipamento) -->
     <div class="equip-card">
       <div class="card-title flex-between">
         <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
@@ -484,22 +485,21 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
       <div class="form-grid-3">
         <div class="form-group">
-          <label for="eqInclination">Ângulo de Sítio / Inclinação (°)</label>
-          <input type="number" id="eqInclination" value="0" min="-90" max="90" step="1" onchange="syncEnvFromEquipamento()">
+          <label for="balInclination">Ângulo de Sítio / Inclinação (°)</label>
+          <input type="number" id="balInclination" value="0" min="-90" max="90" step="1" onchange="syncEnvFromBalistica()">
         </div>
         <div class="form-group">
-          <label for="eqAzimuth">Azimute de Disparo (° / Bússola)</label>
-          <input type="number" id="eqAzimuth" value="90" min="0" max="360" step="1" onchange="syncEnvFromEquipamento()">
+          <label for="balAzimuth">Azimute de Disparo (° / Bússola)</label>
+          <input type="number" id="balAzimuth" value="90" min="0" max="360" step="1" onchange="syncEnvFromBalistica()">
         </div>
         <div class="form-group">
-          <label for="eqLatitude">Latitude do Operador (Coriolis)</label>
-          <input type="number" id="eqLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
+          <label for="balLatitude">Latitude do Operador (Coriolis)</label>
+          <input type="number" id="balLatitude" value="-22.82" step="0.01" readonly style="background:#1e293b; color:#94a3b8;">
         </div>
       </div>
     </div>
   </div>
 </div>
-
 
 <div id="tabEquipamento" class="tab-content">
   <div class="equip-container">
