@@ -1836,14 +1836,31 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
     }
 
     let alignedTargetVibrated = false;
+    let targetGuidanceHandler = null;
+
+    // Remove o listener de orientação da sessão de guiagem anterior, se houver.
+    // Evita empilhar múltiplos handlers quando o operador recebe mais de um alvo compartilhado.
+    function stopTargetGuidance() {
+      if (targetGuidanceHandler) {
+        window.removeEventListener('deviceorientation', targetGuidanceHandler, true);
+        targetGuidanceHandler = null;
+      }
+      alignedTargetVibrated = false;
+    }
 
     function startTargetGuidance(targetLat, targetLng) {
       if (!window.DeviceOrientationEvent) return;
 
-      window.addEventListener('deviceorientation', function(event) {
-        if (!currentPos || !targetLat || !targetLng) return;
+      stopTargetGuidance();
 
-        let operatorHeading = event.webkitCompassHeading || (360 - event.alpha);
+      targetGuidanceHandler = function(event) {
+        if (!currentPos || targetLat == null || targetLng == null) return;
+
+        // typeof-check em vez de "||": 0° (norte verdadeiro) é um valor válido do
+        // webkitCompassHeading no iOS, mas é "falso" em JS e seria ignorado pelo "||".
+        let operatorHeading = (typeof event.webkitCompassHeading === 'number')
+          ? event.webkitCompassHeading
+          : (360 - event.alpha);
         if (operatorHeading === undefined || isNaN(operatorHeading)) return;
 
         let targetBearing = calculateBearing(currentPos[0], currentPos[1], targetLat, targetLng);
@@ -1856,29 +1873,33 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
         if (!guidanceEl) return;
 
         const absDelta = Math.abs(delta);
+        const isAligned = absDelta <= 10;
+        const guideColor = isAligned ? '#22c55e' : '#f59e0b';
+        const guideBg = isAligned ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.1)';
+        const statusText = isAligned
+          ? '🎯 ALVO EM LINHA DE VISADA'
+          : `${delta > 0 ? 'Gire para a DIREITA' : 'Gire para a ESQUERDA'} — ${Math.round(absDelta)}°`;
 
-        if (absDelta <= 10) {
-          guidanceEl.innerHTML = `
-            <div style="font-size: 15px; font-weight: 900; color: #22c55e; background: rgba(34,197,94,0.2); padding: 8px; border-radius: 8px; border: 2px solid #22c55e; margin-top: 8px;">
-              🎯 ALVO EM LINHA DE VISADA
-            </div>
-          `;
+        // Seta gira de verdade na tela: aponta reto (0°) quando alinhado, e gira no
+        // mesmo sentido do delta (direita = horário, esquerda = anti-horário).
+        guidanceEl.innerHTML = `
+          <div style="display:flex; align-items:center; gap:12px; margin-top:8px; background:${guideBg}; border:2px solid ${guideColor}; border-radius:10px; padding:10px 14px;">
+            <div style="font-size:32px; line-height:1; flex-shrink:0; transform: rotate(${delta}deg); transition: transform 0.15s ease-out; color:${guideColor};">▲</div>
+            <div style="font-size:14px; font-weight:800; color:${guideColor};">${statusText}</div>
+          </div>
+        `;
 
+        if (isAligned) {
           if (!alignedTargetVibrated && navigator.vibrate) {
             navigator.vibrate([100, 50, 100]);
             alignedTargetVibrated = true;
           }
         } else {
           alignedTargetVibrated = false;
-          const turnDir = delta > 0 ? "Gire para a DIREITA ➔" : "⬅️ Gire para a ESQUERDA";
-          
-          guidanceEl.innerHTML = `
-            <div style="font-size: 13px; font-weight: 800; color: #f59e0b; margin-top: 8px; background: rgba(245,158,11,0.1); padding: 6px; border-radius: 6px; border: 1px solid #f59e0b;">
-              🔄 ${turnDir} (${Math.round(absDelta)}°)
-            </div>
-          `;
         }
-      }, true);
+      };
+
+      window.addEventListener('deviceorientation', targetGuidanceHandler, true);
     }
 
     let cameraStream = null;
@@ -2231,6 +2252,8 @@ async function runVelocityTruing() {
 </script>
 </body>
 </html>
+
+
 
 
 
