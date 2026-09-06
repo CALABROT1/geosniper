@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -70,6 +71,43 @@
       background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 16px; border-radius: 16px;
       font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid #334155; text-align: center;
       pointer-events: auto; max-width: 320px; width: 90%;
+    }
+
+    /* ===== SISTEMA DE PONTOS TÁTICOS (DOCKS + GERENCIADOR) ===== */
+    .tactical-dock-horizontal {
+      position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; background: rgba(15,23,42,0.92); border: 1px solid #334155;
+      border-radius: 14px; padding: 8px 12px; z-index: 900; max-width: 94%; overflow-x: auto;
+    }
+    .tactical-dock-lateral {
+      position: absolute; bottom: 70px; right: 8px;
+      display: flex; flex-direction: column; gap: 10px; background: rgba(15,23,42,0.92);
+      border: 1px solid #334155; border-radius: 14px; padding: 10px 8px; z-index: 900;
+      max-height: 50%; overflow-y: auto;
+    }
+    .dock-icon-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      width: 52px; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none;
+    }
+    .dock-icon-item img { width: 34px; height: 34px; pointer-events: none; }
+    .dock-icon-item span { font-size: 9px; color: #cbd5e1; font-weight: 700; text-align: center; line-height: 1.1; white-space: nowrap; }
+    .dock-drag-ghost {
+      position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+      pointer-events: none; z-index: 99999; opacity: 0.85; filter: drop-shadow(0 0 6px rgba(56,189,248,0.7));
+    }
+
+    #tabRelevo { display: flex; flex-direction: column; }
+    #tabRelevo #mapRelevo { height: 55%; flex-shrink: 0; }
+    #tabRelevo .tactical-table-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #0f172a; border-top: 2px solid #334155; }
+    #tabRelevo .tactical-table-header {
+      background: #1e293b; color: #38bdf8; font-weight: 800; padding: 8px 12px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    #tabRelevo .tactical-table-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .tactical-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .tactical-table thead th {
+      position: sticky; top: 0; background: #1e293b; color: #94a3b8; padding: 8px;
+      text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; z-index: 1;
     }
 
     .ballistics-grid {
@@ -356,8 +394,27 @@ body.nvg-red-mode .leaflet-tile-container img {
 </div>
 
 <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
-<div id="tabNormal" class="tab-content"><div id="mapNormal" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
-<div id="tabRelevo" class="tab-content"><div id="mapRelevo" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
+<div id="tabNormal" class="tab-content">
+  <div id="mapNormal" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div>
+  <div id="tacticalDockHorizontal" class="tactical-dock-horizontal"></div>
+  <div id="tacticalDockLateral" class="tactical-dock-lateral"></div>
+</div>
+<div id="tabRelevo" class="tab-content">
+  <div id="mapRelevo" class="map" style="width:100%; min-height: 220px;"></div>
+  <div class="tactical-table-wrap">
+    <div class="tactical-table-header">📋 PONTOS TÁTICOS REGISTRADOS</div>
+    <div class="tactical-table-scroll">
+      <table class="tactical-table">
+        <thead>
+          <tr><th>Tipo</th><th>Rótulo</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="tacticalMarkersTableBody">
+          <tr><td colspan="7" style="padding:16px; text-align:center; color:#64748b;">Carregando pontos táticos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <div id="tabMedir" class="tab-content">
   <div id="mapMedir" class="map" style="width:100%; height: calc(100vh - 180px); min-height: 350px;"></div>
@@ -737,6 +794,36 @@ body.nvg-red-mode .leaflet-tile-container img {
   <canvas id="photoCanvas" style="display:none;"></canvas>
 </div>
 
+<div id="tacticalPinModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.92); z-index:9999; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;">
+  <div style="background:#0f172a; border:1px solid #334155; border-radius:14px; padding:20px; width:100%; max-width:380px; max-height:90vh; overflow-y:auto;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+      <img id="tacticalPinModalIcon" src="" style="width:36px; height:36px;">
+      <div>
+        <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Novo Ponto Tático</div>
+        <div id="tacticalPinModalTypeLabel" style="font-size:16px; font-weight:800; color:#38bdf8;"></div>
+      </div>
+    </div>
+
+    <label style="font-size:11px; color:#94a3b8; font-weight:700;">Rótulo</label>
+    <input id="tacticalPinLabel" type="text" style="width:100%; box-sizing:border-box; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px;">
+
+    <label style="font-size:11px; color:#94a3b8; font-weight:700;">Observação</label>
+    <textarea id="tacticalPinObservation" rows="3" style="width:100%; box-sizing:border-box; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px; resize:vertical;"></textarea>
+
+    <label style="font-size:11px; color:#94a3b8; font-weight:700;">Operador</label>
+    <input id="tacticalPinOperator" type="text" placeholder="Seu nome/codinome" style="width:100%; box-sizing:border-box; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px;">
+
+    <label style="font-size:11px; color:#94a3b8; font-weight:700;">Foto (opcional)</label>
+    <input id="tacticalPinPhotoInput" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this)" style="width:100%; color:#94a3b8; font-size:12px; margin:4px 0 12px;">
+    <img id="tacticalPinPhotoPreview" src="" style="display:none; width:100%; border-radius:8px; margin-bottom:12px; border:1px solid #334155;">
+
+    <div style="display:flex; gap:10px; margin-top:6px;">
+      <button onclick="closeTacticalPinModal()" style="flex:1; background:#334155; color:#fff; border:none; border-radius:8px; padding:10px; font-weight:700; cursor:pointer;">Cancelar</button>
+      <button onclick="saveTacticalPin()" style="flex:1; background:#0284c7; color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; cursor:pointer;">💾 Salvar Ponto</button>
+    </div>
+  </div>
+</div>
+
 <script>
     let currentPos = null;
     let mapRaios, mapNormal, mapRelevo, mapMedir;
@@ -746,6 +833,27 @@ body.nvg-red-mode .leaflet-tile-container img {
     let currentRoutePolyline = null;
     let mapBearing = 0;
     let weaponsCatalog = {};
+
+    // ===== SISTEMA DE PONTOS TÁTICOS (COP) =====
+    const TACTICAL_MARKER_TYPES = [
+      { id: 'sniper',    label: 'Sniper',     icon: 'icons/sniper.png',    dock: 'h' },
+      { id: 'target',    label: 'Alvo',       icon: 'icons/target.png',    dock: 'h' },
+      { id: 'priority',  label: 'Prioridade', icon: 'icons/priority.png',  dock: 'h' },
+      { id: 'patrol',    label: 'Patrulha',   icon: 'icons/patrol.png',    dock: 'h' },
+      { id: 'drone',     label: 'Drone',      icon: 'icons/drone.png',     dock: 'h' },
+      { id: 'armored',   label: 'Blindado',   icon: 'icons/armored.png',   dock: 'l' },
+      { id: 'barricade', label: 'Barricada',  icon: 'icons/barricade.png', dock: 'l' },
+      { id: 'aph',       label: 'Aph',        icon: 'icons/aph.png',       dock: 'l' },
+      { id: 'intel',     label: 'Intel',      icon: 'icons/intel.png',     dock: 'l' },
+      { id: 'seteira',   label: 'Seteira',    icon: 'icons/loophole.png',  dock: 'l' }
+    ];
+    let tacticalMarkers = {};
+    let tacticalLayerNormal = L.layerGroup();
+    let tacticalLayerRelevo = L.layerGroup();
+    let tacticalSocket = null;
+    let tacticalPendingPin = null;
+    let tacticalPendingPhotoFile = null;
+    let dockDragState = null;
 
     const API_URL = 'https://api.geosniper.com.br/api/calculate-ballistics';
 
@@ -882,6 +990,293 @@ function openTab(evt, tabName) {
       }
     }
 
+function getTacticalType(id) {
+  return TACTICAL_MARKER_TYPES.find(t => t.id === id) || { id, label: id, icon: 'icons/target.png' };
+}
+
+function initTacticalSocket() {
+  if (typeof io !== 'function') { console.warn('[COP] Socket.IO indisponível.'); return; }
+  tacticalSocket = io('https://api.geosniper.com.br');
+
+  tacticalSocket.on('init-tactical-markers', (rows) => {
+    tacticalMarkers = {};
+    (rows || []).forEach(r => { tacticalMarkers[r.id] = r; });
+    refreshTacticalMarkersUI();
+  });
+
+  tacticalSocket.on('tactical-pin-added', (pin) => {
+    tacticalMarkers[pin.id] = pin;
+    refreshTacticalMarkersUI();
+  });
+
+  tacticalSocket.on('tactical-pin-updated', (patch) => {
+    if (tacticalMarkers[patch.id]) {
+      Object.assign(tacticalMarkers[patch.id], patch);
+    } else if (patch.id) {
+      tacticalMarkers[patch.id] = patch;
+    }
+    refreshTacticalMarkersUI();
+  });
+
+  tacticalSocket.on('tactical-pin-deleted', (id) => {
+    delete tacticalMarkers[id];
+    refreshTacticalMarkersUI();
+  });
+}
+
+function tacticalMarkerIcon(typeId) {
+  const t = getTacticalType(typeId);
+  return L.icon({ iconUrl: t.icon, iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -30] });
+}
+
+function tacticalPopupHtml(pin) {
+  const t = getTacticalType(pin.type);
+  const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '';
+  const photo = pin.photoUrl
+    ? `<img src="${pin.photoUrl}" style="width:100%; border-radius:6px; margin-top:6px; border:1px solid #334155; cursor:pointer;" onclick="window.open('${pin.photoUrl}', '_blank')">`
+    : '';
+  return `
+    <div style="min-width:170px; max-width:220px;">
+      <b style="color:#38bdf8;">${t.label}${pin.label && pin.label !== t.label ? ' — ' + pin.label : ''}</b><br>
+      ${pin.observation ? `<div style="font-size:12px; color:#cbd5e1; margin-top:4px;">${pin.observation}</div>` : ''}
+      <div style="font-size:10px; color:#64748b; margin-top:6px;">${pin.operator || ''}${when ? ' · ' + when : ''}</div>
+      ${photo}
+      <button onclick="deleteTacticalMarker('${pin.id}')" style="margin-top:8px; width:100%; background:#7f1d1d; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir</button>
+    </div>
+  `;
+}
+
+function refreshTacticalMarkersUI() {
+  tacticalLayerNormal.clearLayers();
+  tacticalLayerRelevo.clearLayers();
+
+  Object.values(tacticalMarkers).forEach(pin => {
+    if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
+    const icon = tacticalMarkerIcon(pin.type);
+    L.marker([pin.lat, pin.lng], { icon }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
+    L.marker([pin.lat, pin.lng], { icon }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
+  });
+
+  renderTacticalMarkersTable();
+}
+
+function renderTacticalMarkersTable() {
+  const tbody = document.getElementById('tacticalMarkersTableBody');
+  if (!tbody) return;
+
+  const rows = Object.values(tacticalMarkers).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:16px; text-align:center; color:#64748b;">Nenhum ponto tático registrado ainda.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(pin => {
+    const t = getTacticalType(pin.type);
+    const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '-';
+    const photo = pin.photoUrl
+      ? `<img src="${pin.photoUrl}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="window.open('${pin.photoUrl}', '_blank')">`
+      : '<span style="color:#475569;">—</span>';
+    return `
+      <tr style="border-bottom:1px solid #1e293b;">
+        <td style="padding:8px; white-space:nowrap;"><img src="${t.icon}" style="width:20px; height:20px; vertical-align:middle; margin-right:4px;">${t.label}</td>
+        <td style="padding:8px; color:#e2e8f0;">${pin.label || '-'}</td>
+        <td style="padding:8px; color:#94a3b8; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.observation || '-'}</td>
+        <td style="padding:8px; color:#94a3b8;">${pin.operator || '-'}</td>
+        <td style="padding:8px; color:#64748b; font-size:11px; white-space:nowrap;">${when}</td>
+        <td style="padding:8px; text-align:center;">${photo}</td>
+        <td style="padding:8px; text-align:center; white-space:nowrap;">
+          <button onclick="focusTacticalMarker('${pin.id}')" title="Ver no mapa" style="background:#0284c7; color:#fff; border:none; border-radius:4px; padding:5px 8px; margin-right:4px; cursor:pointer; font-size:12px;">📍</button>
+          <button onclick="deleteTacticalMarker('${pin.id}')" title="Excluir" style="background:#7f1d1d; color:#fff; border:none; border-radius:4px; padding:5px 8px; cursor:pointer; font-size:12px;">🗑️</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function focusTacticalMarker(id) {
+  const pin = tacticalMarkers[id];
+  if (!pin || !mapRelevo) return;
+  openTab(null, 'tabRelevo');
+  setTimeout(() => { mapRelevo.setView([pin.lat, pin.lng], 18); }, 150);
+}
+
+function deleteTacticalMarker(id) {
+  if (!confirm('Excluir este ponto tático?')) return;
+  fetch(`https://api.geosniper.com.br/api/admin/markers/${id}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(() => {
+      delete tacticalMarkers[id];
+      refreshTacticalMarkersUI();
+    })
+    .catch(err => {
+      console.error('Erro ao excluir ponto tático:', err);
+      alert('Erro ao excluir ponto. Verifique a conexão com o servidor.');
+    });
+}
+
+function dockIconHtml(t) {
+  return `
+    <div class="dock-icon-item" data-type="${t.id}">
+      <img src="${t.icon}" alt="${t.label}" draggable="false">
+      <span>${t.label}</span>
+    </div>
+  `;
+}
+
+function renderIconDocks() {
+  const hDock = document.getElementById('tacticalDockHorizontal');
+  const lDock = document.getElementById('tacticalDockLateral');
+  if (!hDock || !lDock) return;
+
+  hDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'h').map(dockIconHtml).join('');
+  lDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'l').map(dockIconHtml).join('');
+
+  document.querySelectorAll('.dock-icon-item').forEach(el => {
+    el.addEventListener('pointerdown', onDockIconPointerDown);
+  });
+}
+
+function onDockIconPointerDown(e) {
+  e.preventDefault();
+  const el = e.currentTarget;
+  const typeId = el.getAttribute('data-type');
+  const t = getTacticalType(typeId);
+
+  try { el.setPointerCapture(e.pointerId); } catch (err) {}
+
+  const ghost = document.createElement('div');
+  ghost.className = 'dock-drag-ghost';
+  ghost.innerHTML = `<img src="${t.icon}" style="width:40px; height:40px;">`;
+  document.body.appendChild(ghost);
+
+  dockDragState = { typeId, ghost, pointerId: e.pointerId, el };
+  moveGhost(e.clientX, e.clientY);
+
+  el.addEventListener('pointermove', onDockDragMove);
+  el.addEventListener('pointerup', onDockDragEnd);
+  el.addEventListener('pointercancel', onDockDragCancel);
+}
+
+function moveGhost(x, y) {
+  if (!dockDragState) return;
+  dockDragState.ghost.style.left = x + 'px';
+  dockDragState.ghost.style.top = y + 'px';
+}
+
+function onDockDragMove(e) {
+  if (!dockDragState || e.pointerId !== dockDragState.pointerId) return;
+  moveGhost(e.clientX, e.clientY);
+}
+
+function cleanupDockDrag() {
+  if (!dockDragState) return;
+  const { el, ghost, pointerId } = dockDragState;
+  el.removeEventListener('pointermove', onDockDragMove);
+  el.removeEventListener('pointerup', onDockDragEnd);
+  el.removeEventListener('pointercancel', onDockDragCancel);
+  try { el.releasePointerCapture(pointerId); } catch (err) {}
+  ghost.remove();
+}
+
+function onDockDragCancel(e) {
+  if (!dockDragState || e.pointerId !== dockDragState.pointerId) return;
+  cleanupDockDrag();
+  dockDragState = null;
+}
+
+function onDockDragEnd(e) {
+  if (!dockDragState || e.pointerId !== dockDragState.pointerId) return;
+  const { typeId } = dockDragState;
+  cleanupDockDrag();
+  dockDragState = null;
+
+  const mapEl = document.getElementById('mapNormal');
+  if (!mapEl || !mapNormal) return;
+  const rect = mapEl.getBoundingClientRect();
+
+  if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+    return;
+  }
+
+  const point = L.point(e.clientX - rect.left, e.clientY - rect.top);
+  const latlng = mapNormal.containerPointToLatLng(point);
+  openTacticalPinModal(typeId, latlng.lat, latlng.lng);
+}
+
+function openTacticalPinModal(typeId, lat, lng) {
+  const t = getTacticalType(typeId);
+  tacticalPendingPin = { type: typeId, lat, lng };
+  tacticalPendingPhotoFile = null;
+
+  document.getElementById('tacticalPinModalIcon').src = t.icon;
+  document.getElementById('tacticalPinModalTypeLabel').innerText = t.label;
+  document.getElementById('tacticalPinLabel').value = t.label;
+  document.getElementById('tacticalPinObservation').value = '';
+  document.getElementById('tacticalPinPhotoPreview').style.display = 'none';
+  document.getElementById('tacticalPinPhotoInput').value = '';
+  document.getElementById('tacticalPinOperator').value = localStorage.getItem('geosniper_operator_name') || '';
+
+  document.getElementById('tacticalPinModal').style.display = 'flex';
+}
+
+function closeTacticalPinModal() {
+  document.getElementById('tacticalPinModal').style.display = 'none';
+  tacticalPendingPin = null;
+  tacticalPendingPhotoFile = null;
+}
+
+function onTacticalPinPhotoSelected(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  tacticalPendingPhotoFile = file;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const preview = document.getElementById('tacticalPinPhotoPreview');
+    preview.src = reader.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveTacticalPin() {
+  if (!tacticalPendingPin) return;
+
+  const operator = document.getElementById('tacticalPinOperator').value.trim() || 'Operador';
+  localStorage.setItem('geosniper_operator_name', operator);
+
+  const id = `PIN_${Date.now()}`;
+  const pinData = {
+    id,
+    type: tacticalPendingPin.type,
+    lat: tacticalPendingPin.lat,
+    lng: tacticalPendingPin.lng,
+    label: document.getElementById('tacticalPinLabel').value.trim() || getTacticalType(tacticalPendingPin.type).label,
+    observation: document.getElementById('tacticalPinObservation').value.trim(),
+    photoUrl: null,
+    operator
+  };
+
+  if (tacticalSocket) {
+    tacticalSocket.emit('new-tactical-pin', pinData);
+  }
+
+  if (tacticalPendingPhotoFile) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: reader.result, markerId: id })
+      }).catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
+    };
+    reader.readAsDataURL(tacticalPendingPhotoFile);
+  }
+
+  closeTacticalPinModal();
+}
+
 function initMaps(lat, lng) {
     currentPos = [lat, lng];
     const opIcon = createOperatorIcon();
@@ -901,13 +1296,15 @@ function initMaps(lat, lng) {
     mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]] }).setView(currentPos, 17);
     L.control.layers(layersNormal).addTo(mapNormal);
     markers.normal = L.marker(currentPos, { icon: opIcon }).addTo(mapNormal);
-    
+    tacticalLayerNormal.addTo(mapNormal);
+
     // 3. RELEVO
     const layersRelevo = createTileLayers();
     if (mapRelevo) mapRelevo.remove();
     mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Relevo"]] }).setView(currentPos, 17);
     L.control.layers(layersRelevo).addTo(mapRelevo);
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
+    tacticalLayerRelevo.addTo(mapRelevo);
 
     // 4. MEDIR
     const layersMedir = createTileLayers();
@@ -2066,6 +2463,9 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
 
       checkSharedPointFromURL();
 
+      initTacticalSocket();
+      renderIconDocks();
+
       const savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
       openTab(null, savedTab);
     });
@@ -2252,6 +2652,8 @@ async function runVelocityTruing() {
 </script>
 </body>
 </html>
+
+
 
 
 
