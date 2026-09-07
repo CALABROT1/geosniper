@@ -89,7 +89,8 @@
       display: flex; flex-direction: column; align-items: center; gap: 2px;
       width: 52px; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none;
     }
-    .dock-icon-item img { width: 34px; height: 34px; pointer-events: none; }
+    .dock-icon-item img { width: 34px; height: 34px; object-fit: contain; pointer-events: none; }
+    .tactical-marker-icon { object-fit: contain; }
     .dock-icon-item span { font-size: 9px; color: #cbd5e1; font-weight: 700; text-align: center; line-height: 1.1; white-space: nowrap; }
     .dock-drag-ghost {
       position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
@@ -836,16 +837,22 @@ body.nvg-red-mode .leaflet-tile-container img {
 
     // ===== SISTEMA DE PONTOS TÁTICOS (COP) =====
     const TACTICAL_MARKER_TYPES = [
-      { id: 'sniper',    label: 'Sniper',     icon: 'icons/sniper.png',    dock: 'h' },
-      { id: 'target',    label: 'Alvo',       icon: 'icons/target.png',    dock: 'h' },
-      { id: 'priority',  label: 'Prioridade', icon: 'icons/priority.png',  dock: 'h' },
-      { id: 'patrol',    label: 'Patrulha',   icon: 'icons/patrol.png',    dock: 'h' },
-      { id: 'drone',     label: 'Drone',      icon: 'icons/drone.png',     dock: 'h' },
+      // Dock horizontal
+      { id: 'radinhos',  label: 'Radinhos',   icon: 'icons/Radboca.png',   dock: 'h' },
+      { id: 'contencao', label: 'Contenção',  icon: 'icons/armas.png',     dock: 'h' },
+      { id: 'boca',      label: 'Boca',       icon: 'icons/boca.png',      dock: 'h' },
+      { id: 'bunker',    label: 'Bunker',     icon: 'icons/bunker.png',    dock: 'h' },
+      { id: 'seteira',   label: 'Seteira',    icon: 'icons/loophole.png',  dock: 'h' },
+      { id: 'barricade', label: 'Barricada',  icon: 'icons/barricade.png', dock: 'h' },
+      // Dock lateral
+      { id: 'sniper',    label: 'Sniper',     icon: 'icons/sniper.png',    dock: 'l' },
+      { id: 'target',    label: 'Alvo',       icon: 'icons/target.png',    dock: 'l' },
+      { id: 'priority',  label: 'Prioridade', icon: 'icons/priority.png',  dock: 'l' },
+      { id: 'patrol',    label: 'Patrulha',   icon: 'icons/patrol.png',    dock: 'l' },
+      { id: 'drone',     label: 'Drone',      icon: 'icons/drone.png',     dock: 'l' },
       { id: 'armored',   label: 'Blindado',   icon: 'icons/armored.png',   dock: 'l' },
-      { id: 'barricade', label: 'Barricada',  icon: 'icons/barricade.png', dock: 'l' },
-      { id: 'aph',       label: 'Aph',        icon: 'icons/aph.png',       dock: 'l' },
-      { id: 'intel',     label: 'Intel',      icon: 'icons/intel.png',     dock: 'l' },
-      { id: 'seteira',   label: 'Seteira',    icon: 'icons/loophole.png',  dock: 'l' }
+      { id: 'aph',       label: 'Aph',        icon: 'icons/APH.png',       dock: 'l' },
+      { id: 'intel',     label: 'Intel',      icon: 'icons/intel.png',     dock: 'l' }
     ];
     let tacticalMarkers = {};
     let tacticalLayerNormal = L.layerGroup();
@@ -1032,7 +1039,7 @@ function initTacticalSocket() {
 
 function tacticalMarkerIcon(typeId) {
   const t = getTacticalType(typeId);
-  return L.icon({ iconUrl: t.icon, iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -30] });
+  return L.icon({ iconUrl: t.icon, iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -30], className: 'tactical-marker-icon' });
 }
 
 function tacticalPopupHtml(pin) {
@@ -1184,7 +1191,7 @@ function onDockIconPointerDown(e) {
 
   const ghost = document.createElement('div');
   ghost.className = 'dock-drag-ghost';
-  ghost.innerHTML = `<img src="${t.icon}" style="width:40px; height:40px;">`;
+  ghost.innerHTML = `<img src="${t.icon}" style="width:40px; height:40px; object-fit:contain;">`;
   document.body.appendChild(ghost);
 
   dockDragState = { typeId, ghost, pointerId: e.pointerId, el };
@@ -2740,6 +2747,8 @@ async function runVelocityTruing() {
 </script>
 </body>
 </html>
+
+
 
 
 
