@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>GeoSniper — Painel de Acesso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root {
+    --bg: #15160f;
+    --surface: #1d1f16;
+    --surface-2: #262820;
+    --surface-3: #2f3227;
+    --line: #3a3d2e;
+    --ink: #e9e4d2;
+    --muted: #93927c;
+    --accent: #c39a4f;
+    --accent-dim: #9c7c3f;
+    --action: #3a6996;
+    --action-dim: #294b6b;
+    --sem-hostile: #c1483d;
+    --sem-good: #748f5f;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body, html { margin: 0; padding: 0; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  header .brand { font-weight: 800; letter-spacing: 0.5px; }
+  header .brand span { color: var(--accent); }
+  header .status { font-size: 12px; color: var(--muted); }
+  header .status b { color: var(--sem-good); }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: var(--accent);
+  }
+  .card .hint {
+    margin: 0 0 16px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
+  input[type="text"], input[type="password"], select {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .row > div { flex: 1; min-width: 160px; }
+
+  button {
+    background: var(--action);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--action-dim); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.danger { background: var(--sem-hostile); }
+  button.danger:hover { background: #8f342c; }
+  button.ghost { background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); }
+  button.ghost:hover { background: var(--surface-3); }
+  button.small { padding: 6px 10px; font-size: 12px; }
+
+  .error-msg { color: var(--sem-hostile); font-size: 12.5px; margin-top: 8px; min-height: 14px; }
+  .ok-msg { color: var(--sem-good); font-size: 12.5px; margin-top: 8px; min-height: 14px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .code-pill {
+    font-family: var(--font-mono);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .code-pill:hover { border-color: var(--accent); }
+
+  .tag {
+    display: inline-block;
+    background: var(--surface-3);
+    color: var(--ink);
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin: 2px 3px 2px 0;
+  }
+  .tag.all { background: var(--action-dim); color: #dfe9f4; }
+
+  .switch { position: relative; display: inline-block; width: 38px; height: 21px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background: var(--surface-3); border-radius: 21px; transition: .15s; border: 1px solid var(--line); }
+  .slider:before { position: absolute; content: ""; height: 15px; width: 15px; left: 2px; top: 2px; background: var(--muted); border-radius: 50%; transition: .15s; }
+  input:checked + .slider { background: var(--sem-good); border-color: var(--sem-good); }
+  input:checked + .slider:before { transform: translateX(17px); background: #fff; }
+
+  .perm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px 14px;
+    margin: 10px 0 14px;
+  }
+  .perm-grid label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .perm-grid input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); }
+
+  .empty-state { color: var(--muted); font-size: 13px; padding: 10px 0; }
+
+  .overflow-x { overflow-x: auto; }
+
+  #gateScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #gateScreen .card { max-width: 340px; text-align: center; width: 100%; }
+
+  .hidden { display: none !important; }
+
+  .op-row-edit {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+
+  footer { text-align: center; color: var(--muted); font-size: 11.5px; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div id="gateScreen">
+  <div class="card">
+    <h2 style="margin-bottom:4px;">GeoSniper — Painel</h2>
+    <p class="hint">Digite a chave de administrador pra gerenciar unidades e operadores.</p>
+    <label for="adminKeyInput">Chave de administrador</label>
+    <input type="password" id="adminKeyInput" autocomplete="off" onkeydown="if(event.key==='Enter') unlockAdmin();">
+    <div style="margin-top:12px;"><button onclick="unlockAdmin()" style="width:100%;">ENTRAR</button></div>
+    <div class="error-msg" id="gateError"></div>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden">
+  <header>
+    <div class="brand">GEOSNIPER <span>· PAINEL</span></div>
+    <div class="status">Conectado como admin em <b id="apiBaseLabel" class="mono"></b> · <a href="#" onclick="lockAdmin(); return false;" style="color:var(--muted);">sair</a></div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Unidades</h2>
+      <p class="hint">Cada unidade é uma equipe/grupo com dados totalmente isolados (pontos táticos, desenhos, operadores). Crie uma unidade nova aqui antes de cadastrar operadores nela.</p>
+
+      <div class="overflow-x">
+        <table id="unitsTable">
+          <thead><tr><th>Nome</th><th>Código</th><th>Criada em</th></tr></thead>
+          <tbody id="unitsTableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="unitsEmpty">Nenhuma unidade cadastrada ainda.</div>
+
+      <div class="row" style="margin-top:16px; border-top:1px solid var(--line); padding-top:16px;">
+        <div>
+          <label for="newUnitName">Nome da nova unidade</label>
+          <input type="text" id="newUnitName" placeholder="Ex: Equipe Águia">
+        </div>
+        <div style="flex:0 0 auto;">
+          <button onclick="createUnit()" id="createUnitBtn">CRIAR UNIDADE</button>
+        </div>
+      </div>
+      <div class="error-msg" id="unitFormError"></div>
+      <div class="ok-msg" id="unitFormOk"></div>
+    </section>
+
+    <section class="card">
+      <h2>Operadores</h2>
+      <p class="hint">Cada operador tem um código de acesso individual (não é usuário/senha) e uma lista de abas que ele pode ver no app. Escolha a unidade pra ver e cadastrar operadores dela.</p>
+
+      <label for="unitSelect">Unidade</label>
+      <select id="unitSelect" onchange="loadOperators()"></select>
+
+      <div class="overflow-x" style="margin-top:14px;">
+        <table id="operatorsTable">
+          <thead><tr><th>Nome</th><th>Código</th><th>Abas liberadas</th><th>Ativo</th><th></th></tr></thead>
+          <tbody id="operatorsTableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="operatorsEmpty">Nenhum operador cadastrado nessa unidade ainda.</div>
+
+      <div style="margin-top:16px; border-top:1px solid var(--line); padding-top:16px;">
+        <label for="newOperatorName">Nome do novo operador</label>
+        <input type="text" id="newOperatorName" placeholder="Ex: João Silva">
+
+        <label style="margin-top:12px;">Abas liberadas (nenhuma marcada = libera todas)</label>
+        <div class="perm-grid" id="newOperatorPerms"></div>
+
+        <button onclick="createOperator()" id="createOperatorBtn">CADASTRAR OPERADOR</button>
+        <div class="error-msg" id="operatorFormError"></div>
+        <div class="ok-msg" id="operatorFormOk"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>GeoSniper COP — uso interno, restrito a quem tem a chave de administrador.</footer>
+</div>
+
+<script>
+const API_BASE = 'https://api.geosniper.com.br';
+
+const TAB_LABELS = {
+  tabBalistica: 'Balística',
+  tabEquipamento: 'Equipamento',
+  tabMedir: 'Medir',
+  tabRaios: 'Raios',
+  tabRelevo: 'Pontos',
+  tabNormal: 'Marker'
+};
+const ALL_TABS = Object.keys(TAB_LABELS);
+
+let unitsCache = [];
+
+function getAdminKey() {
+  return sessionStorage.getItem('geosniper_admin_key') || '';
+}
+
+function adminHeaders(extra) {
+  return Object.assign({ 'x-admin-key': getAdminKey() }, extra || {});
+}
+
+async function unlockAdmin() {
+  const input = document.getElementById('adminKeyInput');
+  const err = document.getElementById('gateError');
+  const key = (input.value || '').trim();
+  err.textContent = '';
+  if (!key) { err.textContent = 'Digite a chave.'; return; }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/units`, { headers: { 'x-admin-key': key } });
+    if (res.status === 401) { err.textContent = 'Chave inválida.'; return; }
+    if (!res.ok) { err.textContent = 'Não foi possível conectar ao servidor.'; return; }
+    sessionStorage.setItem('geosniper_admin_key', key);
+    document.getElementById('gateScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('apiBaseLabel').textContent = API_BASE.replace('https://', '');
+    await refreshUnits();
+  } catch (e) {
+    err.textContent = 'Sem conexão com o servidor. Tente novamente.';
+  }
+}
+
+function lockAdmin() {
+  sessionStorage.removeItem('geosniper_admin_key');
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('gateScreen').classList.remove('hidden');
+  document.getElementById('adminKeyInput').value = '';
+}
+
+// Se a chave já estava salva nessa aba (sessionStorage sobrevive a reload),
+// entra direto sem pedir de novo.
+window.addEventListener('DOMContentLoaded', () => {
+  if (getAdminKey()) {
+    document.getElementById('gateScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('apiBaseLabel').textContent = API_BASE.replace('https://', '');
+    refreshUnits();
+  }
+  buildPermCheckboxes();
+});
+
+function buildPermCheckboxes() {
+  const wrap = document.getElementById('newOperatorPerms');
+  wrap.innerHTML = ALL_TABS.map(tab => `
+    <label><input type="checkbox" class="new-op-perm" value="${tab}"> ${TAB_LABELS[tab]}</label>
+  `).join('');
+}
+
+function fmtDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return iso || ''; }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard?.writeText(text).catch(() => {});
+}
+
+// ===== UNIDADES =====
+async function refreshUnits() {
+  const res = await fetch(`${API_BASE}/api/admin/units`, { headers: adminHeaders() });
+  if (res.status === 401) { lockAdmin(); return; }
+  const rows = await res.json().catch(() => []);
+  unitsCache = rows || [];
+
+  const tbody = document.getElementById('unitsTableBody');
+  const empty = document.getElementById('unitsEmpty');
+  if (!unitsCache.length) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    tbody.innerHTML = unitsCache.map(u => `
+      <tr>
+        <td>${escapeHtml(u.name)}</td>
+        <td><span class="code-pill mono" onclick="copyToClipboard('${u.code}')" title="Clique pra copiar">${u.code}</span></td>
+        <td class="mono">${fmtDate(u.created_at)}</td>
+      </tr>
+    `).join('');
+  }
+
+  const select = document.getElementById('unitSelect');
+  const prevValue = select.value;
+  select.innerHTML = unitsCache.map(u => `<option value="${u.code}">${escapeHtml(u.name)} (${u.code})</option>`).join('');
+  if (prevValue && unitsCache.some(u => u.code === prevValue)) select.value = prevValue;
+
+  if (unitsCache.length) await loadOperators();
+}
+
+async function createUnit() {
+  const input = document.getElementById('newUnitName');
+  const btn = document.getElementById('createUnitBtn');
+  const err = document.getElementById('unitFormError');
+  const ok = document.getElementById('unitFormOk');
+  err.textContent = ''; ok.textContent = '';
+  const name = (input.value || '').trim();
+  if (!name) { err.textContent = 'Digite o nome da unidade.'; return; }
+
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/units`, {
+      method: 'POST',
+      headers: adminHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) { err.textContent = data.error || 'Erro ao criar unidade.'; return; }
+    ok.textContent = `Unidade criada! Código: ${data.code}`;
+    input.value = '';
+    await refreshUnits();
+  } catch (e) {
+    err.textContent = 'Sem conexão com o servidor.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ===== OPERADORES =====
+async function loadOperators() {
+  const unitCode = document.getElementById('unitSelect').value;
+  const tbody = document.getElementById('operatorsTableBody');
+  const empty = document.getElementById('operatorsEmpty');
+  if (!unitCode) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+
+  const res = await fetch(`${API_BASE}/api/admin/operators?unitCode=${encodeURIComponent(unitCode)}`, { headers: adminHeaders() });
+  if (res.status === 401) { lockAdmin(); return; }
+  const rows = await res.json().catch(() => []);
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = rows.map(op => renderOperatorRow(op)).join('');
+}
+
+function renderOperatorRow(op) {
+  const isAll = op.permissions.length === ALL_TABS.length;
+  const tagsHtml = isAll
+    ? `<span class="tag all">Todas as abas</span>`
+    : op.permissions.map(t => `<span class="tag">${TAB_LABELS[t] || t}</span>`).join('');
+
+  return `
+    <tr id="op-row-${op.code}">
+      <td>${escapeHtml(op.name)}</td>
+      <td><span class="code-pill mono" onclick="copyToClipboard('${op.code}')" title="Clique pra copiar">${op.code}</span></td>
+      <td>${tagsHtml}</td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" ${op.active ? 'checked' : ''} onchange="toggleOperatorActive('${op.code}', this.checked)">
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td style="white-space:nowrap;">
+        <button class="ghost small" onclick="toggleEditPerms('${op.code}')">Editar abas</button>
+        <button class="danger small" onclick="deleteOperator('${op.code}')">Excluir</button>
+      </td>
+    </tr>
+    <tr id="op-edit-${op.code}" class="hidden">
+      <td colspan="5">
+        <div class="op-row-edit">
+          <div class="perm-grid" id="edit-perms-${op.code}">
+            ${ALL_TABS.map(tab => `
+              <label><input type="checkbox" value="${tab}" ${op.permissions.includes(tab) ? 'checked' : ''}> ${TAB_LABELS[tab]}</label>
+            `).join('')}
+          </div>
+          <button onclick="saveOperatorPerms('${op.code}')">SALVAR ABAS</button>
+          <button class="ghost" onclick="toggleEditPerms('${op.code}')">CANCELAR</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function toggleEditPerms(code) {
+  const row = document.getElementById(`op-edit-${code}`);
+  row.classList.toggle('hidden');
+}
+
+async function saveOperatorPerms(code) {
+  const wrap = document.getElementById(`edit-perms-${code}`);
+  const checked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map(c => c.value);
+  const res = await fetch(`${API_BASE}/api/admin/operators/${encodeURIComponent(code)}`, {
+    method: 'PATCH',
+    headers: adminHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ permissions: checked })
+  });
+  if (res.ok) await loadOperators();
+}
+
+async function toggleOperatorActive(code, active) {
+  await fetch(`${API_BASE}/api/admin/operators/${encodeURIComponent(code)}`, {
+    method: 'PATCH',
+    headers: adminHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ active })
+  });
+}
+
+async function deleteOperator(code) {
+  if (!confirm('Remover este operador? O código dele deixa de funcionar imediatamente.')) return;
+  const res = await fetch(`${API_BASE}/api/admin/operators/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
+    headers: adminHeaders()
+  });
+  if (res.ok) await loadOperators();
+}
+
+async function createOperator() {
+  const unitCode = document.getElementById('unitSelect').value;
+  const nameInput = document.getElementById('newOperatorName');
+  const btn = document.getElementById('createOperatorBtn');
+  const err = document.getElementById('operatorFormError');
+  const ok = document.getElementById('operatorFormOk');
+  err.textContent = ''; ok.textContent = '';
+
+  if (!unitCode) { err.textContent = 'Crie ou selecione uma unidade primeiro.'; return; }
+  const name = (nameInput.value || '').trim();
+  if (!name) { err.textContent = 'Digite o nome do operador.'; return; }
+
+  const permissions = Array.from(document.querySelectorAll('.new-op-perm:checked')).map(c => c.value);
+
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/operators`, {
+      method: 'POST',
+      headers: adminHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ unitCode, name, permissions })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) { err.textContent = data.error || 'Erro ao cadastrar operador.'; return; }
+    ok.textContent = `Operador cadastrado! Código dele: ${data.code} (copiado pra área de transferência)`;
+    copyToClipboard(data.code);
+    nameInput.value = '';
+    document.querySelectorAll('.new-op-perm').forEach(c => c.checked = false);
+    await loadOperators();
+  } catch (e) {
+    err.textContent = 'Sem conexão com o servidor.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
