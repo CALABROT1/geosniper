@@ -194,10 +194,11 @@
     /* Rótulo do dock horizontal fica FORA da barra, embaixo dela — mostra
        sempre o nome do ícone que está centralizado no momento (atualizado
        junto com o "dock-center" em updateCenterCard). Assim o cartão não
-       precisa mais reservar espaço pro texto e o ícone pode crescer. Como o
-       botão de minimizar saiu da linha de setas (agora flutua à parte, ver
-       .dock-toggle-btn-h), a linha de setas fica simétrica e esse rótulo
-       centraliza de verdade embaixo do dock — não da linha inteira. */
+       precisa mais reservar espaço pro texto e o ícone pode crescer. O botão
+       de minimizar fica nessa mesma linha de baixo, ao lado do rótulo — não
+       mais flutuando por cima (ali colidia com o dock vertical, que fica no
+       mesmo canto da tela). */
+    .tactical-dock-h-bottom-row { display: flex; align-items: center; gap: 8px; }
     .dock-h-label {
       background: rgba(15,23,42,0.92); border: 1px solid var(--line); border-radius: 8px;
       padding: 3px 12px; font-size: 11px; font-weight: 800; color: var(--accent);
@@ -241,10 +242,9 @@
     .dock-arrow:active { background: var(--action); color: #fff; }
     .dock-arrow-l { transform: rotate(90deg); }
     /* Botão de minimizar/abrir — quadrado. No dock vertical fica DENTRO da
-       própria barra (junto das setas), sempre visível contra o fundo escuro.
-       No dock horizontal (.dock-toggle-btn-h) ele flutua fora da linha de
-       setas, num canto — assim a linha de setas fica simétrica (o rótulo
-       centraliza certo embaixo) e o dock ganha mais espaço pra crescer. */
+       própria barra (junto das setas). No dock horizontal fica na linha de
+       baixo, ao lado do rótulo (não mais flutuando por cima — ali colidia
+       com o dock vertical, que ocupa o mesmo canto da tela). */
     .dock-toggle-btn {
       flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line);
       background: rgba(15,23,42,0.92); color: var(--accent); font-size: 16px; line-height: 1;
@@ -252,7 +252,6 @@
       padding: 0; user-select: none; -webkit-user-select: none;
     }
     .dock-toggle-btn:active { background: var(--action); color: #fff; }
-    .dock-toggle-btn-h { position: absolute; top: -38px; right: 0; z-index: 901; }
     .tactical-dock-wrap.collapsed .tactical-dock-horizontal,
     .tactical-dock-wrap.collapsed .tactical-dock-lateral,
     .tactical-dock-wrap.collapsed .dock-arrow,
@@ -848,13 +847,15 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
   </div>
   <div class="tactical-dock-wrap tactical-dock-wrap-h">
-    <button type="button" class="dock-toggle-btn dock-toggle-btn-h" data-dock-toggle aria-label="Minimizar dock de meios">▾</button>
     <div class="tactical-dock-h-row">
       <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockHorizontal" data-dir="-1" aria-label="Rolar para o início">‹</button>
       <div id="tacticalDockHorizontal" class="tactical-dock-horizontal"></div>
       <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockHorizontal" data-dir="1" aria-label="Rolar para o fim">›</button>
     </div>
-    <div class="dock-h-label" id="tacticalDockHorizontalLabel">—</div>
+    <div class="tactical-dock-h-bottom-row">
+      <div class="dock-h-label" id="tacticalDockHorizontalLabel">—</div>
+      <button type="button" class="dock-toggle-btn" data-dock-toggle aria-label="Minimizar dock de meios">▾</button>
+    </div>
   </div>
   <div class="tactical-dock-wrap tactical-dock-wrap-l">
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-up" data-dock="tacticalDockLateral" data-dir="-1" aria-label="Rolar para cima">‹</button>
