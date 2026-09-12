@@ -177,19 +177,41 @@
     /* Wrapper de cada dock = posicionamento na tela (absolute) + halo + setas.
        O dock em si (scroll) vira um filho flex comum, sem position própria. */
     .tactical-dock-wrap-h {
-      position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%);
-      display: flex; align-items: center; gap: 4px; z-index: 900; max-width: 94%;
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 900; max-width: 94%;
     }
+    .tactical-dock-h-row { display: flex; align-items: center; gap: 4px; max-width: 100%; }
     .tactical-dock-wrap-l {
       position: absolute; top: 70px; right: 8px;
       display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 900;
-      max-height: 84%;
+      max-height: 69%;
     }
     .tactical-dock-horizontal {
       display: flex; gap: 10px; background: rgba(15,23,42,0.92); border: 1px solid var(--line);
-      border-radius: 14px; padding: 8px 12px; overflow-x: auto; scroll-behavior: smooth;
+      border-radius: 14px; padding: 9px 13px; overflow-x: auto; scroll-behavior: smooth;
       scroll-snap-type: x proximity; position: relative; min-width: 0;
     }
+    /* Rótulo do dock horizontal fica FORA da barra, embaixo dela — mostra
+       sempre o nome do ícone que está centralizado no momento (atualizado
+       junto com o "dock-center" em updateCenterCard). Assim o cartão não
+       precisa mais reservar espaço pro texto e o ícone pode crescer. Como o
+       botão de minimizar saiu da linha de setas (agora flutua à parte, ver
+       .dock-toggle-btn-h), a linha de setas fica simétrica e esse rótulo
+       centraliza de verdade embaixo do dock — não da linha inteira. */
+    .dock-h-label {
+      background: rgba(15,23,42,0.92); border: 1px solid var(--line); border-radius: 8px;
+      padding: 3px 12px; font-size: 11px; font-weight: 800; color: var(--accent);
+      letter-spacing: 0.4px; text-transform: uppercase; white-space: nowrap;
+      pointer-events: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tactical-dock-horizontal .dock-icon-item span { display: none; }
+    .tactical-dock-horizontal .dock-icon-item img { width: 46px; height: 46px; }
+    .tactical-dock-horizontal .dock-icon-item { width: 64px; }
+    /* Dock vertical (riscos): ícones 15% maiores, rótulo um pouco menor e
+       mais espaço entre os cartões pra caberem confortavelmente. */
+    .tactical-dock-lateral .dock-icon-item img { width: 35px; height: 35px; }
+    .tactical-dock-lateral .dock-icon-item span { font-size: 8px; }
+    .tactical-dock-lateral .dock-icon-item { width: 58px; }
     /* Atribuição do Leaflet (Leaflet | © OpenStreetMap / Mapbox / Maxar) — bem menor
        e discreta, pra não brigar visualmente com o dock horizontal logo acima dela. */
     .leaflet-control-attribution {
@@ -198,43 +220,50 @@
     }
     .leaflet-control-attribution a { color: rgba(255,255,255,0.75) !important; }
     .tactical-dock-lateral {
-      display: flex; flex-direction: column; gap: 7px; background: rgba(15,23,42,0.92);
+      display: flex; flex-direction: column; gap: 10px; background: rgba(15,23,42,0.92);
       border: 1px solid var(--line); border-radius: 14px; padding: 8px 7px;
-      overflow-y: auto; scroll-behavior: smooth; scroll-snap-type: y proximity;
+      overflow-y: auto; scroll-snap-type: y proximity;
       position: relative; min-height: 0; flex: 1 1 auto;
-      scrollbar-width: thin; scrollbar-color: var(--accent) rgba(255,255,255,0.1);
+      scrollbar-width: none;
     }
-    .tactical-dock-lateral::-webkit-scrollbar { width: 5px; }
-    .tactical-dock-lateral::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 3px; }
-    .tactical-dock-lateral::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
-    /* Setas de navegação — os cartões não dão pra "arrastar pra rolar" porque
-       o próprio toque neles já inicia o drag de colocar o ícone no mapa
-       (onDockIconPointerDown), então rolar o dock só funciona pelas setas. */
+    .tactical-dock-lateral::-webkit-scrollbar { display: none; }
+    /* Setas de navegação — quadradas (não mais redondas) e grandes pra ficarem
+       fáceis de tocar. Rolar arrastando o dedo direto nos ícones também
+       funciona (ver onDockIconPointerDown: um arraste ao longo do eixo do
+       dock rola; um arraste "pra fora" do dock solta o ícone no mapa) — as
+       setas continuam como alternativa rápida e precisa. */
     .dock-arrow {
-      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line);
-      background: rgba(15,23,42,0.92); color: var(--accent); font-size: 16px; line-height: 1;
+      flex-shrink: 0; width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--line);
+      background: rgba(15,23,42,0.92); color: var(--accent); font-size: 25px; line-height: 1;
       font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center;
       padding: 0; user-select: none; -webkit-user-select: none;
     }
     .dock-arrow:active { background: var(--action); color: #fff; }
     .dock-arrow-l { transform: rotate(90deg); }
-    /* Halo dourado atrás de cada dock — identidade "Equipe Falcão" */
-    .falcon-halo {
-      position: absolute; pointer-events: none; z-index: -1;
-      background: radial-gradient(circle, rgba(255,215,0,0.5), transparent 72%);
-      filter: blur(16px); opacity: 0.75;
-      animation: falconGlow 3s infinite alternate ease-in-out;
+    /* Botão de minimizar/abrir — quadrado. No dock vertical fica DENTRO da
+       própria barra (junto das setas), sempre visível contra o fundo escuro.
+       No dock horizontal (.dock-toggle-btn-h) ele flutua fora da linha de
+       setas, num canto — assim a linha de setas fica simétrica (o rótulo
+       centraliza certo embaixo) e o dock ganha mais espaço pra crescer. */
+    .dock-toggle-btn {
+      flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line);
+      background: rgba(15,23,42,0.92); color: var(--accent); font-size: 16px; line-height: 1;
+      font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      padding: 0; user-select: none; -webkit-user-select: none;
     }
-    .falcon-halo-h { width: 240px; height: 90px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-    .falcon-halo-l { width: 90px; height: 220px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-    @keyframes falconGlow { from { opacity: 0.45; } to { opacity: 0.85; } }
+    .dock-toggle-btn:active { background: var(--action); color: #fff; }
+    .dock-toggle-btn-h { position: absolute; top: -38px; right: 0; z-index: 901; }
+    .tactical-dock-wrap.collapsed .tactical-dock-horizontal,
+    .tactical-dock-wrap.collapsed .tactical-dock-lateral,
+    .tactical-dock-wrap.collapsed .dock-arrow,
+    .tactical-dock-wrap.collapsed .dock-h-label { display: none; }
     .dock-icon-item {
       display: flex; flex-direction: column; align-items: center; gap: 2px;
       width: 52px; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none;
       overflow: hidden; flex-shrink: 0; scroll-snap-align: center;
       transition: transform .22s ease, box-shadow .22s ease; border-radius: 10px;
     }
-    .dock-icon-item.dock-center { transform: scale(1.16); box-shadow: 0 0 14px rgba(255,215,0,0.55); z-index: 2; }
+    .dock-icon-item.dock-center { transform: scale(1.5); box-shadow: 0 0 16px rgba(255,215,0,0.6); z-index: 2; }
     .dock-icon-item img { width: 30px; height: 30px; object-fit: contain; pointer-events: none; flex-shrink: 0; }
     .tactical-marker-icon { object-fit: contain; }
     .tactical-marker-divicon { background: transparent; border: none; }
@@ -819,16 +848,19 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
   </div>
   <div class="tactical-dock-wrap tactical-dock-wrap-h">
-    <div class="falcon-halo falcon-halo-h"></div>
-    <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockHorizontal" data-dir="-1" aria-label="Rolar para o início">‹</button>
-    <div id="tacticalDockHorizontal" class="tactical-dock-horizontal"></div>
-    <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockHorizontal" data-dir="1" aria-label="Rolar para o fim">›</button>
+    <button type="button" class="dock-toggle-btn dock-toggle-btn-h" data-dock-toggle aria-label="Minimizar dock de meios">▾</button>
+    <div class="tactical-dock-h-row">
+      <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockHorizontal" data-dir="-1" aria-label="Rolar para o início">‹</button>
+      <div id="tacticalDockHorizontal" class="tactical-dock-horizontal"></div>
+      <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockHorizontal" data-dir="1" aria-label="Rolar para o fim">›</button>
+    </div>
+    <div class="dock-h-label" id="tacticalDockHorizontalLabel">—</div>
   </div>
   <div class="tactical-dock-wrap tactical-dock-wrap-l">
-    <div class="falcon-halo falcon-halo-l"></div>
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-up" data-dock="tacticalDockLateral" data-dir="-1" aria-label="Rolar para cima">‹</button>
     <div id="tacticalDockLateral" class="tactical-dock-lateral"></div>
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-down" data-dock="tacticalDockLateral" data-dir="1" aria-label="Rolar para baixo">›</button>
+    <button type="button" class="dock-toggle-btn" data-dock-toggle aria-label="Minimizar dock de riscos">▾</button>
   </div>
 </div>
 <div id="tabRelevo" class="tab-content">
@@ -1808,7 +1840,13 @@ body.nvg-red-mode .leaflet-tile-container img {
 
       const group = document.createElement('div');
       group.id = 'normalCompassGroup';
-      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:1200; display:flex; align-items:center; gap:6px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:5px 8px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      // z-index ABAIXO dos controles nativos do Leaflet (zoom, seletor de
+      // camadas — z-index:1000, ver comentário em ensureCompassOverlay) —
+      // aqui, diferente da bússola da aba Medir, é de propósito: essa caixa
+      // fica bem no topo-centro da tela, exatamente onde o menu de camadas
+      // se expande, então ela precisa ficar POR BAIXO do menu quando ele
+      // abre, não por cima.
+      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; align-items:center; gap:6px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:5px 8px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
         <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:26px; height:26px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
         <svg width="30" height="30" viewBox="0 0 48 48" style="flex-shrink:0;">
@@ -2674,7 +2712,11 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
       clearTimer();
       detachMove();
       if (dragging) {
-        el.classList.remove('tactical-marker-dragging');
+        // Usa o elemento ATUAL (o setIcon do início do arraste trocou o
+        // elemento antigo por um novo, maior) — não o "el" capturado lá em
+        // cima, que já não está mais na tela.
+        const currentEl = marker.getElement();
+        if (currentEl) currentEl.classList.remove('tactical-marker-dragging');
         const finalLatLng = marker.getLatLng();
         pin.lat = finalLatLng.lat;
         pin.lng = finalLatLng.lng;
@@ -2710,7 +2752,20 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
 
       timer = setTimeout(() => {
         dragging = true;
-        el.classList.add('tactical-marker-dragging');
+        // "Zoom" no ícone enquanto destravado pra arrastar: dobra de tamanho
+        // (não dá pra usar transform:scale aqui — é o mesmo elemento onde o
+        // Leaflet já aplica transform:translate3d pra posicionar o marcador,
+        // então um scale via CSS brigaria com isso e seria sobrescrito a
+        // cada movimento). Em vez disso trocamos o ícone por uma versão
+        // maior de verdade (setIcon com iconSize dobrado) — o Leaflet cuida
+        // de recalcular a âncora e a posição corretamente pro tamanho novo.
+        // Ao soltar, refreshTacticalMarkersUI() já reconstrói tudo do zero
+        // no tamanho normal, então não precisa reverter manualmente aqui.
+        const baseSize = tacticalIconSizeForZoom(map.getZoom());
+        const bigIcon = tacticalMarkerIcon(pin.type, !!pin.photoUrl, baseSize * 2);
+        marker.setIcon(bigIcon);
+        const draggingEl = marker.getElement();
+        if (draggingEl) draggingEl.classList.add('tactical-marker-dragging');
         marker.closePopup();
         if (navigator.vibrate) navigator.vibrate(30);
         // O toque que solta o marcador no fim do arraste ainda conta como um
@@ -2947,6 +3002,24 @@ function renderIconDocks() {
   });
 
   initDockCarousels();
+  setupDockToggles();
+}
+
+// Botão "▾/▸" de cada dock (fica dentro da própria barra, junto das setas):
+// minimiza (esconde os cartões/setas, deixando só o botão pra reabrir) ou
+// reabre. Não precisa persistir entre sessões — sempre começa aberto.
+function setupDockToggles() {
+  document.querySelectorAll('.dock-toggle-btn[data-dock-toggle]').forEach(btn => {
+    if (btn.dataset.toggleBound) return;
+    btn.dataset.toggleBound = '1';
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.tactical-dock-wrap');
+      if (!wrap) return;
+      const collapsed = wrap.classList.toggle('collapsed');
+      btn.textContent = collapsed ? '▸' : '▾';
+      btn.setAttribute('aria-label', collapsed ? 'Abrir dock' : 'Minimizar dock');
+    });
+  });
 }
 
 // ===== Efeito "carrossel" dos docks: cartão mais perto do centro aumenta,
@@ -2976,6 +3049,18 @@ function setupDockCarousel(dockId, axis) {
       if (dist < closestDist) { closestDist = dist; closest = item; }
     });
     items.forEach(item => item.classList.toggle('dock-center', item === closest));
+
+    // Dock horizontal (meios): o rótulo do ícone fica FORA da barra (pra
+    // caber um ícone maior dentro do cartão) — esse texto externo mostra
+    // sempre o nome do ícone que está centralizado agora, acompanhando o
+    // movimento do carrossel.
+    if (dockId === 'tacticalDockHorizontal') {
+      const label = document.getElementById('tacticalDockHorizontalLabel');
+      if (label && closest) {
+        const img = closest.querySelector('img');
+        label.textContent = img ? img.getAttribute('alt') : '';
+      }
+    }
   };
 
   let rafPending = false;
@@ -3022,21 +3107,29 @@ function setupDockCarousel(dockId, axis) {
   });
 }
 
+// Eixo de rolagem de cada dock — usado pra decidir, durante o toque, se o
+// dedo está "rolando o dock" ou "arrastando o ícone pra fora, até o mapa".
+const DOCK_AXIS = { tacticalDockHorizontal: 'x', tacticalDockLateral: 'y' };
+// Distância mínima (px) antes de decidir qual dos dois gestos é: evita que
+// um toque com tremor mínimo já dispare rolagem ou arraste sem querer.
+const DOCK_GESTURE_THRESHOLD = 9;
+
 function onDockIconPointerDown(e) {
   e.preventDefault();
   const el = e.currentTarget;
   const typeId = el.getAttribute('data-type');
-  const t = getTacticalType(typeId);
+  const dockEl = el.closest('.tactical-dock-horizontal, .tactical-dock-lateral');
+  const axis = dockEl ? (DOCK_AXIS[dockEl.id] || 'x') : 'x';
 
   try { el.setPointerCapture(e.pointerId); } catch (err) {}
 
-  const ghost = document.createElement('div');
-  ghost.className = 'dock-drag-ghost';
-  ghost.innerHTML = `<img src="${t.icon}" style="width:40px; height:40px; object-fit:contain;">`;
-  document.body.appendChild(ghost);
-
-  dockDragState = { typeId, ghost, pointerId: e.pointerId, el };
-  moveGhost(e.clientX, e.clientY);
+  dockDragState = {
+    typeId, el, dockEl, axis, pointerId: e.pointerId,
+    startX: e.clientX, startY: e.clientY,
+    lastX: e.clientX, lastY: e.clientY,
+    gesture: null, // ainda indeciso: vira 'scroll' ou 'place' no primeiro pointermove decisivo
+    ghost: null
+  };
 
   el.addEventListener('pointermove', onDockDragMove);
   el.addEventListener('pointerup', onDockDragEnd);
@@ -3044,24 +3137,65 @@ function onDockIconPointerDown(e) {
 }
 
 function moveGhost(x, y) {
-  if (!dockDragState) return;
+  if (!dockDragState || !dockDragState.ghost) return;
   dockDragState.ghost.style.left = x + 'px';
   dockDragState.ghost.style.top = y + 'px';
 }
 
 function onDockDragMove(e) {
   if (!dockDragState || e.pointerId !== dockDragState.pointerId) return;
-  moveGhost(e.clientX, e.clientY);
+  const s = dockDragState;
+
+  if (!s.gesture) {
+    const dx = e.clientX - s.startX;
+    const dy = e.clientY - s.startY;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < DOCK_GESTURE_THRESHOLD) return;
+
+    // Arraste no MESMO sentido do dock (horizontal→esquerda/direita,
+    // vertical→cima/baixo) = rolar a lista. Arraste "pra fora" do dock
+    // (perpendicular) = soltar o ícone no mapa, como antes.
+    const alongAxis = s.axis === 'x' ? Math.abs(dx) : Math.abs(dy);
+    const crossAxis = s.axis === 'x' ? Math.abs(dy) : Math.abs(dx);
+    s.gesture = (alongAxis >= crossAxis) ? 'scroll' : 'place';
+
+    if (s.gesture === 'place') {
+      // Ghost bem maior (dobrado, 40→80px) enquanto arrasta do dock até o
+      // mapa — mesma lógica do zoom no clique longo dos marcadores já
+      // colocados: fica bem mais fácil enxergar onde exatamente vai soltar.
+      const t = getTacticalType(s.typeId);
+      const ghost = document.createElement('div');
+      ghost.className = 'dock-drag-ghost';
+      ghost.innerHTML = `<img src="${t.icon}" style="width:80px; height:80px; object-fit:contain;">`;
+      document.body.appendChild(ghost);
+      s.ghost = ghost;
+      moveGhost(e.clientX, e.clientY);
+    } else if (s.dockEl) {
+      s.dockEl.style.scrollBehavior = 'auto'; // rolagem manual 1:1 com o dedo, sem "smooth" atrasando
+    }
+  }
+
+  if (s.gesture === 'place') {
+    moveGhost(e.clientX, e.clientY);
+  } else if (s.gesture === 'scroll' && s.dockEl) {
+    const dx = e.clientX - s.lastX;
+    const dy = e.clientY - s.lastY;
+    if (s.axis === 'x') s.dockEl.scrollLeft -= dx;
+    else s.dockEl.scrollTop -= dy;
+  }
+
+  s.lastX = e.clientX;
+  s.lastY = e.clientY;
 }
 
 function cleanupDockDrag() {
   if (!dockDragState) return;
-  const { el, ghost, pointerId } = dockDragState;
+  const { el, ghost, pointerId, dockEl } = dockDragState;
   el.removeEventListener('pointermove', onDockDragMove);
   el.removeEventListener('pointerup', onDockDragEnd);
   el.removeEventListener('pointercancel', onDockDragCancel);
   try { el.releasePointerCapture(pointerId); } catch (err) {}
-  ghost.remove();
+  if (ghost) ghost.remove();
+  if (dockEl) dockEl.style.scrollBehavior = '';
 }
 
 function onDockDragCancel(e) {
@@ -3072,15 +3206,30 @@ function onDockDragCancel(e) {
 
 function onDockDragEnd(e) {
   if (!dockDragState || e.pointerId !== dockDragState.pointerId) return;
-  const { typeId } = dockDragState;
+  const { typeId, gesture } = dockDragState;
   cleanupDockDrag();
   dockDragState = null;
+
+  // Só conta como "colocar marcador" quando o gesto foi decidido como
+  // arraste pra fora do dock. Um toque simples (sem quase nenhum
+  // movimento) ou uma rolagem do dock nunca marca ponto.
+  if (gesture !== 'place') return;
 
   const mapEl = document.getElementById('mapNormal');
   if (!mapEl || !mapNormal) return;
   const rect = mapEl.getBoundingClientRect();
 
   if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+    return;
+  }
+
+  // Os docks ficam sobrepostos ao mapa (position:absolute dentro da mesma
+  // aba) — mesmo dentro do retângulo do mapa, se o ponto de soltura ainda
+  // está fisicamente em cima de algum dock (cartões, setas, scrollbar ou
+  // botão de minimizar), NÃO conta como "soltar no mapa": a existência
+  // física do dock bloqueia a marcação por baixo dele.
+  const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+  if (dropEl && dropEl.closest('.tactical-dock-wrap')) {
     return;
   }
 
