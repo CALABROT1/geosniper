@@ -228,27 +228,21 @@
       scrollbar-width: none;
     }
     .tactical-dock-lateral::-webkit-scrollbar { display: none; }
-    /* ===== DOCK ESTRATÉGICO (aba Pontos) — peças arrastáveis com selo
-       verde/vermelho. Mesma base visual dos docks da aba Marker (wrap,
-       setas e botão de minimizar reaproveitados); só o miolo muda: grade de
-       2 linhas com rolagem lateral (truque flex-direction:column +
-       flex-wrap:wrap), pra caber o catálogo inteiro sem tomar muito espaço
-       vertical — o mapa dessa aba já divide a tela com a tabela embaixo.
-       bottom fica um valor de segurança aqui; positionDockEstrategico()
-       recalcula em pixels reais, ancorado no rodapé do mapa. */
-    .tactical-dock-estrategico-wrap {
-      position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 900; max-width: 94%;
+    /* Painel de peças da aba Estratégia — grade fixa (não mais carrossel
+       flutuante): ocupa até 50% da altura da aba, formato parecido com a
+       tabela de pontos (cabeçalho + área rolável), mostra TODOS os ícones de
+       uma vez (com rótulo, rola se não couber tudo). Toque numa peça pra
+       "armar" (fica destacada em verde) e toque no mapa pra lançar ali —
+       nada de arrastar aqui: como o painel fica EMBAIXO do mapa (empilhado),
+       não do lado como os outros dois docks, "arrastar pra fora" e "rolar a
+       lista" seriam o mesmo gesto (vertical). Ver setupTacticalPiecePanel(). */
+    .tactical-dock-panel-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tactical-dock-panel-grid .dock-icon-item { width: 60px; cursor: pointer; touch-action: manipulation; }
+    .tactical-dock-panel-grid .dock-icon-item span { display: block; }
+    .tactical-dock-panel-grid .dock-icon-item.armed {
+      outline: 2px solid var(--sem-good); outline-offset: 2px; border-radius: 10px;
+      box-shadow: 0 0 10px rgba(34,197,94,0.55); background: rgba(34,197,94,0.14);
     }
-    .tactical-dock-estrategico {
-      display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start;
-      gap: 8px; height: 112px; background: rgba(15,23,42,0.92); border: 1px solid var(--line);
-      border-radius: 14px; padding: 9px 11px; overflow-x: auto; overflow-y: hidden;
-      scroll-behavior: smooth; position: relative; min-width: 0;
-    }
-    .tactical-dock-estrategico .dock-icon-item span { display: none; }
-    .tactical-dock-estrategico .dock-icon-item img { width: 38px; height: 38px; }
-    .tactical-dock-estrategico .dock-icon-item { width: 56px; }
     /* Selo verde/vermelho — desenhado junto do ícone da peça, tanto no dock
        quanto já colocado no mapa. Verde = livre pra arrastar; vermelho =
        travado no lugar. Fica num canto do ícone, com hit-area própria (pra
@@ -286,7 +280,6 @@
     .dock-toggle-btn:active { background: var(--action); color: #fff; }
     .tactical-dock-wrap.collapsed .tactical-dock-horizontal,
     .tactical-dock-wrap.collapsed .tactical-dock-lateral,
-    .tactical-dock-wrap.collapsed .tactical-dock-estrategico,
     .tactical-dock-wrap.collapsed .dock-arrow,
     .tactical-dock-wrap.collapsed .dock-h-label { display: none; }
     .dock-icon-item {
@@ -339,6 +332,25 @@
     }
     #tabRelevo .tactical-table-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     #tabRelevo .tactical-table-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    /* aba Estratégia — mapa em cima (mostra os mesmos pontos/desenhos já
+       sincronizados, planejamentos antigos inclusive) + painel de peças
+       embaixo, ocupando até 50% da altura, no mesmo esquema de
+       mapa+tabela/painel colapsável já usado na aba Pontos. */
+    #tabEstrategia.active { display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #tabEstrategia #mapEstrategia { flex: 1 1 50%; min-height: 220px; }
+    #tabEstrategia .tactical-dock-panel-wrap {
+      flex: 0 0 50%; min-height: 0; display: flex; flex-direction: column;
+      background: var(--bg); border-top: 2px solid var(--line);
+    }
+    #tabEstrategia .tactical-dock-panel-wrap.collapsed { flex: 0 0 auto; }
+    #tabEstrategia .tactical-dock-panel-wrap.collapsed .tactical-dock-panel-scroll { display: none; }
+    #tabEstrategia .tactical-dock-panel-header {
+      background: var(--surface); color: var(--accent); font-weight: 800; padding: 8px 12px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    #tabEstrategia .tactical-dock-panel-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
     .tactical-table { width: 100%; border-collapse: collapse; font-size: 11px; }
     .tactical-table thead th {
       position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 6px;
@@ -858,6 +870,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   <button class="tab-btn" data-tab="tabMedir" onclick="openTab(event, 'tabMedir')">Medir</button>
   <button class="tab-btn" data-tab="tabRaios" onclick="openTab(event, 'tabRaios')">Raios</button>
   <button class="tab-btn" data-tab="tabRelevo" onclick="openTab(event, 'tabRelevo')">Pontos</button>
+  <button class="tab-btn" data-tab="tabEstrategia" onclick="openTab(event, 'tabEstrategia')">Estratégia</button>
   <button class="tab-btn" data-tab="tabNormal" onclick="openTab(event, 'tabNormal')">Marker</button>
   <button onclick="toggleNVGMode()" id="nvgBtn" style="background:var(--sem-hostile-dim); color:#fff; border:none; padding:6px 10px; font-weight:800; font-size:12px; cursor:pointer; border-radius:4px; margin:8px 6px; white-space:nowrap; flex-shrink:0; line-height:1.2;">
   🚨 NVG RED</button>
@@ -933,20 +946,6 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button class="draw-tool-btn" data-tool="delete" title="Apagar desenho (clique na forma)">🗑️</button>
     </div>
   </div>
-  <!-- DOCK ESTRATÉGICO — peças arrastáveis (verde = livre, vermelho = travado no
-       lugar). Ao travar pela primeira vez, o ponto passa a existir de verdade
-       (tabela + sincronizado com todo mundo). Ver createTacticalPiece(). -->
-  <div class="tactical-dock-wrap tactical-dock-estrategico-wrap" id="tacticalDockEstrategicoWrap">
-    <div class="tactical-dock-h-row">
-      <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockEstrategico" data-dir="-1" aria-label="Rolar para o início">‹</button>
-      <div id="tacticalDockEstrategico" class="tactical-dock-estrategico" data-target-map="mapRelevo" data-piece-mode="1"></div>
-      <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockEstrategico" data-dir="1" aria-label="Rolar para o fim">›</button>
-    </div>
-    <div class="tactical-dock-h-bottom-row">
-      <div class="dock-h-label">🎯 Dock Estratégico</div>
-      <button type="button" class="dock-toggle-btn" data-dock-toggle aria-label="Minimizar dock estratégico">▾</button>
-    </div>
-  </div>
   <div class="tactical-table-wrap">
     <div class="tactical-table-header">
       <span>📋 PONTOS TÁTICOS REGISTRADOS</span>
@@ -964,6 +963,49 @@ body.nvg-red-mode .leaflet-tile-container img {
           <tr><td colspan="10" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- ABA ESTRATÉGIA — inserção de peças e desenhos esquemáticos de operação.
+     Mostra o MESMO mapa sincronizado (pontos e desenhos de planejamentos
+     anteriores já aparecem aqui, novos pontos incluídos aqui aparecem em
+     todo lugar) — a aba Pontos fica com o papel de registro/consulta bruta
+     (tabela, upload), essa aba é o quadro de trabalho interativo. -->
+<div id="tabEstrategia" class="tab-content">
+  <div id="mapEstrategia" class="map" style="width:100%; min-height: 220px;"></div>
+  <div class="location-search-box">
+    <input id="locSearchEstrategia" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
+    <div id="locSearchEstrategiaList" class="location-search-list"></div>
+  </div>
+  <div id="drawToolbarEstrategia" class="draw-toolbar">
+    <button class="draw-toolbar-toggle" title="Ferramentas de desenho">✏️</button>
+    <div class="draw-toolbar-tools">
+      <button class="draw-tool-btn" data-tool="rectangle" title="Retângulo">▭</button>
+      <button class="draw-tool-btn" data-tool="circle" title="Círculo">◯</button>
+      <button class="draw-tool-btn" data-tool="polyline" title="Caminho">📈</button>
+      <button class="draw-tool-btn" data-tool="freehand" title="Caneta (desenho livre)">✏️</button>
+      <button class="draw-tool-btn" data-tool="ruler" title="Régua (medir distância)">📏</button>
+      <div class="draw-color-row">
+        <span class="draw-color-swatch selected" data-color="#facc15" style="background:#facc15" title="Amarelo"></span>
+        <span class="draw-color-swatch" data-color="var(--accent)" style="background:var(--accent)" title="Azul"></span>
+        <span class="draw-color-swatch" data-color="var(--sem-good)" style="background:var(--sem-good)" title="Verde"></span>
+        <span class="draw-color-swatch" data-color="#ffffff" style="background:#ffffff" title="Branco"></span>
+        <span class="draw-color-swatch" data-color="var(--sem-hostile)" style="background:var(--sem-hostile)" title="Vermelho"></span>
+      </div>
+      <button class="draw-tool-btn" data-tool="delete" title="Apagar desenho (clique na forma)">🗑️</button>
+    </div>
+  </div>
+  <!-- Painel de peças — toque pra armar (destaca em verde), toque no mapa
+       acima pra lançar. Fica armado pra lançar várias seguidas do mesmo
+       tipo. Ver setupTacticalPiecePanel()/createTacticalPiece(). -->
+  <div class="tactical-dock-panel-wrap" id="tacticalDockPanelWrap">
+    <div class="tactical-dock-panel-header">
+      <span id="tacticalDockPanelHint">🎯 PEÇAS TÁTICAS — toque pra armar, toque no mapa pra lançar</span>
+      <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar peças">▾</button>
+    </div>
+    <div class="tactical-dock-panel-scroll">
+      <div id="tacticalDockEstrategico" class="tactical-dock-panel-grid"></div>
     </div>
   </div>
 </div>
@@ -1569,7 +1611,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       medirDistanceLockAcc = null;
     }
 
-    let mapRaios, mapNormal, mapRelevo, mapMedir;
+    let mapRaios, mapNormal, mapRelevo, mapMedir, mapEstrategia;
     let markers = {};
     let circlesAndLabelsGroup = L.layerGroup();
     let measureMarker = null, measureLine = null;
@@ -1641,6 +1683,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     let tacticalMarkers = {};
     let tacticalLayerNormal = L.layerGroup();
     let tacticalLayerRelevo = L.layerGroup();
+    let tacticalLayerEstrategia = L.layerGroup();
     let tacticalSocket = null;
 
     // ===== FERRAMENTA DE DESENHO (retângulo / círculo / caminho / caneta) =====
@@ -1649,6 +1692,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     let tacticalDrawings = {};
     let tacticalDrawingLayerNormal = L.layerGroup();
     let tacticalDrawingLayerRelevo = L.layerGroup();
+    let tacticalDrawingLayerEstrategia = L.layerGroup();
     let currentDrawColor = '#facc15';
     let activeDrawTool = null; // 'rectangle' | 'circle' | 'polyline' | 'freehand' | 'delete' | null
     let activeDrawHandler = null; // instância L.Draw.* quando ativo
@@ -2041,6 +2085,7 @@ function openTab(evt, tabName) {
   if (typeof deactivateDrawTool === 'function') {
     if (typeof mapNormal !== 'undefined' && mapNormal) deactivateDrawTool(mapNormal);
     if (typeof mapRelevo !== 'undefined' && mapRelevo) deactivateDrawTool(mapRelevo);
+    if (typeof mapEstrategia !== 'undefined' && mapEstrategia) deactivateDrawTool(mapEstrategia);
   }
 
   // 1. Remove classe ativa de todas as abas e botões
@@ -2066,11 +2111,14 @@ function openTab(evt, tabName) {
     if (tabName === 'tabMedir' && mapMedir) mapMedir.invalidateSize();
     if (tabName === 'tabRelevo' && mapRelevo) {
       mapRelevo.invalidateSize();
-      // Recalcula a posição do dock de desenho só agora, com a aba já
+      // Recalcula a posição da barra de desenho só agora, com a aba já
       // visível — medir antes disso (aba escondida/display:none) dá
       // sempre altura zero e posiciona errado.
       if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
-      if (typeof positionDockEstrategico === 'function') positionDockEstrategico(mapRelevo, document.getElementById('tacticalDockEstrategicoWrap'));
+    }
+    if (tabName === 'tabEstrategia' && mapEstrategia) {
+      mapEstrategia.invalidateSize();
+      if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapEstrategia, document.getElementById('drawToolbarEstrategia'), 'right');
     }
     if (tabName === 'tabNormal' && mapNormal) {
       mapNormal.invalidateSize();
@@ -2120,7 +2168,7 @@ const UNIT_API_BASE = 'https://api.geosniper.com.br';
 // Abas reais do app (mesmos ids de data-tab / openTab) — espelha a lista do
 // server.js. Usada como "libera tudo" quando não há permissão granular
 // (código de unidade legado, ou operador cadastrado sem restrição).
-const ALL_TABS = ['tabBalistica', 'tabEquipamento', 'tabMedir', 'tabRaios', 'tabRelevo', 'tabNormal'];
+const ALL_TABS = ['tabBalistica', 'tabEquipamento', 'tabMedir', 'tabRaios', 'tabRelevo', 'tabEstrategia', 'tabNormal'];
 
 function getUnitCode() {
   return localStorage.getItem('geosniper_unit_code') || '';
@@ -2390,11 +2438,13 @@ function refreshTacticalDrawingsUI() {
   if (!tacticalDrawingLayerNormal || !tacticalDrawingLayerRelevo) return;
   tacticalDrawingLayerNormal.clearLayers();
   tacticalDrawingLayerRelevo.clearLayers();
+  if (tacticalDrawingLayerEstrategia) tacticalDrawingLayerEstrategia.clearLayers();
   Object.values(tacticalDrawings).forEach(d => {
     const layerA = buildDrawingLeafletLayer(d);
     const layerB = buildDrawingLeafletLayer(d);
+    const layerC = tacticalDrawingLayerEstrategia ? buildDrawingLeafletLayer(d) : null;
     if (!layerA || !layerB) return;
-    [layerA, layerB].forEach(l => {
+    [layerA, layerB, layerC].filter(Boolean).forEach(l => {
       l.on('click', (evt) => {
         if (activeDrawTool === 'delete') {
           L.DomEvent.stopPropagation(evt);
@@ -2404,6 +2454,7 @@ function refreshTacticalDrawingsUI() {
     });
     tacticalDrawingLayerNormal.addLayer(layerA);
     tacticalDrawingLayerRelevo.addLayer(layerB);
+    if (layerC) tacticalDrawingLayerEstrategia.addLayer(layerC);
   });
 }
 
@@ -2589,21 +2640,6 @@ function positionDrawToolbar(map, toolbarEl, side) {
   }
 }
 
-// Ancora o Dock Estratégico logo acima do rodapé REAL do mapa da aba Pontos
-// (medido em pixels, igual positionDrawToolbar acima) — nessa aba o mapa não
-// enche a tela inteira (a tabela de pontos ocupa a parte de baixo), então um
-// "bottom" fixo em CSS ficaria errado dependendo do aparelho.
-function positionDockEstrategico(map, wrapEl) {
-  if (!map || !wrapEl) return;
-  const container = map.getContainer();
-  if (!container) return;
-  const tab = container.closest('.tab-content');
-  if (!tab) return;
-  const tabRect = tab.getBoundingClientRect();
-  const mapRect = container.getBoundingClientRect();
-  const bottomPos = Math.max(8, Math.round(tabRect.bottom - mapRect.bottom) + 14);
-  wrapEl.style.bottom = bottomPos + 'px';
-}
 
 function initDrawToolbar(toolbarId, getMap) {
   const toolbar = document.getElementById(toolbarId);
@@ -2766,39 +2802,46 @@ function tacticalPopupHtml(pin) {
 function refreshTacticalMarkersUI() {
   tacticalLayerNormal.clearLayers();
   tacticalLayerRelevo.clearLayers();
+  if (tacticalLayerEstrategia) tacticalLayerEstrategia.clearLayers();
 
-  // Cada mapa (Mapa e Relevo) pode estar num zoom diferente, então o tamanho do
-  // ícone é calculado separadamente pra cada um.
+  // Cada mapa (Mapa, Relevo, Estratégia) pode estar num zoom diferente, então
+  // o tamanho do ícone é calculado separadamente pra cada um.
   const sizeNormal = tacticalIconSizeForZoom(mapNormal ? mapNormal.getZoom() : undefined);
   const sizeRelevo = tacticalIconSizeForZoom(mapRelevo ? mapRelevo.getZoom() : undefined);
+  const sizeEstrategia = tacticalIconSizeForZoom(mapEstrategia ? mapEstrategia.getZoom() : undefined);
 
   Object.values(tacticalMarkers).forEach(pin => {
     if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
     const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin);
     const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin);
     const mkNormal = L.marker([pin.lat, pin.lng], { icon: iconNormal }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
-    const mkRelevo = L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
-    // Reposicionar por clique longo: normalmente só faz sentido na aba
-    // Marker (mapa operacional) — na Pontos o marcador é leitura/consulta,
-    // EXCETO pras peças do Dock Estratégico, que também podem ser
-    // arrastadas ali (é a aba onde elas nascem) enquanto destravadas.
+    // aba Pontos (Relevo): só leitura/consulta pra QUALQUER marcador — dados
+    // brutos registrados, sem inserir/arrastar/travar peças aqui. Isso agora
+    // acontece só na aba Estratégia (mapEstrategia, abaixo).
+    L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
     attachTacticalMarkerLongPressDrag(mkNormal, pin, mapNormal);
+
     if (pin.piece) {
-      attachTacticalMarkerLongPressDrag(mkRelevo, pin, mapRelevo);
       attachPieceLockBadge(mkNormal, pin);
-      attachPieceLockBadge(mkRelevo, pin);
-      if (pin._justCreated) {
-        pin._justCreated = false;
-        mkRelevo.openPopup();
+      if (tacticalLayerEstrategia && mapEstrategia) {
+        const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin);
+        const mkEstrategia = L.marker([pin.lat, pin.lng], { icon: iconEstrategia }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerEstrategia);
+        attachTacticalMarkerLongPressDrag(mkEstrategia, pin, mapEstrategia);
+        attachPieceLockBadge(mkEstrategia, pin);
+        if (pin._justCreated) {
+          pin._justCreated = false;
+          mkEstrategia.openPopup();
+        }
       }
     }
 
-    // Linha de visada (atirador/observador -> alvo), nas abas Mapa E Relevo — memória
-    // persistente de onde o operador estava quando marcou esse ponto (redesenhada
-    // sempre que os marcadores são atualizados, então sobrevive a reload/reconexão).
-    // Só faz sentido pro marcador "Alvo" (type 'target'), que é o marcador de alvo do sniper.
+    // Linha de visada (atirador/observador -> alvo), nas 3 abas com mapa
+    // tático — memória persistente de onde o operador estava quando marcou
+    // esse ponto (redesenhada sempre que os marcadores são atualizados,
+    // então sobrevive a reload/reconexão). Só faz sentido pro marcador
+    // "Alvo" (type 'target'), que é o marcador de alvo do sniper.
     if (pin.type === 'target' && typeof pin.operatorLat === 'number' && typeof pin.operatorLng === 'number') {
-      [tacticalLayerNormal, tacticalLayerRelevo].forEach(layer => {
+      [tacticalLayerNormal, tacticalLayerRelevo, tacticalLayerEstrategia].filter(Boolean).forEach(layer => {
         L.polyline([[pin.operatorLat, pin.operatorLng], [pin.lat, pin.lng]], {
           color: 'var(--sem-hostile)', weight: 2.5, opacity: 0.85
         }).addTo(layer);
@@ -2829,9 +2872,18 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
   const LONG_PRESS_MS = 500;
   const MOVE_CANCEL_PX = 9;
 
-  marker.on('add', () => {
+  // Bug corrigido: o marcador é criado com .addTo(camada) e a camada
+  // (tacticalLayerNormal/Relevo) já está no mapa desde a inicialização —
+  // então o evento 'add' do Leaflet já dispara DURANTE a criação, antes
+  // dessa função ser chamada. Um listener marker.on('add', ...) registrado
+  // aqui nunca executava, e por isso nenhum marcador conseguia ser
+  // arrastado. A correção roda a configuração na hora (o elemento já
+  // existe nesse ponto) e, só como reforço pra uma futura chamada que crie
+  // o marcador ANTES de adicioná-lo ao mapa, também escuta 'add' nesse caso.
+  const setup = () => {
     const el = marker.getElement();
-    if (!el) return;
+    if (!el || el.dataset.longPressBound) return;
+    el.dataset.longPressBound = '1';
     el.style.touchAction = 'none';
 
     let timer = null;
@@ -2930,15 +2982,18 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
         });
       }, LONG_PRESS_MS);
     });
-  });
+  };
+  if (marker.getElement()) setup(); else marker.on('add', setup);
 }
 
 // Liga o toque no selo verde/vermelho de uma peça (Dock Estratégico) —
 // precisa de stopPropagation em cima do próprio elemento pra não also abrir
 // o popup do marcador nem iniciar o arraste (attachTacticalMarkerLongPressDrag
 // já ignora pointerdown vindos do selo, ver [data-piece-lock] ali em cima).
+// Mesmo bug de timing do 'add' corrigido aqui (ver comentário na função
+// acima) — sem isso o selo nunca travava/destravava ao tocar.
 function attachPieceLockBadge(marker, pin) {
-  marker.on('add', () => {
+  const setup = () => {
     const el = marker.getElement();
     if (!el) return;
     const badge = el.querySelector('[data-piece-lock]');
@@ -2949,7 +3004,8 @@ function attachPieceLockBadge(marker, pin) {
       e.stopPropagation();
       togglePieceLock(pin.id);
     });
-  });
+  };
+  if (marker.getElement()) setup(); else marker.on('add', setup);
 }
 
 // Cria uma peça do Dock Estratégico (aba Pontos): aparece na hora, verde e
@@ -3228,29 +3284,66 @@ function renderIconDocks() {
 
   hDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'h').map(dockIconHtml).join('');
   lDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'l').map(dockIconHtml).join('');
-  // Dock Estratégico (aba Pontos) usa uma ordem própria, fixa, definida à mão
-  // (agrupada em 3 blocos — preenchimento vermelho / meios / apoio-avanço),
-  // em vez de herdar a ordem dos docks 'h'/'l'.
+  // Painel de peças (aba Estratégia) usa uma ordem própria, fixa, definida à
+  // mão (agrupada em 3 blocos — preenchimento vermelho / meios / apoio-avanço),
+  // em vez de herdar a ordem dos docks 'h'/'l', e mostra o catálogo inteiro.
   if (eDock) eDock.innerHTML = ESTRATEGICO_ORDER
     .map(id => getTacticalType(id))
     .filter(Boolean)
     .map(dockIconHtml).join('');
 
-  document.querySelectorAll('.dock-icon-item').forEach(el => {
+  // Só os dois docks de arraste (aba Marker) usam o sistema de arraste por
+  // pointerdown — o painel de peças da aba Estratégia usa toque-pra-armar +
+  // toque-no-mapa (ver setupTacticalPiecePanel), gesto incompatível com
+  // arraste porque o painel fica embaixo do mapa, não do lado.
+  document.querySelectorAll('.tactical-dock-horizontal .dock-icon-item, .tactical-dock-lateral .dock-icon-item').forEach(el => {
     el.addEventListener('pointerdown', onDockIconPointerDown);
   });
 
   initDockCarousels();
   setupDockToggles();
   setupTableToggle();
+  setupTacticalPiecePanel();
+  setupTacticalPiecePanelToggle();
+}
+
+// Painel de peças da aba Estratégia: toque numa peça pra "armar" (fica
+// destacada em verde) e toque no mapa da aba Estratégia pra lançar ali. Fica
+// armada depois de lançar, pra dar pra soltar várias peças do mesmo tipo
+// seguidas — toca de novo na peça armada (ou em outra) pra trocar/desarmar.
+let armedPieceTypeId = null;
+
+function setupTacticalPiecePanel() {
+  const panel = document.getElementById('tacticalDockEstrategico');
+  if (!panel || panel.dataset.panelBound) return;
+  panel.dataset.panelBound = '1';
+  panel.addEventListener('click', (e) => {
+    const item = e.target.closest('.dock-icon-item');
+    if (!item) return;
+    const typeId = item.getAttribute('data-type');
+    armedPieceTypeId = (armedPieceTypeId === typeId) ? null : typeId;
+    panel.querySelectorAll('.dock-icon-item.armed').forEach(el => el.classList.remove('armed'));
+    if (armedPieceTypeId) item.classList.add('armed');
+    updateTacticalPiecePanelHint();
+  });
+}
+
+function updateTacticalPiecePanelHint() {
+  const hint = document.getElementById('tacticalDockPanelHint');
+  if (!hint) return;
+  if (armedPieceTypeId) {
+    const t = getTacticalType(armedPieceTypeId);
+    hint.textContent = `🎯 ${t.label} armado — toque no mapa pra lançar (toque de novo aqui pra soltar)`;
+  } else {
+    hint.textContent = '🎯 PEÇAS TÁTICAS — toque pra armar, toque no mapa pra lançar';
+  }
 }
 
 // Botão "▾/▸" da tabela "Pontos Táticos Registrados" (aba Pontos): minimiza
-// pra deixar só o cabeçalho, dando mais espaço vertical pro mapa (e pro Dock
-// Estratégico por cima dele) no celular. Depois de mudar o tamanho, o Leaflet
-// precisa de invalidateSize() pra redesenhar os tiles direito, e o dock/a
-// barra de desenho precisam recalcular a posição (dependem da altura real do
-// mapa, que mudou).
+// pra deixar só o cabeçalho, dando mais espaço vertical pro mapa no celular.
+// Depois de mudar o tamanho, o Leaflet precisa de invalidateSize() pra
+// redesenhar os tiles direito, e a barra de desenho precisa recalcular a
+// posição (depende da altura real do mapa, que mudou).
 function setupTableToggle() {
   document.querySelectorAll('.tactical-table-wrap [data-table-toggle]').forEach(btn => {
     if (btn.dataset.toggleBound) return;
@@ -3264,7 +3357,26 @@ function setupTableToggle() {
       setTimeout(() => {
         if (typeof mapRelevo !== 'undefined' && mapRelevo) mapRelevo.invalidateSize();
         if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
-        if (typeof positionDockEstrategico === 'function') positionDockEstrategico(mapRelevo, document.getElementById('tacticalDockEstrategicoWrap'));
+      }, 30);
+    });
+  });
+}
+
+// Botão "▾/▸" do painel de peças (aba Estratégia): mesma ideia da tabela
+// acima — minimiza pra dar mais espaço vertical ao mapa.
+function setupTacticalPiecePanelToggle() {
+  document.querySelectorAll('.tactical-dock-panel-wrap [data-panel-toggle]').forEach(btn => {
+    if (btn.dataset.toggleBound) return;
+    btn.dataset.toggleBound = '1';
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.tactical-dock-panel-wrap');
+      if (!wrap) return;
+      const collapsed = wrap.classList.toggle('collapsed');
+      btn.textContent = collapsed ? '▸' : '▾';
+      btn.setAttribute('aria-label', collapsed ? 'Abrir peças' : 'Minimizar peças');
+      setTimeout(() => {
+        if (typeof mapEstrategia !== 'undefined' && mapEstrategia) mapEstrategia.invalidateSize();
+        if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapEstrategia, document.getElementById('drawToolbarEstrategia'), 'right');
       }, 30);
     });
   });
@@ -3295,7 +3407,6 @@ function setupDockToggles() {
 function initDockCarousels() {
   setupDockCarousel('tacticalDockHorizontal', 'x');
   setupDockCarousel('tacticalDockLateral', 'y');
-  setupDockCarousel('tacticalDockEstrategico', 'x');
 }
 
 function setupDockCarousel(dockId, axis) {
@@ -3780,12 +3891,30 @@ function initMaps(lat, lng) {
     mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Mapbox Satélite (HD)"]] }).setView(currentPos, 14);
     L.control.layers(layersRelevo).addTo(mapRelevo);
     positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
-    if (typeof positionDockEstrategico === 'function') positionDockEstrategico(mapRelevo, document.getElementById('tacticalDockEstrategicoWrap'));
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
     tacticalLayerRelevo.addTo(mapRelevo);
     mapRelevo.on('zoomend', refreshTacticalMarkersUI);
     tacticalDrawingLayerRelevo.addTo(mapRelevo);
     mapRelevo.on(L.Draw.Event.CREATED, handleDrawCreated);
+
+    // 3b. ESTRATÉGIA — mesmo mapa sincronizado (pontos/desenhos de
+    // planejamentos anteriores já aparecem aqui, novos entram e ficam
+    // visíveis em todas as abas). Clique no mapa com uma peça "armada" no
+    // painel (ver setupTacticalPiecePanel) lança a peça ali.
+    const layersEstrategia = createTileLayers();
+    if (mapEstrategia) mapEstrategia.remove();
+    mapEstrategia = L.map('mapEstrategia', { layers: [layersEstrategia["Mapbox Satélite (HD)"]] }).setView(currentPos, 14);
+    L.control.layers(layersEstrategia).addTo(mapEstrategia);
+    positionDrawToolbar(mapEstrategia, document.getElementById('drawToolbarEstrategia'), 'right');
+    markers.estrategia = L.marker(currentPos, { icon: opIcon }).addTo(mapEstrategia);
+    tacticalLayerEstrategia.addTo(mapEstrategia);
+    mapEstrategia.on('zoomend', refreshTacticalMarkersUI);
+    tacticalDrawingLayerEstrategia.addTo(mapEstrategia);
+    mapEstrategia.on(L.Draw.Event.CREATED, handleDrawCreated);
+    mapEstrategia.on('click', (e) => {
+      if (!armedPieceTypeId) return;
+      createTacticalPiece(armedPieceTypeId, e.latlng.lat, e.latlng.lng);
+    });
 
     // 4. MEDIR
     const layersMedir = createTileLayers();
@@ -6038,8 +6167,10 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
 
       initLocationSearch('locSearchNormal', 'locSearchNormalList', () => mapNormal);
       initLocationSearch('locSearchRelevo', 'locSearchRelevoList', () => mapRelevo);
+      initLocationSearch('locSearchEstrategia', 'locSearchEstrategiaList', () => mapEstrategia);
       initDrawToolbar('drawToolbarNormal', () => mapNormal);
       initDrawToolbar('drawToolbarRelevo', () => mapRelevo);
+      initDrawToolbar('drawToolbarEstrategia', () => mapEstrategia);
       initLocationSearch('locSearchMedir', 'locSearchMedirList', () => mapMedir);
 
       document.addEventListener('visibilitychange', () => {
