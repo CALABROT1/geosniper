@@ -334,23 +334,58 @@
     #tabRelevo .tactical-table-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
     /* aba Estratégia — mapa em cima (mostra os mesmos pontos/desenhos já
-       sincronizados, planejamentos antigos inclusive) + painel de peças
-       embaixo, ocupando até 50% da altura, no mesmo esquema de
-       mapa+tabela/painel colapsável já usado na aba Pontos. */
+       sincronizados, planejamentos antigos inclusive) + painel embaixo,
+       ocupando 30% da altura (reduzido de 50% — o painel estava tomando
+       espaço demais de mapa), no mesmo esquema de mapa+tabela/painel
+       colapsável já usado na aba Pontos. O painel agora tem DUAS abas
+       internas — Peças / Desenho — pra caber tanto o dock de ícones táticos
+       quanto as ferramentas de desenho (que antes viviam num botão ✏️
+       flutuante por cima do mapa), ver setupDockPanelTabs(). */
     #tabEstrategia.active { display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    #tabEstrategia #mapEstrategia { flex: 1 1 50%; min-height: 220px; }
+    #tabEstrategia #mapEstrategia { flex: 1 1 70%; min-height: 260px; }
     #tabEstrategia .tactical-dock-panel-wrap {
-      flex: 0 0 50%; min-height: 0; display: flex; flex-direction: column;
+      flex: 0 0 30%; min-height: 0; display: flex; flex-direction: column;
       background: var(--bg); border-top: 2px solid var(--line);
     }
     #tabEstrategia .tactical-dock-panel-wrap.collapsed { flex: 0 0 auto; }
     #tabEstrategia .tactical-dock-panel-wrap.collapsed .tactical-dock-panel-scroll { display: none; }
     #tabEstrategia .tactical-dock-panel-header {
-      background: var(--surface); color: var(--accent); font-weight: 800; padding: 8px 12px;
-      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      background: var(--surface); flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 6px; padding: 7px 10px;
+    }
+    #tabEstrategia .tactical-dock-panel-header-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    #tabEstrategia .tactical-dock-panel-tabs { display: flex; gap: 6px; }
+    .dock-panel-tab {
+      background: transparent; border: 1px solid var(--line); color: var(--muted);
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 5px 11px; border-radius: 7px; cursor: pointer;
+    }
+    .dock-panel-tab.active { background: var(--action); border-color: var(--accent); color: #fff; }
+    #tabEstrategia #tacticalDockPanelHint {
+      color: var(--accent); font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px;
     }
     #tabEstrategia .tactical-dock-panel-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
+    /* [hidden] sozinho perderia pro display:flex de .tactical-dock-panel-grid
+       (mesma especificidade, mas regra do autor bate a do navegador) — força
+       aqui pra trocar de aba (Peças/Desenho) realmente esconder a outra. */
+    #tabEstrategia [data-panel-section][hidden] { display: none !important; }
+    /* Dock de ferramentas de desenho embutido na aba Desenho do painel —
+       mesmos botões/cores que já existiam no ✏️ flutuante (reaproveita
+       activateDrawTool/initDrawToolbar sem duplicar lógica), só com visual
+       de dock fixo em vez de popover. */
+    .tactical-draw-dock-tools { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tdd-btn {
+      width: 64px; height: auto; flex-direction: column; gap: 4px; padding: 8px 4px;
+      border-radius: 10px; background: var(--surface);
+    }
+    .tdd-icon { font-size: 22px; line-height: 1; }
+    .tdd-label { font-size: 9px; font-weight: 700; color: inherit; text-transform: uppercase; letter-spacing: 0.3px; }
+    .tactical-draw-dock-colors {
+      display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+    .tactical-draw-dock-colors .tdd-color-label { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-right: 2px; }
+    .tdd-swatch { width: 22px; height: 22px; }
     .tactical-table { width: 100%; border-collapse: collapse; font-size: 11px; }
     .tactical-table thead th {
       position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 6px;
@@ -894,6 +929,10 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button class="draw-tool-btn" data-tool="polyline" title="Caminho">📈</button>
       <button class="draw-tool-btn" data-tool="freehand" title="Caneta (desenho livre)">✏️</button>
       <button class="draw-tool-btn" data-tool="ruler" title="Régua (medir distância)">📏</button>
+      <button class="draw-tool-btn" data-tool="arrow" title="Seta tática (direção de avanço)">➤</button>
+      <button class="draw-tool-btn" data-tool="arrow_dashed" title="Seta tracejada">⇢</button>
+      <button class="draw-tool-btn" data-tool="arrow_curve" title="Seta curva (3 toques: início, curvatura, fim)">⤳</button>
+      <button class="draw-tool-btn" data-tool="encirclement" title="Envolvimento (centro + borda)">🔄</button>
       <div class="draw-color-row">
         <span class="draw-color-swatch selected" data-color="#facc15" style="background:#facc15" title="Amarelo"></span>
         <span class="draw-color-swatch" data-color="var(--accent)" style="background:var(--accent)" title="Azul"></span>
@@ -936,6 +975,10 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button class="draw-tool-btn" data-tool="polyline" title="Caminho">📈</button>
       <button class="draw-tool-btn" data-tool="freehand" title="Caneta (desenho livre)">✏️</button>
       <button class="draw-tool-btn" data-tool="ruler" title="Régua (medir distância)">📏</button>
+      <button class="draw-tool-btn" data-tool="arrow" title="Seta tática (direção de avanço)">➤</button>
+      <button class="draw-tool-btn" data-tool="arrow_dashed" title="Seta tracejada">⇢</button>
+      <button class="draw-tool-btn" data-tool="arrow_curve" title="Seta curva (3 toques: início, curvatura, fim)">⤳</button>
+      <button class="draw-tool-btn" data-tool="encirclement" title="Envolvimento (centro + borda)">🔄</button>
       <div class="draw-color-row">
         <span class="draw-color-swatch selected" data-color="#facc15" style="background:#facc15" title="Amarelo"></span>
         <span class="draw-color-swatch" data-color="var(--accent)" style="background:var(--accent)" title="Azul"></span>
@@ -978,34 +1021,45 @@ body.nvg-red-mode .leaflet-tile-container img {
     <input id="locSearchEstrategia" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
     <div id="locSearchEstrategiaList" class="location-search-list"></div>
   </div>
-  <div id="drawToolbarEstrategia" class="draw-toolbar">
-    <button class="draw-toolbar-toggle" title="Ferramentas de desenho">✏️</button>
-    <div class="draw-toolbar-tools">
-      <button class="draw-tool-btn" data-tool="rectangle" title="Retângulo">▭</button>
-      <button class="draw-tool-btn" data-tool="circle" title="Círculo">◯</button>
-      <button class="draw-tool-btn" data-tool="polyline" title="Caminho">📈</button>
-      <button class="draw-tool-btn" data-tool="freehand" title="Caneta (desenho livre)">✏️</button>
-      <button class="draw-tool-btn" data-tool="ruler" title="Régua (medir distância)">📏</button>
-      <div class="draw-color-row">
-        <span class="draw-color-swatch selected" data-color="#facc15" style="background:#facc15" title="Amarelo"></span>
-        <span class="draw-color-swatch" data-color="var(--accent)" style="background:var(--accent)" title="Azul"></span>
-        <span class="draw-color-swatch" data-color="var(--sem-good)" style="background:var(--sem-good)" title="Verde"></span>
-        <span class="draw-color-swatch" data-color="#ffffff" style="background:#ffffff" title="Branco"></span>
-        <span class="draw-color-swatch" data-color="var(--sem-hostile)" style="background:var(--sem-hostile)" title="Vermelho"></span>
-      </div>
-      <button class="draw-tool-btn" data-tool="delete" title="Apagar desenho (clique na forma)">🗑️</button>
-    </div>
-  </div>
-  <!-- Painel de peças — toque pra armar (destaca em verde), toque no mapa
-       acima pra lançar. Fica armado pra lançar várias seguidas do mesmo
-       tipo. Ver setupTacticalPiecePanel()/createTacticalPiece(). -->
+  <!-- Painel dividido em 2 abas — Peças (toque pra armar, toque no mapa pra
+       lançar) e Desenho (as mesmas ferramentas que antes viviam num botão
+       ✏️ flutuante por cima do mapa, agora um dock fixo). Ver
+       setupTacticalPiecePanel(), setupDockPanelTabs() e initDrawToolbar(). -->
   <div class="tactical-dock-panel-wrap" id="tacticalDockPanelWrap">
     <div class="tactical-dock-panel-header">
+      <div class="tactical-dock-panel-header-top">
+        <div class="tactical-dock-panel-tabs">
+          <button type="button" class="dock-panel-tab active" data-panel-tab="pecas">🎯 Peças</button>
+          <button type="button" class="dock-panel-tab" data-panel-tab="desenho">✏️ Desenho</button>
+        </div>
+        <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar painel">▾</button>
+      </div>
       <span id="tacticalDockPanelHint">🎯 PEÇAS TÁTICAS — toque pra armar, toque no mapa pra lançar</span>
-      <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar peças">▾</button>
     </div>
     <div class="tactical-dock-panel-scroll">
-      <div id="tacticalDockEstrategico" class="tactical-dock-panel-grid"></div>
+      <div id="tacticalDockEstrategico" class="tactical-dock-panel-grid" data-panel-section="pecas"></div>
+      <div id="tacticalDrawDockEstrategia" class="tactical-draw-dock" data-panel-section="desenho" hidden>
+        <div class="tactical-draw-dock-tools">
+          <button class="draw-tool-btn tdd-btn" data-tool="rectangle" title="Retângulo"><span class="tdd-icon">▭</span><span class="tdd-label">Retângulo</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="circle" title="Círculo"><span class="tdd-icon">◯</span><span class="tdd-label">Círculo</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="polyline" title="Caminho"><span class="tdd-icon">📈</span><span class="tdd-label">Caminho</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="freehand" title="Caneta (desenho livre)"><span class="tdd-icon">✏️</span><span class="tdd-label">Caneta</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="ruler" title="Régua (medir distância)"><span class="tdd-icon">📏</span><span class="tdd-label">Medir</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="arrow" title="Seta tática (direção de avanço)"><span class="tdd-icon">➤</span><span class="tdd-label">Seta</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="arrow_dashed" title="Seta tracejada"><span class="tdd-icon">⇢</span><span class="tdd-label">Tracejada</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="arrow_curve" title="Seta curva (3 toques: início, curvatura, fim)"><span class="tdd-icon">⤳</span><span class="tdd-label">Curva</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="encirclement" title="Envolvimento (centro + borda)"><span class="tdd-icon">🔄</span><span class="tdd-label">Envolvimento</span></button>
+          <button class="draw-tool-btn tdd-btn" data-tool="delete" title="Apagar desenho (toque na forma)"><span class="tdd-icon">🗑️</span><span class="tdd-label">Apagar</span></button>
+        </div>
+        <div class="tactical-draw-dock-colors">
+          <span class="tdd-color-label">Cor:</span>
+          <span class="draw-color-swatch tdd-swatch selected" data-color="#facc15" style="background:#facc15" title="Amarelo"></span>
+          <span class="draw-color-swatch tdd-swatch" data-color="var(--accent)" style="background:var(--accent)" title="Azul"></span>
+          <span class="draw-color-swatch tdd-swatch" data-color="var(--sem-good)" style="background:var(--sem-good)" title="Verde"></span>
+          <span class="draw-color-swatch tdd-swatch" data-color="#ffffff" style="background:#ffffff" title="Branco"></span>
+          <span class="draw-color-swatch tdd-swatch" data-color="var(--sem-hostile)" style="background:var(--sem-hostile)" title="Vermelho"></span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2118,7 +2172,6 @@ function openTab(evt, tabName) {
     }
     if (tabName === 'tabEstrategia' && mapEstrategia) {
       mapEstrategia.invalidateSize();
-      if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapEstrategia, document.getElementById('drawToolbarEstrategia'), 'right');
     }
     if (tabName === 'tabNormal' && mapNormal) {
       mapNormal.invalidateSize();
@@ -2430,6 +2483,24 @@ function buildDrawingLeafletLayer(d) {
       });
       return L.featureGroup([line, label]);
     }
+    if ((d.shapeType === 'arrow' || d.shapeType === 'arrow_dashed') && d.data && d.data.latlngs) {
+      const [p1, p2] = d.data.latlngs;
+      const dashed = d.shapeType === 'arrow_dashed';
+      const line = L.polyline(d.data.latlngs, { color, weight: 3, opacity: 0.9, dashArray: dashed ? '8,8' : null });
+      const head = L.polygon(arrowHeadTriangle(p1, p2), { color, weight: 1, fillColor: color, fillOpacity: 0.95 });
+      return L.featureGroup([line, head]);
+    }
+    if (d.shapeType === 'arrow_curve' && d.data && d.data.points && d.data.points.length === 3) {
+      const [p0, p1, p2] = d.data.points;
+      const curvePts = quadraticBezierPoints(p0, p1, p2, 28);
+      const line = L.polyline(curvePts, { color, weight: 3, opacity: 0.9 });
+      const chordLen = Math.hypot(p2[1] - p0[1], p2[0] - p0[0]) || 1e-9;
+      const head = L.polygon(arrowHeadTriangleAt(p2, p2[0] - p1[0], p2[1] - p1[1], chordLen * 0.28), { color, weight: 1, fillColor: color, fillOpacity: 0.95 });
+      return L.featureGroup([line, head]);
+    }
+    if (d.shapeType === 'encirclement' && d.data && d.data.center && typeof d.data.radius === 'number') {
+      return buildEncirclementLayer(d.data.center, d.data.radius, color);
+    }
   } catch (e) { console.warn('[Desenho] Falha ao reconstruir forma', d, e); }
   return null;
 }
@@ -2571,6 +2642,196 @@ function disableRuler(map) {
   map.getContainer().style.cursor = '';
 }
 
+// Seta tática (direção de avanço): toque no ponto de partida, toque no
+// destino — desenha uma linha com ponta triangular apontando pro destino.
+// Mesmo esquema de 2 cliques da régua (enableRuler acima). shapeType
+// parametrizado pra reaproveitar o mesmo fluxo na versão tracejada.
+function enableArrow(map, shapeType) {
+  const type = shapeType || 'arrow';
+  map.getContainer().style.cursor = 'crosshair';
+  let firstPoint = null;
+  let tempMarker = null;
+
+  function cleanup() {
+    if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+    firstPoint = null;
+  }
+  function onClick(e) {
+    if (!firstPoint) {
+      firstPoint = e.latlng;
+      tempMarker = L.circleMarker(firstPoint, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map);
+    } else {
+      saveTacticalDrawing(type, { latlngs: [[firstPoint.lat, firstPoint.lng], [e.latlng.lat, e.latlng.lng]] });
+      cleanup();
+      deactivateDrawTool(map);
+    }
+  }
+
+  map.on('click', onClick);
+  map._arrowHandlers = { onClick, cleanup };
+}
+
+function disableArrow(map) {
+  if (map._arrowHandlers) {
+    map.off('click', map._arrowHandlers.onClick);
+    map._arrowHandlers.cleanup();
+    map._arrowHandlers = null;
+  }
+  map.getContainer().style.cursor = '';
+}
+
+// Seta curva: 3 toques — início, ponto de controle (dá a curvatura), fim.
+// Mostra uma linha-guia tracejada fina ligando os pontos enquanto o
+// operador toca, pra visualizar antes de fechar. Salva só os 3 pontos (não
+// a curva já amostrada) — quem desenha de novo (buildDrawingLeafletLayer)
+// reconstrói a curva a partir deles.
+function enableArrowCurve(map) {
+  map.getContainer().style.cursor = 'crosshair';
+  let points = [];
+  let tempMarkers = [];
+  let guideLine = null;
+
+  function cleanup() {
+    tempMarkers.forEach(m => map.removeLayer(m));
+    tempMarkers = [];
+    if (guideLine) { map.removeLayer(guideLine); guideLine = null; }
+    points = [];
+  }
+  function updateGuide() {
+    if (guideLine) { map.removeLayer(guideLine); guideLine = null; }
+    if (points.length > 1) {
+      guideLine = L.polyline(points, { color: currentDrawColor, weight: 2, opacity: 0.6, dashArray: '3,6' }).addTo(map);
+    }
+  }
+  function onClick(e) {
+    points.push(e.latlng);
+    tempMarkers.push(L.circleMarker(e.latlng, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map));
+    updateGuide();
+    if (points.length === 3) {
+      saveTacticalDrawing('arrow_curve', { points: points.map(p => [p.lat, p.lng]) });
+      cleanup();
+      deactivateDrawTool(map);
+    }
+  }
+
+  map.on('click', onClick);
+  map._arrowCurveHandlers = { onClick, cleanup };
+}
+
+function disableArrowCurve(map) {
+  if (map._arrowCurveHandlers) {
+    map.off('click', map._arrowCurveHandlers.onClick);
+    map._arrowCurveHandlers.cleanup();
+    map._arrowCurveHandlers = null;
+  }
+  map.getContainer().style.cursor = '';
+}
+
+// Envolvimento: toque no centro, toque na borda (define o raio) — mesmo
+// esquema de 2 cliques da régua/seta.
+function enableEncirclement(map) {
+  map.getContainer().style.cursor = 'crosshair';
+  let center = null;
+  let tempMarker = null;
+
+  function cleanup() {
+    if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+    center = null;
+  }
+  function onClick(e) {
+    if (!center) {
+      center = e.latlng;
+      tempMarker = L.circleMarker(center, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map);
+    } else {
+      const radiusMeters = center.distanceTo(e.latlng);
+      saveTacticalDrawing('encirclement', { center: [center.lat, center.lng], radius: radiusMeters });
+      cleanup();
+      deactivateDrawTool(map);
+    }
+  }
+
+  map.on('click', onClick);
+  map._encirclementHandlers = { onClick, cleanup };
+}
+
+function disableEncirclement(map) {
+  if (map._encirclementHandlers) {
+    map.off('click', map._encirclementHandlers.onClick);
+    map._encirclementHandlers.cleanup();
+    map._encirclementHandlers = null;
+  }
+  map.getContainer().style.cursor = '';
+}
+
+// Calcula a ponta triangular de uma seta em lat/lng puro (sem depender de um
+// mapa específico — buildDrawingLeafletLayer roda 1x por aba/mapa a partir
+// dos MESMOS dados salvos, então não tem como usar pixels de um mapa só).
+// Recebe a ponta (tip) e um VETOR de direção (não precisa ser unitário, só a
+// direção importa) + o tamanho desejado da ponta — assim serve tanto pra
+// seta reta (direção = destino-origem) quanto pra curva (direção = tangente
+// da curva no ponto final) e pro envolvimento (direção = rumo ao centro).
+function arrowHeadTriangleAt(tip, dirLat, dirLng, headLen) {
+  const len = Math.hypot(dirLng, dirLat) || 1e-9;
+  const ux = dirLng / len, uy = dirLat / len;
+  const px = -uy, py = ux; // perpendicular
+  const spread = headLen * 0.62;
+  const backLat = tip[0] - headLen * uy, backLng = tip[1] - headLen * ux;
+  return [
+    [tip[0], tip[1]],
+    [backLat + spread * py, backLng + spread * px],
+    [backLat - spread * py, backLng - spread * px]
+  ];
+}
+
+// Seta reta/tracejada: ponta proporcional (28%) ao comprimento da própria
+// seta, então fica bem visível tanto numa seta curta quanto numa longa.
+function arrowHeadTriangle(p1, p2) {
+  const dLng = p2[1] - p1[1], dLat = p2[0] - p1[0];
+  const len = Math.hypot(dLng, dLat) || 1e-9;
+  return arrowHeadTriangleAt(p2, dLat, dLng, len * 0.28);
+}
+
+// Amostra uma curva de Bézier quadrática (3 pontos: início, controle, fim)
+// em N segmentos de reta — aproximação linear de lat/lng é aceitável nessa
+// escala (algumas centenas de metros a poucos km, uso tático local).
+function quadraticBezierPoints(p0, p1, p2, steps) {
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, mt = 1 - t;
+    pts.push([
+      mt * mt * p0[0] + 2 * mt * t * p1[0] + t * t * p2[0],
+      mt * mt * p0[1] + 2 * mt * t * p1[1] + t * t * p2[1]
+    ]);
+  }
+  return pts;
+}
+
+// Ponto sobre um círculo de raio em METROS a partir do centro (lat/lng) —
+// conversão aproximada metro->grau, suficiente pra desenhar o anel de setas
+// do envolvimento (não precisa de precisão geodésica exata aqui).
+function pointOnCircleLatLng(center, radiusMeters, angleRad) {
+  const latRad = center[0] * Math.PI / 180;
+  const dLat = (radiusMeters * Math.cos(angleRad)) / 111320;
+  const dLng = (radiusMeters * Math.sin(angleRad)) / (111320 * Math.cos(latRad) || 1);
+  return [center[0] + dLat, center[1] + dLng];
+}
+
+// Envolvimento: círculo tracejado + N setas curtas apontando pro centro,
+// distribuídas ao redor — símbolo de cerco/envolvimento.
+function buildEncirclementLayer(center, radiusMeters, color) {
+  const circle = L.circle(center, { radius: radiusMeters, color, weight: 2.5, opacity: 0.9, dashArray: '6,8', fill: false });
+  const layers = [circle];
+  const N = 8;
+  const headLen = Math.max(radiusMeters * 0.16, 3) / 111320; // em graus, aprox.
+  for (let i = 0; i < N; i++) {
+    const angle = (i / N) * Math.PI * 2;
+    const tip = pointOnCircleLatLng(center, radiusMeters, angle);
+    const dirLat = center[0] - tip[0], dirLng = center[1] - tip[1]; // aponta pro centro
+    layers.push(L.polygon(arrowHeadTriangleAt(tip, dirLat, dirLng, headLen), { color, weight: 1, fillColor: color, fillOpacity: 0.95 }));
+  }
+  return L.featureGroup(layers);
+}
+
 function activateDrawTool(tool, map) {
   activeDrawTool = tool;
   if (tool === 'rectangle') {
@@ -2586,6 +2847,14 @@ function activateDrawTool(tool, map) {
     enableFreehand(map);
   } else if (tool === 'ruler') {
     enableRuler(map);
+  } else if (tool === 'arrow') {
+    enableArrow(map, 'arrow');
+  } else if (tool === 'arrow_dashed') {
+    enableArrow(map, 'arrow_dashed');
+  } else if (tool === 'arrow_curve') {
+    enableArrowCurve(map);
+  } else if (tool === 'encirclement') {
+    enableEncirclement(map);
   } else if (tool === 'delete') {
     map.getContainer().style.cursor = 'crosshair';
   }
@@ -2599,6 +2868,9 @@ function deactivateDrawTool(map) {
   if (map) {
     disableFreehand(map);
     disableRuler(map);
+    disableArrow(map);
+    disableArrowCurve(map);
+    disableEncirclement(map);
     map.getContainer().style.cursor = '';
   }
   activeDrawTool = null;
@@ -2705,10 +2977,13 @@ function initDrawToolbar(toolbarId, getMap) {
 // cresce o ícone um pouco a cada nível de zoom acima de 15, pra ele continuar bem
 // visível quando o operador se aproxima, sem ficar gigante nem diminuir demais.
 function tacticalIconSizeForZoom(zoom) {
-  const base = 34;
+  // Valores 30% maiores que o original (34/3/54 -> 44/4/70) — pedido do
+  // operador pra ficarem mais visíveis, já que o painel de peças abaixo do
+  // mapa ficou menor (mais espaço de mapa, marcador maior nele).
+  const base = 44;
   const baseZoom = 15;
-  const growthPerLevel = 3;
-  const maxSize = 54;
+  const growthPerLevel = 4;
+  const maxSize = 70;
   if (typeof zoom !== 'number' || isNaN(zoom)) return base;
   const size = base + Math.max(0, zoom - baseZoom) * growthPerLevel;
   return Math.min(Math.round(size), maxSize);
@@ -2820,13 +3095,18 @@ function refreshTacticalMarkersUI() {
     // acontece só na aba Estratégia (mapEstrategia, abaixo).
     L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
     attachTacticalMarkerLongPressDrag(mkNormal, pin, mapNormal);
+    if (pin.piece) attachPieceLockBadge(mkNormal, pin);
 
-    if (pin.piece) {
-      attachPieceLockBadge(mkNormal, pin);
-      if (tacticalLayerEstrategia && mapEstrategia) {
-        const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin);
-        const mkEstrategia = L.marker([pin.lat, pin.lng], { icon: iconEstrategia }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerEstrategia);
-        attachTacticalMarkerLongPressDrag(mkEstrategia, pin, mapEstrategia);
+    // aba Estratégia: bug corrigido — antes só as peças (pin.piece) apareciam
+    // aqui, então marcadores comuns lançados na aba Marker (armas, alvo,
+    // etc.) ficavam invisíveis nessa aba. Agora TODOS os marcadores entram,
+    // igual já acontece em Normal/Relevo; só o selo de trava (exclusivo de
+    // peça) continua condicional.
+    if (tacticalLayerEstrategia && mapEstrategia) {
+      const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin);
+      const mkEstrategia = L.marker([pin.lat, pin.lng], { icon: iconEstrategia }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerEstrategia);
+      attachTacticalMarkerLongPressDrag(mkEstrategia, pin, mapEstrategia);
+      if (pin.piece) {
         attachPieceLockBadge(mkEstrategia, pin);
         if (pin._justCreated) {
           pin._justCreated = false;
@@ -2912,6 +3192,7 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
       clearTimer();
       detachMove();
       if (dragging) {
+        map.dragging.enable();
         // Usa o elemento ATUAL (o setIcon do início do arraste trocou o
         // elemento antigo por um novo, maior) — não o "el" capturado lá em
         // cima, que já não está mais na tela.
@@ -2948,6 +3229,7 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
       // Peça travada (vermelha) não se move — precisa destravar (selo) primeiro.
       if (pin.piece && pin.locked) return;
       if (e.target && e.target.closest && e.target.closest('[data-piece-lock]')) return; // toque foi no selo, não no arraste
+      e.stopPropagation(); // não deixa o toque "vazar" pro drag nativo do mapa por baixo
       pointerId = e.pointerId;
       startX = e.clientX; startY = e.clientY;
       dragging = false;
@@ -2957,6 +3239,15 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
 
       timer = setTimeout(() => {
         dragging = true;
+        // Bug corrigido: o mesmo toque que arrasta o marcador também
+        // "vazava" pro Leaflet como um toque no MAPA (o navegador dispara um
+        // mousedown de compatibilidade a partir do pointerdown original),
+        // então o mapa arrastava/seguia junto com o dedo enquanto o operador
+        // tentava só mover o marcador. Trava o pan do mapa enquanto esse
+        // arraste manual está em andamento (mesma técnica já usada em
+        // enableFreehand/disableFreehand pro modo caneta) e libera de volta
+        // no soltar (onUp, logo abaixo).
+        map.dragging.disable();
         // "Zoom" no ícone enquanto destravado pra arrastar: dobra de tamanho
         // (não dá pra usar transform:scale aqui — é o mesmo elemento onde o
         // Leaflet já aplica transform:translate3d pra posicionar o marcador,
@@ -3305,6 +3596,7 @@ function renderIconDocks() {
   setupTableToggle();
   setupTacticalPiecePanel();
   setupTacticalPiecePanelToggle();
+  setupDockPanelTabs();
 }
 
 // Painel de peças da aba Estratégia: toque numa peça pra "armar" (fica
@@ -3331,12 +3623,47 @@ function setupTacticalPiecePanel() {
 function updateTacticalPiecePanelHint() {
   const hint = document.getElementById('tacticalDockPanelHint');
   if (!hint) return;
+  const wrap = document.getElementById('tacticalDockPanelWrap');
+  const onDesenho = wrap && wrap.querySelector('.dock-panel-tab[data-panel-tab="desenho"].active');
+  if (onDesenho) {
+    hint.textContent = activeDrawTool
+      ? `✏️ Ferramenta ativa — toque no mapa (toque de novo no botão pra soltar)`
+      : '✏️ FERRAMENTAS DE DESENHO — escolha uma ferramenta e a cor, depois use no mapa';
+    return;
+  }
   if (armedPieceTypeId) {
     const t = getTacticalType(armedPieceTypeId);
     hint.textContent = `🎯 ${t.label} armado — toque no mapa pra lançar (toque de novo aqui pra soltar)`;
   } else {
     hint.textContent = '🎯 PEÇAS TÁTICAS — toque pra armar, toque no mapa pra lançar';
   }
+}
+
+// Alterna entre as 2 abas do painel (Peças / Desenho) — mostra só a seção
+// correspondente e troca a dica embaixo dos botões. Trocar de aba também
+// desarma qualquer peça e desativa qualquer ferramenta de desenho em uso,
+// pra não ficar uma ação "pendurada" de uma aba enquanto se mexe na outra.
+function setupDockPanelTabs() {
+  const wrap = document.getElementById('tacticalDockPanelWrap');
+  if (!wrap || wrap.dataset.tabsBound) return;
+  wrap.dataset.tabsBound = '1';
+  wrap.querySelectorAll('.dock-panel-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-panel-tab');
+      wrap.querySelectorAll('.dock-panel-tab').forEach(b => b.classList.toggle('active', b === btn));
+      wrap.querySelectorAll('[data-panel-section]').forEach(sec => {
+        sec.hidden = sec.getAttribute('data-panel-section') !== target;
+      });
+      if (target !== 'pecas' && armedPieceTypeId) {
+        armedPieceTypeId = null;
+        document.querySelectorAll('#tacticalDockEstrategico .dock-icon-item.armed').forEach(el => el.classList.remove('armed'));
+      }
+      if (target !== 'desenho' && typeof mapEstrategia !== 'undefined' && mapEstrategia && activeDrawTool) {
+        deactivateDrawTool(mapEstrategia);
+      }
+      updateTacticalPiecePanelHint();
+    });
+  });
 }
 
 // Botão "▾/▸" da tabela "Pontos Táticos Registrados" (aba Pontos): minimiza
@@ -3376,7 +3703,6 @@ function setupTacticalPiecePanelToggle() {
       btn.setAttribute('aria-label', collapsed ? 'Abrir peças' : 'Minimizar peças');
       setTimeout(() => {
         if (typeof mapEstrategia !== 'undefined' && mapEstrategia) mapEstrategia.invalidateSize();
-        if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapEstrategia, document.getElementById('drawToolbarEstrategia'), 'right');
       }, 30);
     });
   });
@@ -3905,7 +4231,6 @@ function initMaps(lat, lng) {
     if (mapEstrategia) mapEstrategia.remove();
     mapEstrategia = L.map('mapEstrategia', { layers: [layersEstrategia["Mapbox Satélite (HD)"]] }).setView(currentPos, 14);
     L.control.layers(layersEstrategia).addTo(mapEstrategia);
-    positionDrawToolbar(mapEstrategia, document.getElementById('drawToolbarEstrategia'), 'right');
     markers.estrategia = L.marker(currentPos, { icon: opIcon }).addTo(mapEstrategia);
     tacticalLayerEstrategia.addTo(mapEstrategia);
     mapEstrategia.on('zoomend', refreshTacticalMarkersUI);
@@ -6170,7 +6495,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       initLocationSearch('locSearchEstrategia', 'locSearchEstrategiaList', () => mapEstrategia);
       initDrawToolbar('drawToolbarNormal', () => mapNormal);
       initDrawToolbar('drawToolbarRelevo', () => mapRelevo);
-      initDrawToolbar('drawToolbarEstrategia', () => mapEstrategia);
+      initDrawToolbar('tacticalDrawDockEstrategia', () => mapEstrategia);
       initLocationSearch('locSearchMedir', 'locSearchMedirList', () => mapMedir);
 
       document.addEventListener('visibilitychange', () => {
