@@ -318,14 +318,26 @@
       pointer-events: none; z-index: 99999; opacity: 0.85; filter: drop-shadow(0 0 6px rgba(90, 140, 190, 0.7));
     }
 
-    #tabRelevo.active { display: flex; flex-direction: column; }
-    #tabRelevo #mapRelevo { height: 68.5%; flex-shrink: 0; }
-    #tabRelevo .tactical-table-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--bg); border-top: 2px solid var(--line); }
+    /* No celular, o vão entre mapa+dock e tabela é apertado — mapRelevo agora
+       cresce (flex:1) pra ceder espaço quando a tabela é minimizada, em vez
+       de ficar travado em 68.5% fixo. overflow-y:auto na aba inteira é uma
+       rede de segurança: em telas muito baixas (paisagem, teclado aberto)
+       onde nem o mínimo de mapa (220px) + cabeçalho da tabela cabem, dá pra
+       rolar em vez de simplesmente cortar o conteúdo. */
+    #tabRelevo.active { display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #tabRelevo #mapRelevo { flex: 1 1 68.5%; min-height: 220px; }
+    #tabRelevo .tactical-table-wrap {
+      flex: 0 0 31.5%; min-height: 0; display: flex; flex-direction: column;
+      background: var(--bg); border-top: 2px solid var(--line);
+    }
+    #tabRelevo .tactical-table-wrap.collapsed { flex: 0 0 auto; }
+    #tabRelevo .tactical-table-wrap.collapsed .tactical-table-scroll { display: none; }
     #tabRelevo .tactical-table-header {
       background: var(--surface); color: var(--accent); font-weight: 800; padding: 8px 12px;
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
+    #tabRelevo .tactical-table-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     #tabRelevo .tactical-table-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .tactical-table { width: 100%; border-collapse: collapse; font-size: 11px; }
     .tactical-table thead th {
@@ -938,7 +950,10 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="tactical-table-wrap">
     <div class="tactical-table-header">
       <span>📋 PONTOS TÁTICOS REGISTRADOS</span>
-      <button onclick="openPontosTableModal()" style="background:var(--action); color:#fff; border:none; border-radius:6px; padding:5px 10px; font-weight:800; font-size:10px; cursor:pointer; text-transform:none; letter-spacing:0;">⛶ Tela Cheia</button>
+      <div class="tactical-table-header-actions">
+        <button onclick="openPontosTableModal()" style="background:var(--action); color:#fff; border:none; border-radius:6px; padding:5px 10px; font-weight:800; font-size:10px; cursor:pointer; text-transform:none; letter-spacing:0;">⛶ Tela Cheia</button>
+        <button type="button" class="dock-toggle-btn" data-table-toggle aria-label="Minimizar tabela">▾</button>
+      </div>
     </div>
     <div class="tactical-table-scroll">
       <table class="tactical-table">
@@ -1581,10 +1596,6 @@ body.nvg-red-mode .leaflet-tile-container img {
       { id: 'vtr1',      label: 'Viatura',    icon: 'icons/vtr1.png',     dock: 'h' },
       { id: 'aph',       label: 'APH',        icon: 'icons/APH.png',      dock: 'h' },
       { id: 'priority',  label: 'Prioridade', icon: 'icons/priority.png', dock: 'h' },
-      { id: 'avanco',    label: 'Avanço',     icon: 'icons/avanço.png',   dock: 'h' },
-      { id: 'avanco2',   label: 'Avanço 2',   icon: 'icons/avanço2.png',  dock: 'h' },
-      { id: 'avanco3',   label: 'Avanço 3',   icon: 'icons/avanço3.png',  dock: 'h' },
-      { id: 'avanco4',   label: 'Avanço 4',   icon: 'icons/avanço4.png',  dock: 'h' },
       { id: 'sote',      label: 'SOTE',       icon: 'icons/sote.png',     dock: 'h' },
       { id: 'sap',       label: 'SAP',        icon: 'icons/sap.png',      dock: 'h' },
       { id: 'saer',      label: 'SAER',       icon: 'icons/saer.png',     dock: 'h' },
@@ -1604,8 +1615,29 @@ body.nvg-red-mode .leaflet-tile-container img {
       // salvos com esses tipos (não aparecem mais pra escolher, mas continuam
       // renderizando certo no mapa/tabela se já existirem).
       { id: 'boca',      label: 'Boca',       icon: 'icons/boca.png',      dock: null },
-      { id: 'intel',     label: 'Intel',      icon: 'icons/intel.png',     dock: null }
+      { id: 'intel',     label: 'Intel',      icon: 'icons/intel.png',     dock: null },
+      // Exclusivos do Dock Estratégico (aba Pontos) — não entram no dock 'h'
+      // nem no 'l', só aparecem via ESTRATEGICO_ORDER logo abaixo.
+      { id: 'heli',        label: 'Helicóptero', icon: 'icons/heli.png',        dock: null },
+      { id: 'cami1',       label: 'Caminhão',    icon: 'icons/cami1.png',       dock: null },
+      { id: 'cam2',        label: 'Filmadora',   icon: 'icons/cam2.png',        dock: null },
+      { id: 'contato',     label: 'Contato',     icon: 'icons/contato.png',     dock: null },
+      { id: 'bloq',        label: 'Bloqueio de Sinal', icon: 'icons/bloq.png',  dock: null },
+      { id: 'avanco-1',    label: 'Avanço',      icon: 'icons/avanço-1.png',    dock: null },
+      { id: 'avanco2-1',   label: 'Avanço 2',    icon: 'icons/avanço2-1.png',   dock: null },
+      { id: 'avanco3-1',   label: 'Avanço 3',    icon: 'icons/avanço3-1.png',   dock: null },
+      { id: 'avanco4-1',   label: 'Avanço 4',    icon: 'icons/avanço4-1.png',   dock: null }
     ].map(t => ({ ...t, icon: ASSET_BASE + t.icon + '?' + ICON_VER }));
+    // Ordem fixa do Dock Estratégico (aba Pontos), definida à mão em 3 blocos
+    // agrupados visualmente — não segue a ordem/filtro dos docks 'h'/'l'.
+    const ESTRATEGICO_ORDER = [
+      // Bloco 1 — preenchimento vermelho / risco
+      'contencao', 'boca', 'barricade', 'radinhos', 'seteira', 'trilho', 'bunker', 'vala', 'barreira',
+      // Bloco 2 — meios
+      'patrol', 'sniper', 'armored', 'heli', 'vtr1', 'cami1', 'intel', 'target', 'cam', 'cam2', 'aph',
+      // Bloco 3 — apoio / avanço
+      'sote', 'sap', 'drone', 'saer', 'eab', 'canil', 'priority', 'contato', 'bloq', 'avanco-1', 'avanco2-1', 'avanco3-1', 'avanco4-1'
+    ];
     let tacticalMarkers = {};
     let tacticalLayerNormal = L.layerGroup();
     let tacticalLayerRelevo = L.layerGroup();
@@ -3196,10 +3228,13 @@ function renderIconDocks() {
 
   hDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'h').map(dockIconHtml).join('');
   lDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'l').map(dockIconHtml).join('');
-  // Dock Estratégico (aba Pontos) oferece o catálogo INTEIRO de ícones — é
-  // pra isso que ele existe, ao contrário dos dois de cima, que dividem os
-  // tipos entre si.
-  if (eDock) eDock.innerHTML = TACTICAL_MARKER_TYPES.map(dockIconHtml).join('');
+  // Dock Estratégico (aba Pontos) usa uma ordem própria, fixa, definida à mão
+  // (agrupada em 3 blocos — preenchimento vermelho / meios / apoio-avanço),
+  // em vez de herdar a ordem dos docks 'h'/'l'.
+  if (eDock) eDock.innerHTML = ESTRATEGICO_ORDER
+    .map(id => getTacticalType(id))
+    .filter(Boolean)
+    .map(dockIconHtml).join('');
 
   document.querySelectorAll('.dock-icon-item').forEach(el => {
     el.addEventListener('pointerdown', onDockIconPointerDown);
@@ -3207,6 +3242,32 @@ function renderIconDocks() {
 
   initDockCarousels();
   setupDockToggles();
+  setupTableToggle();
+}
+
+// Botão "▾/▸" da tabela "Pontos Táticos Registrados" (aba Pontos): minimiza
+// pra deixar só o cabeçalho, dando mais espaço vertical pro mapa (e pro Dock
+// Estratégico por cima dele) no celular. Depois de mudar o tamanho, o Leaflet
+// precisa de invalidateSize() pra redesenhar os tiles direito, e o dock/a
+// barra de desenho precisam recalcular a posição (dependem da altura real do
+// mapa, que mudou).
+function setupTableToggle() {
+  document.querySelectorAll('.tactical-table-wrap [data-table-toggle]').forEach(btn => {
+    if (btn.dataset.toggleBound) return;
+    btn.dataset.toggleBound = '1';
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.tactical-table-wrap');
+      if (!wrap) return;
+      const collapsed = wrap.classList.toggle('collapsed');
+      btn.textContent = collapsed ? '▸' : '▾';
+      btn.setAttribute('aria-label', collapsed ? 'Abrir tabela' : 'Minimizar tabela');
+      setTimeout(() => {
+        if (typeof mapRelevo !== 'undefined' && mapRelevo) mapRelevo.invalidateSize();
+        if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
+        if (typeof positionDockEstrategico === 'function') positionDockEstrategico(mapRelevo, document.getElementById('tacticalDockEstrategicoWrap'));
+      }, 30);
+    });
+  });
 }
 
 // Botão "▾/▸" de cada dock (fica dentro da própria barra, junto das setas):
