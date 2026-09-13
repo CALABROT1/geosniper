@@ -228,6 +228,38 @@
       scrollbar-width: none;
     }
     .tactical-dock-lateral::-webkit-scrollbar { display: none; }
+    /* ===== DOCK ESTRATÉGICO (aba Pontos) — peças arrastáveis com selo
+       verde/vermelho. Mesma base visual dos docks da aba Marker (wrap,
+       setas e botão de minimizar reaproveitados); só o miolo muda: grade de
+       2 linhas com rolagem lateral (truque flex-direction:column +
+       flex-wrap:wrap), pra caber o catálogo inteiro sem tomar muito espaço
+       vertical — o mapa dessa aba já divide a tela com a tabela embaixo.
+       bottom fica um valor de segurança aqui; positionDockEstrategico()
+       recalcula em pixels reais, ancorado no rodapé do mapa. */
+    .tactical-dock-estrategico-wrap {
+      position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 900; max-width: 94%;
+    }
+    .tactical-dock-estrategico {
+      display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start;
+      gap: 8px; height: 112px; background: rgba(15,23,42,0.92); border: 1px solid var(--line);
+      border-radius: 14px; padding: 9px 11px; overflow-x: auto; overflow-y: hidden;
+      scroll-behavior: smooth; position: relative; min-width: 0;
+    }
+    .tactical-dock-estrategico .dock-icon-item span { display: none; }
+    .tactical-dock-estrategico .dock-icon-item img { width: 38px; height: 38px; }
+    .tactical-dock-estrategico .dock-icon-item { width: 56px; }
+    /* Selo verde/vermelho — desenhado junto do ícone da peça, tanto no dock
+       quanto já colocado no mapa. Verde = livre pra arrastar; vermelho =
+       travado no lugar. Fica num canto do ícone, com hit-area própria (pra
+       poder tocar só o selo sem mexer no resto do marcador). */
+    .piece-lock-badge {
+      position: absolute; width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--bg); box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      cursor: pointer; z-index: 3;
+    }
+    .piece-lock-badge.is-unlocked { background: var(--sem-good); }
+    .piece-lock-badge.is-locked { background: var(--sem-hostile); }
     /* Setas de navegação — quadradas (não mais redondas) e grandes pra ficarem
        fáceis de tocar. Rolar arrastando o dedo direto nos ícones também
        funciona (ver onDockIconPointerDown: um arraste ao longo do eixo do
@@ -254,6 +286,7 @@
     .dock-toggle-btn:active { background: var(--action); color: #fff; }
     .tactical-dock-wrap.collapsed .tactical-dock-horizontal,
     .tactical-dock-wrap.collapsed .tactical-dock-lateral,
+    .tactical-dock-wrap.collapsed .tactical-dock-estrategico,
     .tactical-dock-wrap.collapsed .dock-arrow,
     .tactical-dock-wrap.collapsed .dock-h-label { display: none; }
     .dock-icon-item {
@@ -849,7 +882,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="tactical-dock-wrap tactical-dock-wrap-h">
     <div class="tactical-dock-h-row">
       <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockHorizontal" data-dir="-1" aria-label="Rolar para o início">‹</button>
-      <div id="tacticalDockHorizontal" class="tactical-dock-horizontal"></div>
+      <div id="tacticalDockHorizontal" class="tactical-dock-horizontal" data-target-map="mapNormal"></div>
       <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockHorizontal" data-dir="1" aria-label="Rolar para o fim">›</button>
     </div>
     <div class="tactical-dock-h-bottom-row">
@@ -859,7 +892,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
   <div class="tactical-dock-wrap tactical-dock-wrap-l">
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-up" data-dock="tacticalDockLateral" data-dir="-1" aria-label="Rolar para cima">‹</button>
-    <div id="tacticalDockLateral" class="tactical-dock-lateral"></div>
+    <div id="tacticalDockLateral" class="tactical-dock-lateral" data-target-map="mapNormal"></div>
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-down" data-dock="tacticalDockLateral" data-dir="1" aria-label="Rolar para baixo">›</button>
     <button type="button" class="dock-toggle-btn" data-dock-toggle aria-label="Minimizar dock de riscos">▾</button>
   </div>
@@ -886,6 +919,20 @@ body.nvg-red-mode .leaflet-tile-container img {
         <span class="draw-color-swatch" data-color="var(--sem-hostile)" style="background:var(--sem-hostile)" title="Vermelho"></span>
       </div>
       <button class="draw-tool-btn" data-tool="delete" title="Apagar desenho (clique na forma)">🗑️</button>
+    </div>
+  </div>
+  <!-- DOCK ESTRATÉGICO — peças arrastáveis (verde = livre, vermelho = travado no
+       lugar). Ao travar pela primeira vez, o ponto passa a existir de verdade
+       (tabela + sincronizado com todo mundo). Ver createTacticalPiece(). -->
+  <div class="tactical-dock-wrap tactical-dock-estrategico-wrap" id="tacticalDockEstrategicoWrap">
+    <div class="tactical-dock-h-row">
+      <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockEstrategico" data-dir="-1" aria-label="Rolar para o início">‹</button>
+      <div id="tacticalDockEstrategico" class="tactical-dock-estrategico" data-target-map="mapRelevo" data-piece-mode="1"></div>
+      <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockEstrategico" data-dir="1" aria-label="Rolar para o fim">›</button>
+    </div>
+    <div class="tactical-dock-h-bottom-row">
+      <div class="dock-h-label">🎯 Dock Estratégico</div>
+      <button type="button" class="dock-toggle-btn" data-dock-toggle aria-label="Minimizar dock estratégico">▾</button>
     </div>
   </div>
   <div class="tactical-table-wrap">
@@ -1401,7 +1448,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
       <img id="tacticalPinModalIcon" src="" style="width:36px; height:36px;">
       <div>
-        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Novo Ponto Tático</div>
+        <div id="tacticalPinModalEyebrow" style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Novo Ponto Tático</div>
         <div id="tacticalPinModalTypeLabel" style="font-size:16px; font-weight:800; color:var(--accent);"></div>
       </div>
     </div>
@@ -1991,6 +2038,7 @@ function openTab(evt, tabName) {
       // visível — medir antes disso (aba escondida/display:none) dá
       // sempre altura zero e posiciona errado.
       if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
+      if (typeof positionDockEstrategico === 'function') positionDockEstrategico(mapRelevo, document.getElementById('tacticalDockEstrategicoWrap'));
     }
     if (tabName === 'tabNormal' && mapNormal) {
       mapNormal.invalidateSize();
@@ -2229,7 +2277,13 @@ function initTacticalSocket() {
   });
 
   tacticalSocket.on('tactical-pin-added', (pin) => {
-    tacticalMarkers[pin.id] = pin;
+    // Esse evento É a prova de que o ponto existe no servidor (seja o eco da
+    // nossa própria criação, seja uma peça que outro operador acabou de
+    // travar) — _registered marcado aqui, não só no ack de registerTacticalPiece,
+    // porque esse objeto SUBSTITUI o rascunho local inteiro, e sem isso uma
+    // peça já registrada podia "esquecer" que já existe e tentar se
+    // recriar (id duplicado) numa próxima travada.
+    tacticalMarkers[pin.id] = Object.assign({}, pin, { _registered: true });
     refreshTacticalMarkersUI();
   });
 
@@ -2503,6 +2557,22 @@ function positionDrawToolbar(map, toolbarEl, side) {
   }
 }
 
+// Ancora o Dock Estratégico logo acima do rodapé REAL do mapa da aba Pontos
+// (medido em pixels, igual positionDrawToolbar acima) — nessa aba o mapa não
+// enche a tela inteira (a tabela de pontos ocupa a parte de baixo), então um
+// "bottom" fixo em CSS ficaria errado dependendo do aparelho.
+function positionDockEstrategico(map, wrapEl) {
+  if (!map || !wrapEl) return;
+  const container = map.getContainer();
+  if (!container) return;
+  const tab = container.closest('.tab-content');
+  if (!tab) return;
+  const tabRect = tab.getBoundingClientRect();
+  const mapRect = container.getBoundingClientRect();
+  const bottomPos = Math.max(8, Math.round(tabRect.bottom - mapRect.bottom) + 14);
+  wrapEl.style.bottom = bottomPos + 'px';
+}
+
 function initDrawToolbar(toolbarId, getMap) {
   const toolbar = document.getElementById(toolbarId);
   if (!toolbar) return;
@@ -2576,18 +2646,30 @@ function tacticalIconSizeForZoom(zoom) {
   return Math.min(Math.round(size), maxSize);
 }
 
-function tacticalMarkerIcon(typeId, hasPhoto, size) {
+function tacticalMarkerIcon(typeId, hasPhoto, size, pin) {
   const t = getTacticalType(typeId);
   const s = size || 34;
   const badge = Math.round(s * 0.44);
-  if (!hasPhoto) {
+  // Peça do Dock Estratégico: sempre precisa de HTML extra (o selo
+  // verde/vermelho), então vira divIcon mesmo sem foto — o resto (ícone
+  // simples, com badge de foto) continua exatamente como antes.
+  const isPiece = !!(pin && pin.piece);
+  if (!hasPhoto && !isPiece) {
     return L.icon({ iconUrl: t.icon, iconSize: [s, s], iconAnchor: [s / 2, s], popupAnchor: [0, -s + 4], className: 'tactical-marker-icon' });
   }
+  const photoBadge = hasPhoto
+    ? `<span style="position:absolute; top:-3px; right:-6px; background:var(--action); color:#fff; border:1px solid var(--bg); border-radius:50%; width:${badge}px; height:${badge}px; display:flex; align-items:center; justify-content:center; font-size:${Math.round(badge*0.6)}px; line-height:1;">📷</span>`
+    : '';
+  const lockSize = Math.round(s * 0.36);
+  const lockBadge = isPiece
+    ? `<span class="piece-lock-badge ${pin.locked ? 'is-locked' : 'is-unlocked'}" data-piece-lock style="width:${lockSize}px; height:${lockSize}px; bottom:-3px; right:-3px;"></span>`
+    : '';
   return L.divIcon({
     className: 'tactical-marker-divicon',
     html: `<div style="position:relative; width:${s}px; height:${s}px;">
              <img src="${t.icon}" style="width:${s}px; height:${s}px; object-fit:contain; display:block;">
-             <span style="position:absolute; top:-3px; right:-6px; background:var(--action); color:#fff; border:1px solid var(--bg); border-radius:50%; width:${badge}px; height:${badge}px; display:flex; align-items:center; justify-content:center; font-size:${Math.round(badge*0.6)}px; line-height:1;">📷</span>
+             ${photoBadge}
+             ${lockBadge}
            </div>`,
     iconSize: [s, s],
     iconAnchor: [s / 2, s],
@@ -2614,13 +2696,35 @@ function tacticalPopupHtml(pin) {
   const photo = pin.photoUrl
     ? `<div onclick="viewTacticalPhoto('${pin.photoUrl}')" style="margin-top:6px; display:flex; align-items:center; gap:5px; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">📷 Ver foto</div>`
     : '';
+
+  // Peça do Dock Estratégico ainda em rascunho (verde, não sincronizada):
+  // balão mínimo, só com o nome — nada de formulário/compartilhar/excluir
+  // ainda, porque esse ponto nem existe no servidor até ser travado.
+  if (pin.piece && !pin.locked) {
+    return `
+      <div style="min-width:150px; max-width:200px;">
+        <b style="color:var(--accent);">${t.label}</b>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">🟢 Livre — arraste pra posicionar. Toque no selo pra travar aqui.</div>
+      </div>
+    `;
+  }
+
+  // Peça recém-travada (já registrada, mas ainda sem observação/foto): o
+  // botão de completar cadastro só aparece aqui, travada — antes disso o
+  // gerente ainda pode estar só organizando o tabuleiro.
+  const completeBtn = (pin.piece && pin.locked)
+    ? `<button onclick="openTacticalPinModal('${pin.type}', ${pin.lat}, ${pin.lng}, '${pin.id}')" style="margin-top:8px; width:100%; background:var(--action); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🖊️ Completar cadastro</button>`
+    : '';
+
   return `
     <div style="min-width:170px; max-width:220px;">
       <b style="color:var(--accent);">${t.label}${pin.label && pin.label !== t.label ? ' — ' + pin.label : ''}</b><br>
+      ${pin.piece ? `<div style="font-size:10px; color:var(--muted); margin-top:2px;">${pin.locked ? '🔴 Travado' : '🟢 Livre'}</div>` : ''}
       ${pin.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${pin.localidade}</div>` : ''}
       ${pin.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${pin.observation}</div>` : ''}
       <div style="font-size:10px; color:var(--muted); margin-top:6px;">${pin.operator || ''}${when ? ' · ' + when : ''}</div>
       ${photo}
+      ${completeBtn}
       <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng})" style="margin-top:8px; width:100%; background:#25D366; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">📲 Compartilhar no WhatsApp</button>
       <button onclick="deleteTacticalMarker('${pin.id}')" style="margin-top:6px; width:100%; background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir</button>
     </div>
@@ -2638,13 +2742,24 @@ function refreshTacticalMarkersUI() {
 
   Object.values(tacticalMarkers).forEach(pin => {
     if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
-    const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal);
-    const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo);
+    const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin);
+    const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin);
     const mkNormal = L.marker([pin.lat, pin.lng], { icon: iconNormal }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
-    L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
-    // Reposicionar por clique longo só faz sentido na aba Marker (mapa
-    // operacional) — na Pontos o marcador é só leitura/consulta.
+    const mkRelevo = L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
+    // Reposicionar por clique longo: normalmente só faz sentido na aba
+    // Marker (mapa operacional) — na Pontos o marcador é leitura/consulta,
+    // EXCETO pras peças do Dock Estratégico, que também podem ser
+    // arrastadas ali (é a aba onde elas nascem) enquanto destravadas.
     attachTacticalMarkerLongPressDrag(mkNormal, pin, mapNormal);
+    if (pin.piece) {
+      attachTacticalMarkerLongPressDrag(mkRelevo, pin, mapRelevo);
+      attachPieceLockBadge(mkNormal, pin);
+      attachPieceLockBadge(mkRelevo, pin);
+      if (pin._justCreated) {
+        pin._justCreated = false;
+        mkRelevo.openPopup();
+      }
+    }
 
     // Linha de visada (atirador/observador -> alvo), nas abas Mapa E Relevo — memória
     // persistente de onde o operador estava quando marcou esse ponto (redesenhada
@@ -2725,7 +2840,9 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
           tacticalMarkers[pin.id].lat = finalLatLng.lat;
           tacticalMarkers[pin.id].lng = finalLatLng.lng;
         }
-        if (tacticalSocket) {
+        // Peça ainda em rascunho (nunca travada) não existe no servidor —
+        // não há o que sincronizar até ela ser travada pela 1ª vez.
+        if (tacticalSocket && !(pin.piece && !pin._registered)) {
           tacticalSocket.emit('update-tactical-pin-location', { id: pin.id, lat: finalLatLng.lat, lng: finalLatLng.lng });
         }
         // Redesenha tudo (mantém a aba Pontos e a tabela sincronizadas com a
@@ -2744,6 +2861,9 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
 
     el.addEventListener('pointerdown', (e) => {
       if (e.button !== undefined && e.button !== 0) return; // só botão esquerdo/toque
+      // Peça travada (vermelha) não se move — precisa destravar (selo) primeiro.
+      if (pin.piece && pin.locked) return;
+      if (e.target && e.target.closest && e.target.closest('[data-piece-lock]')) return; // toque foi no selo, não no arraste
       pointerId = e.pointerId;
       startX = e.clientX; startY = e.clientY;
       dragging = false;
@@ -2763,7 +2883,7 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
         // Ao soltar, refreshTacticalMarkersUI() já reconstrói tudo do zero
         // no tamanho normal, então não precisa reverter manualmente aqui.
         const baseSize = tacticalIconSizeForZoom(map.getZoom());
-        const bigIcon = tacticalMarkerIcon(pin.type, !!pin.photoUrl, baseSize * 2);
+        const bigIcon = tacticalMarkerIcon(pin.type, !!pin.photoUrl, baseSize * 2, pin);
         marker.setIcon(bigIcon);
         const draggingEl = marker.getElement();
         if (draggingEl) draggingEl.classList.add('tactical-marker-dragging');
@@ -2778,6 +2898,79 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
         });
       }, LONG_PRESS_MS);
     });
+  });
+}
+
+// Liga o toque no selo verde/vermelho de uma peça (Dock Estratégico) —
+// precisa de stopPropagation em cima do próprio elemento pra não also abrir
+// o popup do marcador nem iniciar o arraste (attachTacticalMarkerLongPressDrag
+// já ignora pointerdown vindos do selo, ver [data-piece-lock] ali em cima).
+function attachPieceLockBadge(marker, pin) {
+  marker.on('add', () => {
+    const el = marker.getElement();
+    if (!el) return;
+    const badge = el.querySelector('[data-piece-lock]');
+    if (!badge || badge.dataset.lockBound) return;
+    badge.dataset.lockBound = '1';
+    badge.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePieceLock(pin.id);
+    });
+  });
+}
+
+// Cria uma peça do Dock Estratégico (aba Pontos): aparece na hora, verde e
+// arrastável, SEM tocar o servidor — só quando o gerente travar (selo) pela
+// primeira vez é que ela é registrada de vez (ver registerTacticalPiece).
+function createTacticalPiece(typeId, lat, lng) {
+  const t = getTacticalType(typeId);
+  const operator = localStorage.getItem('geosniper_operator_name') || 'Operador';
+  const id = `PIECE_${Date.now()}`;
+  tacticalMarkers[id] = {
+    id, type: typeId, lat, lng,
+    label: t.label, localidade: '', observation: '',
+    operatorLat: null, operatorLng: null, photoUrl: null,
+    operator, timestamp: new Date().toISOString(),
+    piece: true, locked: false, _registered: false, _justCreated: true
+  };
+  refreshTacticalMarkersUI();
+}
+
+// Selo verde <-> vermelho de uma peça já existente (rascunho ou registrada).
+function togglePieceLock(id) {
+  const pin = tacticalMarkers[id];
+  if (!pin) return;
+  const newLocked = !pin.locked;
+  pin.locked = newLocked;
+
+  if (newLocked && !pin._registered) {
+    registerTacticalPiece(pin);
+  } else if (pin._registered && tacticalSocket) {
+    tacticalSocket.emit('update-tactical-pin-lock', { id: pin.id, locked: newLocked ? 1 : 0 });
+  }
+  refreshTacticalMarkersUI();
+}
+
+// Primeira travada de uma peça: é o instante em que ela deixa de ser um
+// rascunho local e passa a existir de verdade — entra na tabela de Pontos
+// Táticos Registrados e é sincronizada com todo mundo na unidade. Usa o
+// MESMO evento 'new-tactical-pin' do cadastro tradicional (aba Marker), só
+// que com locked/piece marcados — pro servidor é o mesmo tipo de ponto.
+function registerTacticalPiece(pin) {
+  if (!tacticalSocket) return;
+  const payload = {
+    id: pin.id, type: pin.type, lat: pin.lat, lng: pin.lng,
+    label: pin.label, localidade: pin.localidade || '', observation: pin.observation || '',
+    operatorLat: pin.operatorLat, operatorLng: pin.operatorLng, photoUrl: pin.photoUrl,
+    operator: pin.operator, locked: 1, piece: 1
+  };
+  tacticalSocket.emit('new-tactical-pin', payload, (response) => {
+    if (response && response.success) {
+      pin._registered = true;
+    } else {
+      console.error('Não foi possível registrar a peça tática — tente travar de novo.');
+    }
   });
 }
 
@@ -2799,7 +2992,12 @@ function renderTacticalMarkersTable() {
   const tbodyModal = document.getElementById('tacticalMarkersTableBodyModal');
   if (!tbody && !tbodyModal) return;
 
-  const rows = Object.values(tacticalMarkers).sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+  // Peça do Dock Estratégico ainda em rascunho (verde, nunca travada) não
+  // entra na tabela — ela só "existe de verdade" (registrada, sincronizada)
+  // a partir do momento em que é travada pela 1ª vez. Ver createTacticalPiece.
+  const rows = Object.values(tacticalMarkers)
+    .filter(pin => !(pin.piece && !pin.locked))
+    .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
 
   if (rows.length === 0) {
     const emptyHtml = '<tr><td colspan="10" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
@@ -2993,10 +3191,15 @@ function dockIconHtml(t) {
 function renderIconDocks() {
   const hDock = document.getElementById('tacticalDockHorizontal');
   const lDock = document.getElementById('tacticalDockLateral');
+  const eDock = document.getElementById('tacticalDockEstrategico');
   if (!hDock || !lDock) return;
 
   hDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'h').map(dockIconHtml).join('');
   lDock.innerHTML = TACTICAL_MARKER_TYPES.filter(t => t.dock === 'l').map(dockIconHtml).join('');
+  // Dock Estratégico (aba Pontos) oferece o catálogo INTEIRO de ícones — é
+  // pra isso que ele existe, ao contrário dos dois de cima, que dividem os
+  // tipos entre si.
+  if (eDock) eDock.innerHTML = TACTICAL_MARKER_TYPES.map(dockIconHtml).join('');
 
   document.querySelectorAll('.dock-icon-item').forEach(el => {
     el.addEventListener('pointerdown', onDockIconPointerDown);
@@ -3031,6 +3234,7 @@ function setupDockToggles() {
 function initDockCarousels() {
   setupDockCarousel('tacticalDockHorizontal', 'x');
   setupDockCarousel('tacticalDockLateral', 'y');
+  setupDockCarousel('tacticalDockEstrategico', 'x');
 }
 
 function setupDockCarousel(dockId, axis) {
@@ -3110,22 +3314,37 @@ function setupDockCarousel(dockId, axis) {
 
 // Eixo de rolagem de cada dock — usado pra decidir, durante o toque, se o
 // dedo está "rolando o dock" ou "arrastando o ícone pra fora, até o mapa".
-const DOCK_AXIS = { tacticalDockHorizontal: 'x', tacticalDockLateral: 'y' };
+const DOCK_AXIS = { tacticalDockHorizontal: 'x', tacticalDockLateral: 'y', tacticalDockEstrategico: 'x' };
 // Distância mínima (px) antes de decidir qual dos dois gestos é: evita que
 // um toque com tremor mínimo já dispare rolagem ou arraste sem querer.
 const DOCK_GESTURE_THRESHOLD = 9;
+
+// Cada dock arrastável carrega em cima do próprio elemento (data-target-map)
+// pra qual mapa Leaflet ele solta o ícone — assim o mesmo mecanismo de
+// arraste funciona pra qualquer dock em qualquer aba, sem ficar fixo num só
+// mapa. data-piece-mode="1" marca o Dock Estratégico (aba Pontos): soltar
+// ali cria uma "peça" rápida (sem formulário) em vez de abrir o cadastro
+// completo, que é o que os outros docks (aba Marker) continuam fazendo.
+function resolveMapByName(name) {
+  if (name === 'mapNormal') return (typeof mapNormal !== 'undefined') ? mapNormal : null;
+  if (name === 'mapRelevo') return (typeof mapRelevo !== 'undefined') ? mapRelevo : null;
+  return null;
+}
 
 function onDockIconPointerDown(e) {
   e.preventDefault();
   const el = e.currentTarget;
   const typeId = el.getAttribute('data-type');
-  const dockEl = el.closest('.tactical-dock-horizontal, .tactical-dock-lateral');
+  const dockEl = el.closest('.tactical-dock-horizontal, .tactical-dock-lateral, .tactical-dock-estrategico');
   const axis = dockEl ? (DOCK_AXIS[dockEl.id] || 'x') : 'x';
+  const targetMapName = dockEl ? (dockEl.getAttribute('data-target-map') || 'mapNormal') : 'mapNormal';
+  const pieceMode = !!(dockEl && dockEl.getAttribute('data-piece-mode') === '1');
 
   try { el.setPointerCapture(e.pointerId); } catch (err) {}
 
   dockDragState = {
     typeId, el, dockEl, axis, pointerId: e.pointerId,
+    targetMapName, pieceMode,
     startX: e.clientX, startY: e.clientY,
     lastX: e.clientX, lastY: e.clientY,
     gesture: null, // ainda indeciso: vira 'scroll' ou 'place' no primeiro pointermove decisivo
@@ -3207,7 +3426,7 @@ function onDockDragCancel(e) {
 
 function onDockDragEnd(e) {
   if (!dockDragState || e.pointerId !== dockDragState.pointerId) return;
-  const { typeId, gesture } = dockDragState;
+  const { typeId, gesture, targetMapName, pieceMode } = dockDragState;
   cleanupDockDrag();
   dockDragState = null;
 
@@ -3216,8 +3435,9 @@ function onDockDragEnd(e) {
   // movimento) ou uma rolagem do dock nunca marca ponto.
   if (gesture !== 'place') return;
 
-  const mapEl = document.getElementById('mapNormal');
-  if (!mapEl || !mapNormal) return;
+  const targetMap = resolveMapByName(targetMapName);
+  const mapEl = targetMap ? targetMap.getContainer() : null;
+  if (!mapEl || !targetMap) return;
   const rect = mapEl.getBoundingClientRect();
 
   if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
@@ -3230,28 +3450,45 @@ function onDockDragEnd(e) {
   // botão de minimizar), NÃO conta como "soltar no mapa": a existência
   // física do dock bloqueia a marcação por baixo dele.
   const dropEl = document.elementFromPoint(e.clientX, e.clientY);
-  if (dropEl && dropEl.closest('.tactical-dock-wrap')) {
+  if (dropEl && (dropEl.closest('.tactical-dock-wrap') || dropEl.closest('.tactical-dock-estrategico-wrap'))) {
     return;
   }
 
   const point = L.point(e.clientX - rect.left, e.clientY - rect.top);
-  const latlng = mapNormal.containerPointToLatLng(point);
-  openTacticalPinModal(typeId, latlng.lat, latlng.lng);
+  const latlng = targetMap.containerPointToLatLng(point);
+
+  if (pieceMode) {
+    createTacticalPiece(typeId, latlng.lat, latlng.lng);
+  } else {
+    openTacticalPinModal(typeId, latlng.lat, latlng.lng);
+  }
 }
 
-function openTacticalPinModal(typeId, lat, lng) {
+function openTacticalPinModal(typeId, lat, lng, editId) {
   const t = getTacticalType(typeId);
-  tacticalPendingPin = { type: typeId, lat, lng };
+  // editId presente = "completar cadastro" de uma peça do Dock Estratégico
+  // já travada (existe no servidor) — saveTacticalPin() atualiza em vez de
+  // criar um ponto novo duplicado. Sem editId, é o cadastro normal de sempre.
+  const editingPin = editId ? tacticalMarkers[editId] : null;
+  tacticalPendingPin = { type: typeId, lat, lng, editId: editingPin ? editId : null };
   tacticalPendingPhotoDataUrl = null;
 
   document.getElementById('tacticalPinModalIcon').src = t.icon;
+  document.getElementById('tacticalPinModalEyebrow').innerText = editingPin ? 'Completar Cadastro (Peça Travada)' : 'Novo Ponto Tático';
   document.getElementById('tacticalPinModalTypeLabel').innerText = t.label;
-  document.getElementById('tacticalPinLabel').value = t.label;
+  document.getElementById('tacticalPinLabel').value = (editingPin && editingPin.label) || t.label;
   // Pré-preenche com o último local pesquisado (aba Pesquisar) — o operador pode
-  // editar ou apagar se o marcador não for exatamente naquele local.
-  document.getElementById('tacticalPinLocalidade').value = lastLocationSearchName || '';
-  document.getElementById('tacticalPinObservation').value = '';
-  document.getElementById('tacticalPinPhotoPreview').style.display = 'none';
+  // editar ou apagar se o marcador não for exatamente naquele local. Numa
+  // edição, prevalece o que a peça já tinha (mesmo que vazio).
+  document.getElementById('tacticalPinLocalidade').value = editingPin ? (editingPin.localidade || '') : (lastLocationSearchName || '');
+  document.getElementById('tacticalPinObservation').value = (editingPin && editingPin.observation) || '';
+  const photoPreview = document.getElementById('tacticalPinPhotoPreview');
+  if (editingPin && editingPin.photoUrl) {
+    photoPreview.src = editingPin.photoUrl;
+    photoPreview.style.display = 'block';
+  } else {
+    photoPreview.style.display = 'none';
+  }
   document.getElementById('tacticalPinPhotoInput').value = '';
   document.getElementById('tacticalPinOperator').value = localStorage.getItem('geosniper_operator_name') || '';
 
@@ -3350,8 +3587,52 @@ function triggerTacticalPinPhoto() {
   if (input) input.click();
 }
 
+// "Completar cadastro" de uma peça do Dock Estratégico já travada: ela já
+// existe no servidor (foi registrada ao travar), então aqui é uma
+// ATUALIZAÇÃO (mesma rota REST que o painel do gerenciador já usa pra
+// editar um ponto), nunca uma criação nova — evita duplicar o ponto.
+function saveTacticalPinEdit() {
+  const editId = tacticalPendingPin.editId;
+  const pin = tacticalMarkers[editId];
+  if (!pin) { closeTacticalPinModal(); return; }
+
+  const operator = document.getElementById('tacticalPinOperator').value.trim() || 'Operador';
+  localStorage.setItem('geosniper_operator_name', operator);
+
+  const label = document.getElementById('tacticalPinLabel').value.trim() || getTacticalType(pin.type).label;
+  const localidade = document.getElementById('tacticalPinLocalidade').value.trim();
+  const observation = document.getElementById('tacticalPinObservation').value.trim();
+  const photoToUpload = tacticalPendingPhotoDataUrl;
+
+  fetch(`https://api.geosniper.com.br/api/admin/markers/${editId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
+    body: JSON.stringify({
+      label, observation, localidade,
+      lat: pin.lat, lng: pin.lng,
+      operatorLat: pin.operatorLat, operatorLng: pin.operatorLng
+    })
+  }).then(res => res.json()).then((resp) => {
+    if (!resp || !resp.success) { console.error('Não foi possível salvar o cadastro da peça.'); return; }
+    Object.assign(pin, { label, observation, localidade, operator });
+    if (photoToUpload) {
+      fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
+        body: JSON.stringify({ imageBase64: photoToUpload, markerId: editId })
+      }).then(() => { pin.photoUrl = photoToUpload; refreshTacticalMarkersUI(); })
+        .catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
+    } else {
+      refreshTacticalMarkersUI();
+    }
+  }).catch(err => console.error('Erro ao salvar cadastro da peça:', err));
+
+  closeTacticalPinModal();
+}
+
 function saveTacticalPin() {
   if (!tacticalPendingPin) return;
+  if (tacticalPendingPin.editId) { saveTacticalPinEdit(); return; }
 
   const operator = document.getElementById('tacticalPinOperator').value.trim() || 'Operador';
   localStorage.setItem('geosniper_operator_name', operator);
@@ -3438,6 +3719,7 @@ function initMaps(lat, lng) {
     mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Mapbox Satélite (HD)"]] }).setView(currentPos, 14);
     L.control.layers(layersRelevo).addTo(mapRelevo);
     positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
+    if (typeof positionDockEstrategico === 'function') positionDockEstrategico(mapRelevo, document.getElementById('tacticalDockEstrategicoWrap'));
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
     tacticalLayerRelevo.addTo(mapRelevo);
     mapRelevo.on('zoomend', refreshTacticalMarkersUI);
