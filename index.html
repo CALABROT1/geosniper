@@ -247,13 +247,23 @@
        quanto já colocado no mapa. Verde = livre pra arrastar; vermelho =
        travado no lugar. Fica num canto do ícone, com hit-area própria (pra
        poder tocar só o selo sem mexer no resto do marcador). */
+    /* Cores vivas fixas (não var(--sem-good), que é um verde-oliva discreto
+       demais — sumia contra o verde da vegetação no mapa satélite, era
+       basicamente o bug do "verde não aparece"). Borda branca grossa pra
+       contrastar em qualquer fundo, halo/glow pra chamar atenção, e um
+       ::before invisível maior que a bolinha visível pra aumentar a
+       área de toque sem aumentar o tamanho visual do selo. */
     .piece-lock-badge {
-      position: absolute; width: 16px; height: 16px; border-radius: 50%;
-      border: 2px solid var(--bg); box-shadow: 0 1px 3px rgba(0,0,0,0.6);
-      cursor: pointer; z-index: 3;
+      position: absolute; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 10px; line-height: 1;
+      border: 2.5px solid #fff; cursor: pointer; z-index: 4;
     }
-    .piece-lock-badge.is-unlocked { background: var(--sem-good); }
-    .piece-lock-badge.is-locked { background: var(--sem-hostile); }
+    .piece-lock-badge::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 30px; height: 30px; transform: translate(-50%, -50%);
+    }
+    .piece-lock-badge.is-unlocked { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.45), 0 1px 4px rgba(0,0,0,0.7); }
+    .piece-lock-badge.is-locked { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.45), 0 1px 4px rgba(0,0,0,0.7); }
     /* Setas de navegação — quadradas (não mais redondas) e grandes pra ficarem
        fáceis de tocar. Rolar arrastando o dedo direto nos ícones também
        funciona (ver onDockIconPointerDown: um arraste ao longo do eixo do
@@ -333,55 +343,60 @@
     #tabRelevo .tactical-table-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     #tabRelevo .tactical-table-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-    /* aba Estratégia — mapa em cima (mostra os mesmos pontos/desenhos já
-       sincronizados, planejamentos antigos inclusive) + painel embaixo,
-       ocupando 30% da altura (reduzido de 50% — o painel estava tomando
-       espaço demais de mapa), no mesmo esquema de mapa+tabela/painel
-       colapsável já usado na aba Pontos. O painel agora tem DUAS abas
-       internas — Peças / Desenho — pra caber tanto o dock de ícones táticos
-       quanto as ferramentas de desenho (que antes viviam num botão ✏️
-       flutuante por cima do mapa), ver setupDockPanelTabs(). */
-    #tabEstrategia.active { display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    #tabEstrategia #mapEstrategia { flex: 1 1 70%; min-height: 260px; }
-    #tabEstrategia .tactical-dock-panel-wrap {
-      flex: 0 0 30%; min-height: 0; display: flex; flex-direction: column;
-      background: var(--bg); border-top: 2px solid var(--line);
+    /* aba Estratégia — mapa ocupa a aba inteira (o painel de baixo saiu);
+       Peças e Desenho agora são 2 janelinhas FLUTUANTES independentes por
+       cima do mapa — arrastam pelo cabeçalho, redimensionam puxando
+       qualquer borda/canto, minimizam com o ▾. Ver makeFloatingPanel(). */
+    #tabEstrategia #mapEstrategia { width: 100%; height: 100%; }
+    .floating-panel {
+      position: absolute; z-index: 950; display: flex; flex-direction: column;
+      background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5); overflow: hidden;
+      min-width: 160px; min-height: 110px; max-width: calc(100% - 16px); max-height: calc(100% - 16px);
     }
-    #tabEstrategia .tactical-dock-panel-wrap.collapsed { flex: 0 0 auto; }
-    #tabEstrategia .tactical-dock-panel-wrap.collapsed .tactical-dock-panel-scroll { display: none; }
-    #tabEstrategia .tactical-dock-panel-header {
-      background: var(--surface); flex-shrink: 0;
-      display: flex; flex-direction: column; gap: 6px; padding: 7px 10px;
+    .floating-panel.collapsed { height: auto !important; min-height: 0; }
+    .floating-panel.collapsed .floating-panel-body { display: none; }
+    .floating-panel.collapsed .floating-panel-resize-handle { display: none; }
+    .floating-panel.dragging, .floating-panel.resizing { box-shadow: 0 10px 30px rgba(0,0,0,0.65); }
+    .floating-panel-header {
+      background: var(--surface); color: var(--accent); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 7px 10px; font-weight: 800; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.4px; cursor: move; touch-action: none; user-select: none;
     }
-    #tabEstrategia .tactical-dock-panel-header-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    #tabEstrategia .tactical-dock-panel-tabs { display: flex; gap: 6px; }
-    .dock-panel-tab {
-      background: transparent; border: 1px solid var(--line); color: var(--muted);
-      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
-      padding: 5px 11px; border-radius: 7px; cursor: pointer;
+    .floating-panel-body { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px; min-height: 0; }
+    .floating-panel-hint {
+      color: var(--accent); font-weight: 700; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.3px; margin-bottom: 8px;
     }
-    .dock-panel-tab.active { background: var(--action); border-color: var(--accent); color: #fff; }
-    #tabEstrategia #tacticalDockPanelHint {
-      color: var(--accent); font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px;
-    }
-    #tabEstrategia .tactical-dock-panel-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
-    /* [hidden] sozinho perderia pro display:flex de .tactical-dock-panel-grid
-       (mesma especificidade, mas regra do autor bate a do navegador) — força
-       aqui pra trocar de aba (Peças/Desenho) realmente esconder a outra. */
-    #tabEstrategia [data-panel-section][hidden] { display: none !important; }
-    /* Dock de ferramentas de desenho embutido na aba Desenho do painel —
-       mesmos botões/cores que já existiam no ✏️ flutuante (reaproveita
-       activateDrawTool/initDrawToolbar sem duplicar lógica), só com visual
-       de dock fixo em vez de popover. */
+    /* Alças de redimensionar: tiras invisíveis nas 4 bordas + cantos maiores
+       (mais fáceis de pegar no touch), cada uma só ajusta a direção que diz
+       respeito a ela. */
+    .floating-panel-resize-handle { position: absolute; z-index: 2; }
+    .floating-panel-resize-handle.edge-e { right: -4px; top: 10px; bottom: 10px; width: 9px; cursor: ew-resize; }
+    .floating-panel-resize-handle.edge-w { left: -4px; top: 10px; bottom: 10px; width: 9px; cursor: ew-resize; }
+    .floating-panel-resize-handle.edge-n { top: -4px; left: 14px; right: 14px; height: 9px; cursor: ns-resize; }
+    .floating-panel-resize-handle.edge-s { bottom: -4px; left: 14px; right: 14px; height: 9px; cursor: ns-resize; }
+    .floating-panel-resize-handle.corner-ne { top: -5px; right: -5px; width: 16px; height: 16px; cursor: nesw-resize; }
+    .floating-panel-resize-handle.corner-nw { top: -5px; left: -5px; width: 16px; height: 16px; cursor: nwse-resize; }
+    .floating-panel-resize-handle.corner-se { bottom: -5px; right: -5px; width: 16px; height: 16px; cursor: nwse-resize; }
+    .floating-panel-resize-handle.corner-sw { bottom: -5px; left: -5px; width: 16px; height: 16px; cursor: nesw-resize; }
+    /* Ícones do dock de Peças 20% maiores (30px -> 36px) — a grade
+       (flex-wrap) já reorganiza sozinha quando a caixa muda de tamanho. */
+    #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item img { width: 36px; height: 36px; }
+    #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item { width: 68px; }
+    /* Dock de ferramentas de desenho — mesmos botões/cores que já existiam
+       no ✏️ flutuante antigo (reaproveita activateDrawTool/initDrawToolbar
+       sem duplicar lógica), só que agora dentro da janela flutuante. */
     .tactical-draw-dock-tools { display: flex; flex-wrap: wrap; gap: 10px; }
     .tdd-btn {
-      width: 64px; height: auto; flex-direction: column; gap: 4px; padding: 8px 4px;
+      width: 62px; height: auto; flex-direction: column; gap: 4px; padding: 8px 4px;
       border-radius: 10px; background: var(--surface);
     }
-    .tdd-icon { font-size: 22px; line-height: 1; }
+    .tdd-icon { font-size: 20px; line-height: 1; }
     .tdd-label { font-size: 9px; font-weight: 700; color: inherit; text-transform: uppercase; letter-spacing: 0.3px; }
     .tactical-draw-dock-colors {
-      display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding-top: 10px;
       border-top: 1px solid var(--line);
     }
     .tactical-draw-dock-colors .tdd-color-label { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-right: 2px; }
@@ -1021,24 +1036,36 @@ body.nvg-red-mode .leaflet-tile-container img {
     <input id="locSearchEstrategia" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
     <div id="locSearchEstrategiaList" class="location-search-list"></div>
   </div>
-  <!-- Painel dividido em 2 abas — Peças (toque pra armar, toque no mapa pra
-       lançar) e Desenho (as mesmas ferramentas que antes viviam num botão
-       ✏️ flutuante por cima do mapa, agora um dock fixo). Ver
-       setupTacticalPiecePanel(), setupDockPanelTabs() e initDrawToolbar(). -->
-  <div class="tactical-dock-panel-wrap" id="tacticalDockPanelWrap">
-    <div class="tactical-dock-panel-header">
-      <div class="tactical-dock-panel-header-top">
-        <div class="tactical-dock-panel-tabs">
-          <button type="button" class="dock-panel-tab active" data-panel-tab="pecas">🎯 Peças</button>
-          <button type="button" class="dock-panel-tab" data-panel-tab="desenho">✏️ Desenho</button>
-        </div>
-        <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar painel">▾</button>
-      </div>
-      <span id="tacticalDockPanelHint">🎯 PEÇAS TÁTICAS — toque pra armar, toque no mapa pra lançar</span>
+
+  <!-- 2 painéis FLUTUANTES independentes sobre o mapa (mapa agora ocupa a
+       aba inteira) — cada um arrastável pelo cabeçalho, redimensionável
+       puxando qualquer borda/canto, e minimizável. Ver makeFloatingPanel(). -->
+  <div class="floating-panel" id="tacticalFloatingPecas" data-floating-panel style="left:10px; top:14px; width:250px; height:280px;">
+    <div class="floating-panel-header" data-panel-drag-handle>
+      <span>🎯 Peças</span>
+      <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar peças">▾</button>
     </div>
-    <div class="tactical-dock-panel-scroll">
-      <div id="tacticalDockEstrategico" class="tactical-dock-panel-grid" data-panel-section="pecas"></div>
-      <div id="tacticalDrawDockEstrategia" class="tactical-draw-dock" data-panel-section="desenho" hidden>
+    <div class="floating-panel-body">
+      <div id="tacticalDockPanelHint" class="floating-panel-hint">Toque pra armar, toque no mapa pra lançar</div>
+      <div id="tacticalDockEstrategico" class="tactical-dock-panel-grid"></div>
+    </div>
+    <div class="floating-panel-resize-handle edge-n" data-resize="n"></div>
+    <div class="floating-panel-resize-handle edge-s" data-resize="s"></div>
+    <div class="floating-panel-resize-handle edge-e" data-resize="e"></div>
+    <div class="floating-panel-resize-handle edge-w" data-resize="w"></div>
+    <div class="floating-panel-resize-handle corner-ne" data-resize="ne"></div>
+    <div class="floating-panel-resize-handle corner-nw" data-resize="nw"></div>
+    <div class="floating-panel-resize-handle corner-se" data-resize="se"></div>
+    <div class="floating-panel-resize-handle corner-sw" data-resize="sw"></div>
+  </div>
+
+  <div class="floating-panel" id="tacticalFloatingDesenho" data-floating-panel style="right:10px; top:14px; width:230px; height:280px;">
+    <div class="floating-panel-header" data-panel-drag-handle>
+      <span>✏️ Desenho</span>
+      <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar desenho">▾</button>
+    </div>
+    <div class="floating-panel-body">
+      <div id="tacticalDrawDockEstrategia" class="tactical-draw-dock">
         <div class="tactical-draw-dock-tools">
           <button class="draw-tool-btn tdd-btn" data-tool="rectangle" title="Retângulo"><span class="tdd-icon">▭</span><span class="tdd-label">Retângulo</span></button>
           <button class="draw-tool-btn tdd-btn" data-tool="circle" title="Círculo"><span class="tdd-icon">◯</span><span class="tdd-label">Círculo</span></button>
@@ -1061,6 +1088,14 @@ body.nvg-red-mode .leaflet-tile-container img {
         </div>
       </div>
     </div>
+    <div class="floating-panel-resize-handle edge-n" data-resize="n"></div>
+    <div class="floating-panel-resize-handle edge-s" data-resize="s"></div>
+    <div class="floating-panel-resize-handle edge-e" data-resize="e"></div>
+    <div class="floating-panel-resize-handle edge-w" data-resize="w"></div>
+    <div class="floating-panel-resize-handle corner-ne" data-resize="ne"></div>
+    <div class="floating-panel-resize-handle corner-nw" data-resize="nw"></div>
+    <div class="floating-panel-resize-handle corner-se" data-resize="se"></div>
+    <div class="floating-panel-resize-handle corner-sw" data-resize="sw"></div>
   </div>
 </div>
 
@@ -2763,32 +2798,39 @@ function disableEncirclement(map) {
   map.getContainer().style.cursor = '';
 }
 
-// Calcula a ponta triangular de uma seta em lat/lng puro (sem depender de um
-// mapa específico — buildDrawingLeafletLayer roda 1x por aba/mapa a partir
-// dos MESMOS dados salvos, então não tem como usar pixels de um mapa só).
-// Recebe a ponta (tip) e um VETOR de direção (não precisa ser unitário, só a
-// direção importa) + o tamanho desejado da ponta — assim serve tanto pra
-// seta reta (direção = destino-origem) quanto pra curva (direção = tangente
-// da curva no ponto final) e pro envolvimento (direção = rumo ao centro).
+// Calcula a ponta de uma seta em lat/lng puro (sem depender de um mapa
+// específico — buildDrawingLeafletLayer roda 1x por aba/mapa a partir dos
+// MESMOS dados salvos, então não tem como usar pixels de um mapa só).
+// Formato "seta de verdade" (4 pontos, entalhe côncavo atrás das asas) em
+// vez de um triângulo largo/equilátero — ponta comprida e fina, como uma
+// seta tática, não um "cone". Recebe a ponta (tip) e um VETOR de direção
+// (não precisa ser unitário, só a direção importa) + o tamanho desejado —
+// serve pra seta reta (direção = destino-origem), curva (direção = tangente
+// no ponto final) e envolvimento (direção = rumo ao centro).
 function arrowHeadTriangleAt(tip, dirLat, dirLng, headLen) {
   const len = Math.hypot(dirLng, dirLat) || 1e-9;
-  const ux = dirLng / len, uy = dirLat / len;
+  const ux = dirLng / len, uy = dirLat / len; // unitário, rumo à ponta
   const px = -uy, py = ux; // perpendicular
-  const spread = headLen * 0.62;
-  const backLat = tip[0] - headLen * uy, backLng = tip[1] - headLen * ux;
+  const wingBack = headLen;           // ponta -> base das asas
+  const wingSpread = headLen * 0.40;  // meia-largura das asas (fina, não um triângulo gordo)
+  const notchBack = headLen * 0.5;    // entalhe côncavo entre as asas, mais perto da ponta
+  const baseLat = tip[0] - wingBack * uy, baseLng = tip[1] - wingBack * ux;
+  const notchLat = tip[0] - notchBack * uy, notchLng = tip[1] - notchBack * ux;
   return [
     [tip[0], tip[1]],
-    [backLat + spread * py, backLng + spread * px],
-    [backLat - spread * py, backLng - spread * px]
+    [baseLat + wingSpread * py, baseLng + wingSpread * px],
+    [notchLat, notchLng],
+    [baseLat - wingSpread * py, baseLng - wingSpread * px]
   ];
 }
 
-// Seta reta/tracejada: ponta proporcional (28%) ao comprimento da própria
-// seta, então fica bem visível tanto numa seta curta quanto numa longa.
+// Seta reta/tracejada: ponta proporcional (20% do comprimento da própria
+// seta — reduzido de 28%, que deixava a ponta grande/quadrada demais numa
+// seta curta), então fica bem visível tanto numa seta curta quanto longa.
 function arrowHeadTriangle(p1, p2) {
   const dLng = p2[1] - p1[1], dLat = p2[0] - p1[0];
   const len = Math.hypot(dLng, dLat) || 1e-9;
-  return arrowHeadTriangleAt(p2, dLat, dLng, len * 0.28);
+  return arrowHeadTriangleAt(p2, dLat, dLng, len * 0.20);
 }
 
 // Amostra uma curva de Bézier quadrática (3 pontos: início, controle, fim)
@@ -3003,9 +3045,13 @@ function tacticalMarkerIcon(typeId, hasPhoto, size, pin) {
   const photoBadge = hasPhoto
     ? `<span style="position:absolute; top:-3px; right:-6px; background:var(--action); color:#fff; border:1px solid var(--bg); border-radius:50%; width:${badge}px; height:${badge}px; display:flex; align-items:center; justify-content:center; font-size:${Math.round(badge*0.6)}px; line-height:1;">📷</span>`
     : '';
-  const lockSize = Math.round(s * 0.36);
+  // Tamanho mínimo de 22px (não só proporcional ao ícone) — numa peça
+  // pequena o selo proporcional ficava minúsculo e difícil de acertar no
+  // toque; e ícone 🔓/🔒 dentro dele, não só a cor, pra identificar o
+  // estado mesmo contra um fundo de mapa parecido com a cor do selo.
+  const lockSize = Math.max(22, Math.round(s * 0.4));
   const lockBadge = isPiece
-    ? `<span class="piece-lock-badge ${pin.locked ? 'is-locked' : 'is-unlocked'}" data-piece-lock style="width:${lockSize}px; height:${lockSize}px; bottom:-3px; right:-3px;"></span>`
+    ? `<span class="piece-lock-badge ${pin.locked ? 'is-locked' : 'is-unlocked'}" data-piece-lock style="width:${lockSize}px; height:${lockSize}px; font-size:${Math.round(lockSize*0.56)}px; bottom:-6px; right:-6px;">${pin.locked ? '🔒' : '🔓'}</span>`
     : '';
   return L.divIcon({
     className: 'tactical-marker-divicon',
@@ -3596,7 +3642,7 @@ function renderIconDocks() {
   setupTableToggle();
   setupTacticalPiecePanel();
   setupTacticalPiecePanelToggle();
-  setupDockPanelTabs();
+  setupFloatingPanels();
 }
 
 // Painel de peças da aba Estratégia: toque numa peça pra "armar" (fica
@@ -3623,47 +3669,12 @@ function setupTacticalPiecePanel() {
 function updateTacticalPiecePanelHint() {
   const hint = document.getElementById('tacticalDockPanelHint');
   if (!hint) return;
-  const wrap = document.getElementById('tacticalDockPanelWrap');
-  const onDesenho = wrap && wrap.querySelector('.dock-panel-tab[data-panel-tab="desenho"].active');
-  if (onDesenho) {
-    hint.textContent = activeDrawTool
-      ? `✏️ Ferramenta ativa — toque no mapa (toque de novo no botão pra soltar)`
-      : '✏️ FERRAMENTAS DE DESENHO — escolha uma ferramenta e a cor, depois use no mapa';
-    return;
-  }
   if (armedPieceTypeId) {
     const t = getTacticalType(armedPieceTypeId);
     hint.textContent = `🎯 ${t.label} armado — toque no mapa pra lançar (toque de novo aqui pra soltar)`;
   } else {
-    hint.textContent = '🎯 PEÇAS TÁTICAS — toque pra armar, toque no mapa pra lançar';
+    hint.textContent = 'Toque pra armar, toque no mapa pra lançar';
   }
-}
-
-// Alterna entre as 2 abas do painel (Peças / Desenho) — mostra só a seção
-// correspondente e troca a dica embaixo dos botões. Trocar de aba também
-// desarma qualquer peça e desativa qualquer ferramenta de desenho em uso,
-// pra não ficar uma ação "pendurada" de uma aba enquanto se mexe na outra.
-function setupDockPanelTabs() {
-  const wrap = document.getElementById('tacticalDockPanelWrap');
-  if (!wrap || wrap.dataset.tabsBound) return;
-  wrap.dataset.tabsBound = '1';
-  wrap.querySelectorAll('.dock-panel-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-panel-tab');
-      wrap.querySelectorAll('.dock-panel-tab').forEach(b => b.classList.toggle('active', b === btn));
-      wrap.querySelectorAll('[data-panel-section]').forEach(sec => {
-        sec.hidden = sec.getAttribute('data-panel-section') !== target;
-      });
-      if (target !== 'pecas' && armedPieceTypeId) {
-        armedPieceTypeId = null;
-        document.querySelectorAll('#tacticalDockEstrategico .dock-icon-item.armed').forEach(el => el.classList.remove('armed'));
-      }
-      if (target !== 'desenho' && typeof mapEstrategia !== 'undefined' && mapEstrategia && activeDrawTool) {
-        deactivateDrawTool(mapEstrategia);
-      }
-      updateTacticalPiecePanelHint();
-    });
-  });
 }
 
 // Botão "▾/▸" da tabela "Pontos Táticos Registrados" (aba Pontos): minimiza
@@ -3689,23 +3700,143 @@ function setupTableToggle() {
   });
 }
 
-// Botão "▾/▸" do painel de peças (aba Estratégia): mesma ideia da tabela
-// acima — minimiza pra dar mais espaço vertical ao mapa.
+// Botão "▾/▸" de cada painel flutuante da aba Estratégia (Peças/Desenho):
+// minimiza pra deixar só o cabeçalho (some o resto da janela, sem afetar a
+// outra), reabre no mesmo lugar/tamanho de antes.
 function setupTacticalPiecePanelToggle() {
-  document.querySelectorAll('.tactical-dock-panel-wrap [data-panel-toggle]').forEach(btn => {
+  document.querySelectorAll('.floating-panel [data-panel-toggle]').forEach(btn => {
     if (btn.dataset.toggleBound) return;
     btn.dataset.toggleBound = '1';
     btn.addEventListener('click', () => {
-      const wrap = btn.closest('.tactical-dock-panel-wrap');
-      if (!wrap) return;
-      const collapsed = wrap.classList.toggle('collapsed');
+      const panel = btn.closest('.floating-panel');
+      if (!panel) return;
+      const collapsed = panel.classList.toggle('collapsed');
       btn.textContent = collapsed ? '▸' : '▾';
-      btn.setAttribute('aria-label', collapsed ? 'Abrir peças' : 'Minimizar peças');
-      setTimeout(() => {
-        if (typeof mapEstrategia !== 'undefined' && mapEstrategia) mapEstrategia.invalidateSize();
-      }, 30);
+      btn.setAttribute('aria-label', collapsed ? 'Abrir' : 'Minimizar');
     });
   });
+}
+
+// Janelas flutuantes da aba Estratégia (Peças/Desenho): arrastáveis pelo
+// cabeçalho, redimensionáveis puxando qualquer borda/canto — sem libs
+// externas, só Pointer Events. Posição/tamanho ficam salvos no localStorage
+// (por painel), então o operador não perde o layout que montou ao trocar de
+// aba ou recarregar a página.
+function makeFloatingPanel(panel) {
+  if (!panel || panel.dataset.floatBound) return;
+  panel.dataset.floatBound = '1';
+  const container = panel.parentElement; // #tabEstrategia — limite de arrasto/resize
+  const storageKey = 'geosniper_panel_' + panel.id;
+
+  function applyBounds(rect) {
+    const maxLeft = Math.max(0, container.clientWidth - rect.width);
+    const maxTop = Math.max(0, container.clientHeight - rect.height);
+    rect.left = Math.min(Math.max(0, rect.left), maxLeft);
+    rect.top = Math.min(Math.max(0, rect.top), maxTop);
+    return rect;
+  }
+
+  function save(rect) {
+    try { localStorage.setItem(storageKey, JSON.stringify(rect)); } catch (e) {}
+  }
+
+  // Posição salva de uma sessão anterior, se houver — senão mantém a
+  // posição inicial definida no style inline do HTML (left/right/top).
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    if (saved && typeof saved.left === 'number') {
+      panel.style.right = 'auto';
+      panel.style.left = saved.left + 'px';
+      panel.style.top = saved.top + 'px';
+      panel.style.width = saved.width + 'px';
+      panel.style.height = saved.height + 'px';
+    }
+  } catch (e) {}
+
+  // Arrastar pelo cabeçalho — ignora toque em botões dentro dele (o ▾).
+  const header = panel.querySelector('[data-panel-drag-handle]');
+  if (header) {
+    header.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      e.preventDefault();
+      const startX = e.clientX, startY = e.clientY;
+      const startRect = panel.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      panel.classList.add('dragging');
+      const pointerId = e.pointerId;
+      function onMove(ev) {
+        if (ev.pointerId !== pointerId) return;
+        const rect = applyBounds({
+          left: startRect.left - containerRect.left + (ev.clientX - startX),
+          top: startRect.top - containerRect.top + (ev.clientY - startY),
+          width: startRect.width, height: startRect.height
+        });
+        panel.style.right = 'auto';
+        panel.style.left = rect.left + 'px';
+        panel.style.top = rect.top + 'px';
+      }
+      function onUp(ev) {
+        if (ev.pointerId !== pointerId) return;
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        panel.classList.remove('dragging');
+        const r = panel.getBoundingClientRect(), cr = container.getBoundingClientRect();
+        save({ left: r.left - cr.left, top: r.top - cr.top, width: r.width, height: r.height });
+      }
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  }
+
+  // Redimensionar — cada alça (n/s/e/w + 4 cantos) mexe só nas dimensões
+  // que diz respeito a ela; puxar pelo lado esquerdo/topo também desloca a
+  // posição pra manter o lado oposto fixo no lugar (senão "cresceria" só
+  // pra dentro da tela, ignorando o dedo).
+  panel.querySelectorAll('[data-resize]').forEach(handle => {
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const dir = handle.getAttribute('data-resize');
+      const startX = e.clientX, startY = e.clientY;
+      const startRect = panel.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const startLeft = startRect.left - containerRect.left, startTop = startRect.top - containerRect.top;
+      panel.classList.add('resizing');
+      const pointerId = e.pointerId;
+      const minW = 160, minH = 110;
+      function onMove(ev) {
+        if (ev.pointerId !== pointerId) return;
+        const dx = ev.clientX - startX, dy = ev.clientY - startY;
+        let { left, top } = { left: startLeft, top: startTop };
+        let width = startRect.width, height = startRect.height;
+        if (dir.includes('e')) width = Math.max(minW, startRect.width + dx);
+        if (dir.includes('s')) height = Math.max(minH, startRect.height + dy);
+        if (dir.includes('w')) { width = Math.max(minW, startRect.width - dx); left = startLeft + (startRect.width - width); }
+        if (dir.includes('n')) { height = Math.max(minH, startRect.height - dy); top = startTop + (startRect.height - height); }
+        width = Math.min(width, container.clientWidth - left);
+        height = Math.min(height, container.clientHeight - top);
+        panel.style.right = 'auto';
+        panel.style.left = Math.max(0, left) + 'px';
+        panel.style.top = Math.max(0, top) + 'px';
+        panel.style.width = width + 'px';
+        panel.style.height = height + 'px';
+      }
+      function onUp(ev) {
+        if (ev.pointerId !== pointerId) return;
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        panel.classList.remove('resizing');
+        const r = panel.getBoundingClientRect(), cr = container.getBoundingClientRect();
+        save({ left: r.left - cr.left, top: r.top - cr.top, width: r.width, height: r.height });
+      }
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  });
+}
+
+function setupFloatingPanels() {
+  document.querySelectorAll('[data-floating-panel]').forEach(makeFloatingPanel);
 }
 
 // Botão "▾/▸" de cada dock (fica dentro da própria barra, junto das setas):
