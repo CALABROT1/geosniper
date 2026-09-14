@@ -109,10 +109,39 @@
 
     .dist-info-panel {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
-      background: rgba(15, 23, 42, 0.95); color: white; padding: 12px 16px; border-radius: 16px;
-      font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid var(--line); text-align: center;
+      color: white; padding: 12px 16px; border-radius: 16px;
+      font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.4); text-align: center;
       pointer-events: auto; max-width: 320px; width: 90%;
+      transition: font-size 0.15s ease, max-width 0.15s ease, padding 0.15s ease;
     }
+    /* Balão "ampliado" (botão 🔍) — cresce o texto/espaçamento; qualquer
+       elemento interno dimensionado em "em" (botões redondos, ícones)
+       acompanha o aumento automaticamente, sem precisar recalcular nada. */
+    .dist-info-panel.zoomed { font-size: 18px; padding: 20px 26px; max-width: 480px; }
+    /* Botões redondos no canto superior do balão (minimizar / ampliar) —
+       tamanho em "em" pra crescer junto com .zoomed acima. */
+    .dist-panel-icon-btn {
+      position: absolute; top: 0.35em; width: 1.7em; height: 1.7em; border-radius: 50%;
+      font-size: 1em; line-height: 1; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; padding: 0; border: none;
+    }
+    .dist-panel-icon-btn.btn-minimize { right: 0.35em; }
+    .dist-panel-icon-btn.btn-zoom { right: 2.35em; }
+    /* Botão metálico — mesmo acabamento prata/grafite dos docks, mas
+       preenchendo o botão inteiro (não só a borda), já que aqui o botão é
+       pequeno e precisa ficar bem visível/tocável por cima do balão escuro. */
+    .metallic-icon-btn {
+      background: linear-gradient(150deg, #9aa3ad 0%, #e8edf2 25%, #6b7280 55%, #d4dae0 80%, #838b94 100%);
+      color: #15160f; box-shadow: 0 1px 3px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+    /* Botões redondos "limpar"/"registrar" ao lado do retículo — também em
+       "em", pra crescer junto com o balão quando ele é ampliado. */
+    .dist-panel-round-btn {
+      color: #fff; border: none; border-radius: 50%; width: 2.3em; height: 2.3em;
+      font-size: 1em; cursor: pointer; flex-shrink: 0;
+    }
+    .dist-panel-round-btn.btn-clear { background: var(--line); }
+    .dist-panel-round-btn.btn-register { background: var(--action); }
 
     /* ===== BUSCA DE LOCALIDADE (centralizar mapa por nome) ===== */
     .location-search-box {
@@ -1188,8 +1217,8 @@ body.nvg-red-mode .leaflet-tile-container img {
     <input id="locSearchMedir" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
     <div id="locSearchMedirList" class="location-search-list"></div>
   </div>
-  <div id="distPanel" class="dist-info-panel">Clique em qualquer ponto no mapa para medir</div>
-  <div id="distPanelRestoreBtn" onclick="restoreDistPanel()" title="Mostrar o balão de informação do ponto" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:1000; background:rgba(15,23,42,0.95); color:#fff; padding:8px 16px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid var(--line); box-shadow:0 4px 12px rgba(0,0,0,0.4);">📍 Ver Ponto Marcado ▲</div>
+  <div id="distPanel" class="dist-info-panel metallic-dock-border">Clique em qualquer ponto no mapa para medir</div>
+  <div id="distPanelRestoreBtn" onclick="restoreDistPanel()" title="Mostrar o balão de informação do ponto" class="metallic-dock-border" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:1000; color:#fff; font-weight:700; padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📍 Ver Ponto Marcado ▲</div>
 </div>
 
 <div id="tabBalistica" class="tab-content active">
@@ -1998,11 +2027,14 @@ body.nvg-red-mode .leaflet-tile-container img {
       // que o próprio Leaflet coloca em z-index 1000) e posicionada mais
       // abaixo (top:46px), pra não ficar por baixo/atrás do seletor de mapa
       // que ocupa o canto superior direito por padrão.
+      // Rosa dos ventos +50% (37px -> 83px) a pedido — mais fácil de ler de
+      // relance — com o rótulo CALIBRAR embaixo (aponta pro grupo ◀/▶ de
+      // calibração ao lado, que já existia).
       const rose = document.createElement('div');
       rose.id = `${rosePrefix}Rose`;
-      rose.style.cssText = 'position:absolute; top:46px; right:4px; z-index:1200; width:55px; text-align:center; pointer-events:none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      rose.style.cssText = 'position:absolute; top:46px; right:4px; z-index:1200; width:83px; text-align:center; pointer-events:none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       rose.innerHTML = `
-        <svg width="55" height="55" viewBox="0 0 48 48">
+        <svg width="83" height="83" viewBox="0 0 48 48">
           <circle cx="24" cy="24" r="21" fill="rgba(6,10,6,0.9)" stroke="#b6e06a" stroke-width="1.8"/>
           <g stroke="#eef7d8" stroke-width="1.8" stroke-linecap="round">
             <line x1="24" y1="3" x2="24" y2="9"/>
@@ -2018,7 +2050,8 @@ body.nvg-red-mode .leaflet-tile-container img {
           <line id="${rosePrefix}Needle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
           <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
         </svg>
-        <div id="${rosePrefix}Readout" style="font-size:9px; color:#eef7d8; font-weight:800; margin-top:1px; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">--°</div>
+        <div id="${rosePrefix}Readout" style="font-size:11px; color:#eef7d8; font-weight:800; margin-top:1px; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">--°</div>
+        <div style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px; margin-top:1px; text-shadow:0 1px 3px #000;">CALIBRAR</div>
       `;
       container.appendChild(rose);
 
@@ -2119,30 +2152,36 @@ body.nvg-red-mode .leaflet-tile-container img {
       // fica bem no topo-centro da tela, exatamente onde o menu de camadas
       // se expande, então ela precisa ficar POR BAIXO do menu quando ele
       // abre, não por cima.
-      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; align-items:center; gap:6px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:5px 8px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      // +50% (botões 26->39, rosa 30->45) a pedido, com CALIBRAR escrito
+      // embaixo — por isso o grupo virou coluna (linha de controles + rótulo
+      // abaixo) em vez de só a linha horizontal de antes.
+      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
-        <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:26px; height:26px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
-        <svg width="30" height="30" viewBox="0 0 48 48" style="flex-shrink:0;">
-          <circle cx="24" cy="24" r="21" fill="rgba(6,10,6,0.9)" stroke="#b6e06a" stroke-width="1.8"/>
-          <g stroke="#eef7d8" stroke-width="1.8" stroke-linecap="round">
-            <line x1="24" y1="3" x2="24" y2="9"/>
-            <line x1="38.85" y1="9.15" x2="35.31" y2="12.69"/>
-            <line x1="45" y1="24" x2="40" y2="24"/>
-            <line x1="38.85" y1="38.85" x2="35.31" y2="35.31"/>
-            <line x1="24" y1="45" x2="24" y2="40"/>
-            <line x1="9.15" y1="38.85" x2="12.69" y2="35.31"/>
-            <line x1="3" y1="24" x2="8" y2="24"/>
-            <line x1="9.15" y1="9.15" x2="12.69" y2="12.69"/>
-          </g>
-          <text x="24" y="9" fill="#b6e06a" font-size="6.5" font-weight="800" text-anchor="middle" style="font-family: ${RETICLE_MONO};">N</text>
-          <line id="normalCompassNeedle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
-          <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
-        </svg>
-        <div style="display:flex; flex-direction:column; align-items:center; line-height:1.15; min-width:34px;">
-          <div id="normalCompassReadout" style="font-size:9px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
-          <div style="font-size:8px; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
+          <svg width="45" height="45" viewBox="0 0 48 48" style="flex-shrink:0;">
+            <circle cx="24" cy="24" r="21" fill="rgba(6,10,6,0.9)" stroke="#b6e06a" stroke-width="1.8"/>
+            <g stroke="#eef7d8" stroke-width="1.8" stroke-linecap="round">
+              <line x1="24" y1="3" x2="24" y2="9"/>
+              <line x1="38.85" y1="9.15" x2="35.31" y2="12.69"/>
+              <line x1="45" y1="24" x2="40" y2="24"/>
+              <line x1="38.85" y1="38.85" x2="35.31" y2="35.31"/>
+              <line x1="24" y1="45" x2="24" y2="40"/>
+              <line x1="9.15" y1="38.85" x2="12.69" y2="35.31"/>
+              <line x1="3" y1="24" x2="8" y2="24"/>
+              <line x1="9.15" y1="9.15" x2="12.69" y2="12.69"/>
+            </g>
+            <text x="24" y="9" fill="#b6e06a" font-size="6.5" font-weight="800" text-anchor="middle" style="font-family: ${RETICLE_MONO};">N</text>
+            <line id="normalCompassNeedle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
+            <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
+          </svg>
+          <div style="display:flex; flex-direction:column; align-items:center; line-height:1.15; min-width:44px;">
+            <div id="normalCompassReadout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
+            <div style="font-size:11px; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
+          </div>
+          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">▶</button>
         </div>
-        <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:26px; height:26px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">▶</button>
+        <div style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px;">CALIBRAR</div>
       `;
       container.appendChild(group);
 
@@ -3221,7 +3260,8 @@ function refreshTacticalMarkersUI() {
     // aba Pontos (Relevo): só leitura/consulta pra QUALQUER marcador — dados
     // brutos registrados, sem inserir/arrastar/travar peças aqui. Isso agora
     // acontece só na aba Estratégia (mapEstrategia, abaixo).
-    L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
+    const mkRelevo = L.marker([pin.lat, pin.lng], { icon: iconRelevo }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerRelevo);
+    mkRelevo._pinId = pin.id;
     attachTacticalMarkerLongPressDrag(mkNormal, pin, mapNormal);
     if (pin.piece) attachPieceLockBadge(mkNormal, pin);
 
@@ -3597,14 +3637,25 @@ function shareFilteredPontos() {
     return;
   }
 
+  // ANTES: só linkava pro Google Maps — quem tinha o app abria no mapa
+  // externo em vez de cair na aba Pontos. Agora cada ponto sai com DOIS
+  // links: um pro app (tab=pontos&pinId=..., abre a aba certa e mostra o
+  // caminho até o ponto) e um universal (Google Maps — abre em qualquer
+  // mapa externo instalado no aparelho de quem recebe, com ou sem o app).
+  const appTabUrl = `${ASSET_BASE}?tab=pontos`;
   const filterLabel = rawQuery ? `Localidade: "${rawQuery}"` : 'Todos os pontos';
   let message = `🎯 *GEOSNIPER - Pontos Táticos*\n${filterLabel} (${rows.length} ponto${rows.length > 1 ? 's' : ''})\n\n`;
+  message += `📲 Abrir a aba Pontos no app:\n${appTabUrl}\n\n`;
   rows.forEach((pin, i) => {
     const t = getTacticalType(pin.type);
     const hasCoords = typeof pin.lat === 'number' && typeof pin.lng === 'number';
     const coords = hasCoords ? `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)}` : '-';
+    const appPinUrl = hasCoords ? `${ASSET_BASE}?tab=pontos&targetLat=${pin.lat}&targetLng=${pin.lng}&pinId=${encodeURIComponent(pin.id)}` : '';
     const mapsLink = hasCoords ? `https://www.google.com/maps?q=${pin.lat},${pin.lng}` : '';
-    message += `${i + 1}. ${t.label} — ${pin.label || '-'}\n📍 ${pin.localidade || '-'} (${coords})${mapsLink ? '\n' + mapsLink : ''}\n\n`;
+    message += `${i + 1}. ${t.label} — ${pin.label || '-'}\n📍 ${pin.localidade || '-'} (${coords})`;
+    if (appPinUrl) message += `\n🔗 App: ${appPinUrl}`;
+    if (mapsLink) message += `\n🗺️ Outro mapa: ${mapsLink}`;
+    message += '\n\n';
   });
 
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
@@ -3663,6 +3714,19 @@ function restoreDistPanel() {
   const restoreBtn = document.getElementById('distPanelRestoreBtn');
   if (panel) panel.style.display = '';
   if (restoreBtn) restoreBtn.style.display = 'none';
+}
+
+// Amplia/reduz o balão de informação (botão 🔍) — só alterna a classe
+// .zoomed; todo o resto (fonte, botões redondos em "em") acompanha sozinho
+// via CSS. Funciona igual nos dois jeitos de o balão aparecer (marcação
+// manual no mapa ou alvo recebido por link compartilhado), já que os dois
+// escrevem dentro do MESMO #distPanel.
+function toggleDistPanelZoom() {
+  const panel = document.getElementById('distPanel');
+  if (!panel) return;
+  const zoomed = panel.classList.toggle('zoomed');
+  const btn = document.getElementById('distPanelZoomBtn');
+  if (btn) btn.title = zoomed ? 'Reduzir balão' : 'Ampliar balão';
 }
 
 function saveSharedTargetAsTacticalMarker(lat, lng, distanceMeters, attempt) {
@@ -4506,15 +4570,16 @@ function initMaps(lat, lng) {
       const panelEl = document.getElementById('distPanel');
       if (panelEl) {
         panelEl.innerHTML = `
-          <button type="button" onclick="minimizeDistPanel()" title="Minimizar" style="position:absolute; top:4px; right:6px; background:rgba(255,255,255,0.12); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:13px; cursor:pointer; line-height:1;">➖</button>
+          <button type="button" id="distPanelZoomBtn" onclick="toggleDistPanelZoom()" title="Ampliar balão" class="dist-panel-icon-btn btn-zoom metallic-icon-btn">🔍</button>
+          <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
           <div style="font-size: 13px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
           <div style="font-size: 12px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
           <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
           <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
           <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
-            <button onclick="limparPontoRecebido()" title="Limpar ponto" style="background:var(--line); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:14px; cursor:pointer; flex-shrink:0;">🗑️</button>
+            <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
             <canvas id="mapReticleCanvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
-            <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" style="background:var(--action); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:14px; cursor:pointer; flex-shrink:0;">📌</button>
+            <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
           </div>
           <div id="targetGuidanceBox"></div>
           <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
@@ -4695,7 +4760,9 @@ function initMaps(lat, lng) {
       if (pinType && pinType !== 'target') {
         const activeTabName = document.querySelector('.tab-btn.active')?.getAttribute('data-tab')
           || localStorage.getItem('geosniper_active_tab');
-        tab = (activeTabName === 'tabEstrategia') ? 'estrategia' : 'marker';
+        if (activeTabName === 'tabEstrategia') tab = 'estrategia';
+        else if (activeTabName === 'tabRelevo') tab = 'pontos';
+        else tab = 'marker';
       }
       const idParam = pinId ? `&pinId=${encodeURIComponent(pinId)}` : '';
       const shareUrl = `${ASSET_BASE}?tab=${tab}&targetLat=${lat}&targetLng=${lng}${idParam}`;
@@ -4752,7 +4819,8 @@ function initMaps(lat, lng) {
               if (!sol) return;
 
               document.getElementById('distPanel').innerHTML = `
-                <button type="button" onclick="minimizeDistPanel()" title="Minimizar" style="position:absolute; top:4px; right:6px; background:rgba(255,255,255,0.12); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:13px; cursor:pointer; line-height:1;">➖</button>
+                <button type="button" id="distPanelZoomBtn" onclick="toggleDistPanelZoom()" title="Ampliar balão" class="dist-panel-icon-btn btn-zoom metallic-icon-btn">🔍</button>
+          <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
                 <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">
                   Dist. Até Alvo Recebido: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b>
                 </div>
@@ -4762,9 +4830,9 @@ function initMaps(lat, lng) {
                 <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
                 <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
                 <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
-                  <button onclick="limparPontoRecebido()" title="Limpar ponto" style="background:var(--line); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:14px; cursor:pointer; flex-shrink:0;">🗑️</button>
+                  <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
                   <canvas id="mapReticleCanvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
-                  <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" style="background:var(--action); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:14px; cursor:pointer; flex-shrink:0;">📌</button>
+                  <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
                 </div>
                 <div id="targetGuidanceBox"></div>
                 <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -4792,16 +4860,31 @@ function initMaps(lat, lng) {
       // Qualquer marcador que NÃO seja "Alvo" (armas, veículos, peças etc.,
       // lançados na aba Marker ou na aba Estratégia): abre na MESMA aba de
       // onde foi compartilhado — tab=marker → aba Marker (tabNormal),
-      // tab=estrategia → aba Estratégia — e mostra o caminho até o ponto no
-      // mapa dessa aba, em vez de cair sempre na aba Medir.
-      if ((tab === 'marker' || tab === 'estrategia') && !isNaN(targetLat) && !isNaN(targetLng)) {
-        const destTabName = tab === 'estrategia' ? 'tabEstrategia' : 'tabNormal';
+      // tab=estrategia → aba Estratégia, tab=pontos → aba Pontos (Relevo) —
+      // e mostra o caminho até o ponto no mapa dessa aba, em vez de cair
+      // sempre na aba Medir ou abrir no Google Maps.
+      const SHARE_TARGETS = {
+        marker:     { tabName: 'tabNormal',     getMap: () => mapNormal,     getLayer: () => tacticalLayerNormal },
+        estrategia: { tabName: 'tabEstrategia', getMap: () => mapEstrategia, getLayer: () => tacticalLayerEstrategia },
+        pontos:     { tabName: 'tabRelevo',     getMap: () => mapRelevo,     getLayer: () => tacticalLayerRelevo }
+      };
+      const shareTarget = SHARE_TARGETS[tab];
+      if (shareTarget) {
         const pinId = urlParams.get('pinId');
+        const hasCoords = !isNaN(targetLat) && !isNaN(targetLng);
 
         const navEntries = performance.getEntriesByType('navigation');
         const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
         if (forceTabSwitch || !isReload) {
-          openTab(null, destTabName);
+          openTab(null, shareTarget.tabName);
+        }
+
+        // Link genérico (ex.: "tab=pontos" solto, do topo da mensagem de
+        // compartilhamento da tabela filtrada) — sem coordenada nem id, só
+        // abre a aba certa, sem indicador de caminho nem popup.
+        if (!hasCoords && !pinId) {
+          window.history.replaceState({}, '', window.location.pathname);
+          return;
         }
 
         // O marcador em si já existe (foi sincronizado via socket quando foi
@@ -4813,18 +4896,15 @@ function initMaps(lat, lng) {
         let attempts = 0;
         const checkReady = setInterval(() => {
           attempts++;
-          const targetMap = tab === 'estrategia' ? mapEstrategia : mapNormal;
+          const targetMap = shareTarget.getMap();
           const pin = pinId ? tacticalMarkers[pinId] : null;
           const ready = targetMap && (pin || attempts >= 15);
           if (ready) {
             clearInterval(checkReady);
             const lat = pin ? pin.lat : targetLat;
             const lng = pin ? pin.lng : targetLng;
-            showSharedPointPath(targetMap, lat, lng);
-            if (pinId) {
-              const layerGroup = tab === 'estrategia' ? tacticalLayerEstrategia : tacticalLayerNormal;
-              focusAndOpenTacticalMarkerPopup(layerGroup, pinId);
-            }
+            if (!isNaN(lat) && !isNaN(lng)) showSharedPointPath(targetMap, lat, lng);
+            if (pinId) focusAndOpenTacticalMarkerPopup(shareTarget.getLayer(), pinId);
             window.history.replaceState({}, '', window.location.pathname);
           }
         }, 400);
