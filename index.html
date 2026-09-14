@@ -350,7 +350,15 @@
     #tabEstrategia #mapEstrategia { width: 100%; height: 100%; }
     .floating-panel {
       position: absolute; z-index: 950; display: flex; flex-direction: column;
-      background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+      background: var(--bg);
+      /* Borda "metálica": gradiente prata/grafite em vez de 1px sólido —
+         além de ficar mais fácil de enxergar o contorno da caixa (contraste),
+         a borda mais grossa aumenta a área que o dedo acerta perto das
+         quinas, onde ficam as alças de redimensionar. */
+      border: 2px solid transparent;
+      background-image: linear-gradient(var(--bg), var(--bg)), linear-gradient(150deg, #9aa3ad 0%, #e8edf2 22%, #6b7280 48%, #d4dae0 72%, #838b94 100%);
+      background-origin: border-box; background-clip: padding-box, border-box;
+      border-radius: 10px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.5); overflow: hidden;
       min-width: 160px; min-height: 110px; max-width: calc(100% - 16px); max-height: calc(100% - 16px);
     }
@@ -364,23 +372,46 @@
       padding: 7px 10px; font-weight: 800; font-size: 11px; text-transform: uppercase;
       letter-spacing: 0.4px; cursor: move; touch-action: none; user-select: none;
     }
-    .floating-panel-body { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px; min-height: 0; }
+    .floating-panel-body {
+      flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+      padding: 8px; min-height: 0;
+      /* Trilho/polegar visíveis (webkit) pra ficar claro que dá pra rolar
+         quando o conteúdo não cabe — em telas pequenas, sem isso a barra
+         some e parece que não existe "ferramenta de rolagem". */
+      scrollbar-width: thin; scrollbar-color: #9aa3ad transparent;
+    }
+    .floating-panel-body::-webkit-scrollbar { width: 7px; height: 7px; }
+    .floating-panel-body::-webkit-scrollbar-track { background: transparent; }
+    .floating-panel-body::-webkit-scrollbar-thumb { background: linear-gradient(#c3c9d1, #6b7280); border-radius: 6px; }
     .floating-panel-hint {
       color: var(--accent); font-weight: 700; font-size: 10px; text-transform: uppercase;
       letter-spacing: 0.3px; margin-bottom: 8px;
     }
-    /* Alças de redimensionar: tiras invisíveis nas 4 bordas + cantos maiores
-       (mais fáceis de pegar no touch), cada uma só ajusta a direção que diz
-       respeito a ela. */
-    .floating-panel-resize-handle { position: absolute; z-index: 2; }
-    .floating-panel-resize-handle.edge-e { right: -4px; top: 10px; bottom: 10px; width: 9px; cursor: ew-resize; }
-    .floating-panel-resize-handle.edge-w { left: -4px; top: 10px; bottom: 10px; width: 9px; cursor: ew-resize; }
-    .floating-panel-resize-handle.edge-n { top: -4px; left: 14px; right: 14px; height: 9px; cursor: ns-resize; }
-    .floating-panel-resize-handle.edge-s { bottom: -4px; left: 14px; right: 14px; height: 9px; cursor: ns-resize; }
-    .floating-panel-resize-handle.corner-ne { top: -5px; right: -5px; width: 16px; height: 16px; cursor: nesw-resize; }
-    .floating-panel-resize-handle.corner-nw { top: -5px; left: -5px; width: 16px; height: 16px; cursor: nwse-resize; }
-    .floating-panel-resize-handle.corner-se { bottom: -5px; right: -5px; width: 16px; height: 16px; cursor: nwse-resize; }
-    .floating-panel-resize-handle.corner-sw { bottom: -5px; left: -5px; width: 16px; height: 16px; cursor: nesw-resize; }
+    /* Alças de redimensionar: antes eram tiras invisíveis de 9px, difíceis
+       de acertar com o dedo — agora têm uma barra metálica visível (fica
+       clara a área exata pra puxar) e hit-box maior no touch. */
+    .floating-panel-resize-handle { position: absolute; z-index: 2; touch-action: none; }
+    .floating-panel-resize-handle::after {
+      content: ''; position: absolute; background: linear-gradient(150deg, #9aa3ad, #e8edf2 40%, #6b7280 70%, #d4dae0);
+      border-radius: 3px; opacity: 0.55; transition: opacity 0.15s;
+    }
+    .floating-panel-resize-handle:hover::after, .floating-panel-resize-handle:active::after { opacity: 0.95; }
+    .floating-panel-resize-handle.edge-e { right: -6px; top: 10px; bottom: 10px; width: 16px; cursor: ew-resize; }
+    .floating-panel-resize-handle.edge-e::after { top: 50%; right: 5px; width: 4px; height: 34px; transform: translateY(-50%); }
+    .floating-panel-resize-handle.edge-w { left: -6px; top: 10px; bottom: 10px; width: 16px; cursor: ew-resize; }
+    .floating-panel-resize-handle.edge-w::after { top: 50%; left: 5px; width: 4px; height: 34px; transform: translateY(-50%); }
+    .floating-panel-resize-handle.edge-n { top: -6px; left: 14px; right: 14px; height: 16px; cursor: ns-resize; }
+    .floating-panel-resize-handle.edge-n::after { left: 50%; top: 5px; height: 4px; width: 34px; transform: translateX(-50%); }
+    .floating-panel-resize-handle.edge-s { bottom: -6px; left: 14px; right: 14px; height: 16px; cursor: ns-resize; }
+    .floating-panel-resize-handle.edge-s::after { left: 50%; bottom: 5px; height: 4px; width: 34px; transform: translateX(-50%); }
+    .floating-panel-resize-handle.corner-ne { top: -7px; right: -7px; width: 24px; height: 24px; cursor: nesw-resize; }
+    .floating-panel-resize-handle.corner-ne::after { top: 6px; right: 6px; width: 12px; height: 12px; border-radius: 50%; }
+    .floating-panel-resize-handle.corner-nw { top: -7px; left: -7px; width: 24px; height: 24px; cursor: nwse-resize; }
+    .floating-panel-resize-handle.corner-nw::after { top: 6px; left: 6px; width: 12px; height: 12px; border-radius: 50%; }
+    .floating-panel-resize-handle.corner-se { bottom: -7px; right: -7px; width: 24px; height: 24px; cursor: nwse-resize; }
+    .floating-panel-resize-handle.corner-se::after { bottom: 6px; right: 6px; width: 12px; height: 12px; border-radius: 50%; }
+    .floating-panel-resize-handle.corner-sw { bottom: -7px; left: -7px; width: 24px; height: 24px; cursor: nesw-resize; }
+    .floating-panel-resize-handle.corner-sw::after { bottom: 6px; left: 6px; width: 12px; height: 12px; border-radius: 50%; }
     /* Ícones do dock de Peças 20% maiores (30px -> 36px) — a grade
        (flex-wrap) já reorganiza sozinha quando a caixa muda de tamanho. */
     #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item img { width: 36px; height: 36px; }
@@ -2600,6 +2631,22 @@ function handleDrawCreated(e) {
   deactivateDrawTool(e.target);
 }
 
+// Guarda contra "clique fantasma": em vários navegadores mobile, um único
+// toque no mapa pode disparar o evento 'click' do Leaflet duas vezes bem
+// próximas (uma vinda do handler de toque interno do Leaflet, outra de
+// compatibilidade do próprio navegador). Nas ferramentas de 2/3 toques
+// (régua, seta, seta curva, envolvimento) isso fazia o segundo "clique
+// fantasma" fechar a forma sozinho com um ponto quase idêntico ao primeiro
+// (a forma "pisca" e desaparece) — via de regra impossível de reproduzir no
+// mouse, só no toque. Ignora qualquer clique que chegue a menos de 300ms
+// do anterior processado nesse mapa.
+function shouldAcceptDrawTapEvent(map, e) {
+  const now = (e && e.originalEvent && e.originalEvent.timeStamp) || Date.now();
+  if (map._lastDrawTapTs && (now - map._lastDrawTapTs) < 300) return false;
+  map._lastDrawTapTs = now;
+  return true;
+}
+
 function enableFreehand(map) {
   map.dragging.disable();
   map.getContainer().style.cursor = 'crosshair';
@@ -2650,6 +2697,7 @@ function enableRuler(map) {
     firstPoint = null;
   }
   function onClick(e) {
+    if (!shouldAcceptDrawTapEvent(map, e)) return;
     if (!firstPoint) {
       firstPoint = e.latlng;
       tempMarker = L.circleMarker(firstPoint, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map);
@@ -2692,6 +2740,7 @@ function enableArrow(map, shapeType) {
     firstPoint = null;
   }
   function onClick(e) {
+    if (!shouldAcceptDrawTapEvent(map, e)) return;
     if (!firstPoint) {
       firstPoint = e.latlng;
       tempMarker = L.circleMarker(firstPoint, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map);
@@ -2739,6 +2788,7 @@ function enableArrowCurve(map) {
     }
   }
   function onClick(e) {
+    if (!shouldAcceptDrawTapEvent(map, e)) return;
     points.push(e.latlng);
     tempMarkers.push(L.circleMarker(e.latlng, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map));
     updateGuide();
@@ -2774,6 +2824,7 @@ function enableEncirclement(map) {
     center = null;
   }
   function onClick(e) {
+    if (!shouldAcceptDrawTapEvent(map, e)) return;
     if (!center) {
       center = e.latlng;
       tempMarker = L.circleMarker(center, { radius: 5, color: currentDrawColor, weight: 2, fillColor: currentDrawColor, fillOpacity: 1 }).addTo(map);
@@ -2914,6 +2965,7 @@ function deactivateDrawTool(map) {
     disableArrowCurve(map);
     disableEncirclement(map);
     map.getContainer().style.cursor = '';
+    map._lastDrawTapTs = null;
   }
   activeDrawTool = null;
   document.querySelectorAll('.draw-tool-btn').forEach(b => b.classList.remove('active'));
@@ -4323,7 +4375,7 @@ function initMaps(lat, lng) {
     // 2. MAPA NORMAL (Aba Mapa)
     const layersNormal = createTileLayers();
     if (mapNormal) mapNormal.remove();
-    mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]] }).setView(currentPos, 14);
+    mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], tapTolerance: 28 }).setView(currentPos, 14);
     L.control.layers(layersNormal).addTo(mapNormal);
     positionDrawToolbar(mapNormal, document.getElementById('drawToolbarNormal'), 'left');
     // Na aba Marker o marcador do operador também é o pontinho azul com cone
@@ -4345,7 +4397,7 @@ function initMaps(lat, lng) {
     // 3. RELEVO
     const layersRelevo = createTileLayers();
     if (mapRelevo) mapRelevo.remove();
-    mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Mapbox Satélite (HD)"]] }).setView(currentPos, 14);
+    mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Mapbox Satélite (HD)"]], tapTolerance: 28 }).setView(currentPos, 14);
     L.control.layers(layersRelevo).addTo(mapRelevo);
     positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
@@ -4360,7 +4412,7 @@ function initMaps(lat, lng) {
     // painel (ver setupTacticalPiecePanel) lança a peça ali.
     const layersEstrategia = createTileLayers();
     if (mapEstrategia) mapEstrategia.remove();
-    mapEstrategia = L.map('mapEstrategia', { layers: [layersEstrategia["Mapbox Satélite (HD)"]] }).setView(currentPos, 14);
+    mapEstrategia = L.map('mapEstrategia', { layers: [layersEstrategia["Mapbox Satélite (HD)"]], tapTolerance: 28 }).setView(currentPos, 14);
     L.control.layers(layersEstrategia).addTo(mapEstrategia);
     markers.estrategia = L.marker(currentPos, { icon: opIcon }).addTo(mapEstrategia);
     tacticalLayerEstrategia.addTo(mapEstrategia);
@@ -6646,6 +6698,38 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       let savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
       if (!allowedTabs.includes(savedTab)) savedTab = allowedTabs[0] || 'tabBalistica';
       openTab(null, savedTab);
+      refreshOperatorPermissionsFromServer();
+    }
+
+    // Corrige um problema real: quando não muda de unidade nem reinstala o
+    // app, o login (unit_code/operator_code) fica salvo indefinidamente no
+    // aparelho e o app nunca revalida com o servidor — se um admin liberar
+    // uma aba nova pro operador (ou o Android restaurar um backup antigo do
+    // app com uma permissão desatualizada), o app continuava escondendo essa
+    // aba pra sempre, e a única saída era "Trocar de Unidade" manualmente.
+    // Agora, toda vez que o app abre, revalida o código de operador salvo em
+    // segundo plano (sem travar a tela) e atualiza as abas liberadas na hora
+    // se algo mudou — silencioso, não desloga ninguém em caso de erro de rede.
+    async function refreshOperatorPermissionsFromServer() {
+      const opCode = getOperatorCode();
+      if (!opCode) return; // login por código de unidade (legado) já libera tudo via ALL_TABS
+      try {
+        const res = await fetch(`${UNIT_API_BASE}/api/operators/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: opCode })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.valid) {
+          const before = JSON.stringify(getPermissions());
+          setOperator(opCode, data.name, data.permissions);
+          if (JSON.stringify(data.permissions) !== before) {
+            applyTabPermissions();
+          }
+        }
+      } catch (e) {
+        // sem conexão — mantém as permissões já salvas, tenta de novo na próxima abertura
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
