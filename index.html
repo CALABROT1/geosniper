@@ -138,10 +138,19 @@
 
     /* ===== FERRAMENTA DE DESENHO (RETÂNGULO / CÍRCULO / CAMINHO / CANETA / RÉGUA) ===== */
     /* Dock fechado por padrão: só o botão ✏️ aparece; clicar nele revela as ferramentas. */
+    /* Borda metálica reaproveitada dos docks flutuantes da aba Estratégia —
+       aqui só o contorno (prata/grafite em gradiente), sem tirar o
+       posicionamento fixo nem virar painel arrastável/redimensionável, que
+       é exclusivo da aba Estratégia. */
+    .metallic-dock-border {
+      border: 2px solid transparent;
+      background-image: linear-gradient(rgba(15,23,42,0.92), rgba(15,23,42,0.92)), linear-gradient(150deg, #9aa3ad 0%, #e8edf2 22%, #6b7280 48%, #d4dae0 72%, #838b94 100%);
+      background-origin: border-box; background-clip: padding-box, border-box;
+    }
     .draw-toolbar {
       position: absolute; top: 80px; left: 8px; z-index: 900;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
-      background: rgba(15,23,42,0.92); border: 1px solid var(--line); border-radius: 12px; padding: 6px;
+      border-radius: 12px; padding: 6px;
     }
     .draw-toolbar-toggle {
       width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--action);
@@ -187,7 +196,7 @@
       max-height: 69%;
     }
     .tactical-dock-horizontal {
-      display: flex; gap: 10px; background: rgba(15,23,42,0.92); border: 1px solid var(--line);
+      display: flex; gap: 10px;
       border-radius: 14px; padding: 9px 13px; overflow-x: auto; scroll-behavior: smooth;
       scroll-snap-type: x proximity; position: relative; min-width: 0;
     }
@@ -206,13 +215,16 @@
       pointer-events: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
     }
     .tactical-dock-horizontal .dock-icon-item span { display: none; }
-    .tactical-dock-horizontal .dock-icon-item img { width: 46px; height: 46px; }
-    .tactical-dock-horizontal .dock-icon-item { width: 64px; }
+    /* Ícones/cartões +10% (largura do dock horizontal, só estética — mesma
+       função de sempre) — 46px→51px, 64px→70px. */
+    .tactical-dock-horizontal .dock-icon-item img { width: 51px; height: 51px; }
+    .tactical-dock-horizontal .dock-icon-item { width: 70px; }
     /* Dock vertical (riscos): ícones 15% maiores, rótulo um pouco menor e
        mais espaço entre os cartões pra caberem confortavelmente. */
-    .tactical-dock-lateral .dock-icon-item img { width: 35px; height: 35px; }
+    /* +10% (largura do dock lateral, só estética): 35px→38px, 58px→64px. */
+    .tactical-dock-lateral .dock-icon-item img { width: 38px; height: 38px; }
     .tactical-dock-lateral .dock-icon-item span { font-size: 8px; }
-    .tactical-dock-lateral .dock-icon-item { width: 58px; }
+    .tactical-dock-lateral .dock-icon-item { width: 64px; }
     /* Atribuição do Leaflet (Leaflet | © OpenStreetMap / Mapbox / Maxar) — bem menor
        e discreta, pra não brigar visualmente com o dock horizontal logo acima dela. */
     .leaflet-control-attribution {
@@ -221,8 +233,8 @@
     }
     .leaflet-control-attribution a { color: rgba(255,255,255,0.75) !important; }
     .tactical-dock-lateral {
-      display: flex; flex-direction: column; gap: 10px; background: rgba(15,23,42,0.92);
-      border: 1px solid var(--line); border-radius: 14px; padding: 8px 7px;
+      display: flex; flex-direction: column; gap: 10px;
+      border-radius: 14px; padding: 8px 7px;
       overflow-y: auto; scroll-snap-type: y proximity;
       position: relative; min-height: 0; flex: 1 1 auto;
       scrollbar-width: none;
@@ -264,6 +276,22 @@
     }
     .piece-lock-badge.is-unlocked { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.45), 0 1px 4px rgba(0,0,0,0.7); }
     .piece-lock-badge.is-locked { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.45), 0 1px 4px rgba(0,0,0,0.7); }
+    /* "Radar ping" que marca, no mapa, um ponto recém-chegado por link
+       compartilhado (showSharedPointPath) — anel pulsando em cima do ponto
+       pra chamar atenção sem esconder o marcador tático de verdade embaixo. */
+    .shared-point-ping { position: relative; width: 40px; height: 40px; }
+    .shared-point-ping .dot {
+      position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+      border-radius: 50%; background: #25D366; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+    .shared-point-ping .ring {
+      position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+      border-radius: 50%; background: rgba(37,211,102,0.55); animation: sharedPingPulse 1.6s ease-out infinite;
+    }
+    @keyframes sharedPingPulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(2.8); opacity: 0; }
+    }
     /* Setas de navegação — quadradas (não mais redondas) e grandes pra ficarem
        fáceis de tocar. Rolar arrastando o dedo direto nos ícones também
        funciona (ver onDockIconPointerDown: um arraste ao longo do eixo do
@@ -414,8 +442,9 @@
     .floating-panel-resize-handle.corner-sw::after { bottom: 6px; left: 6px; width: 12px; height: 12px; border-radius: 50%; }
     /* Ícones do dock de Peças 20% maiores (30px -> 36px) — a grade
        (flex-wrap) já reorganiza sozinha quando a caixa muda de tamanho. */
-    #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item img { width: 36px; height: 36px; }
-    #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item { width: 68px; }
+    /* +20% de novo sobre o ajuste anterior (30px -> 36px -> agora 43px). */
+    #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item img { width: 43px; height: 43px; }
+    #tacticalDockEstrategico.tactical-dock-panel-grid .dock-icon-item { width: 78px; }
     /* Dock de ferramentas de desenho — mesmos botões/cores que já existiam
        no ✏️ flutuante antigo (reaproveita activateDrawTool/initDrawToolbar
        sem duplicar lógica), só que agora dentro da janela flutuante. */
@@ -967,7 +996,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <input id="locSearchNormal" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
     <div id="locSearchNormalList" class="location-search-list"></div>
   </div>
-  <div id="drawToolbarNormal" class="draw-toolbar">
+  <div id="drawToolbarNormal" class="draw-toolbar metallic-dock-border">
     <button class="draw-toolbar-toggle" title="Ferramentas de desenho">✏️</button>
     <div class="draw-toolbar-tools">
       <button class="draw-tool-btn" data-tool="rectangle" title="Retângulo">▭</button>
@@ -992,7 +1021,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="tactical-dock-wrap tactical-dock-wrap-h">
     <div class="tactical-dock-h-row">
       <button type="button" class="dock-arrow dock-arrow-h dock-arrow-left" data-dock="tacticalDockHorizontal" data-dir="-1" aria-label="Rolar para o início">‹</button>
-      <div id="tacticalDockHorizontal" class="tactical-dock-horizontal" data-target-map="mapNormal"></div>
+      <div id="tacticalDockHorizontal" class="tactical-dock-horizontal metallic-dock-border" data-target-map="mapNormal"></div>
       <button type="button" class="dock-arrow dock-arrow-h dock-arrow-right" data-dock="tacticalDockHorizontal" data-dir="1" aria-label="Rolar para o fim">›</button>
     </div>
     <div class="tactical-dock-h-bottom-row">
@@ -1002,7 +1031,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
   <div class="tactical-dock-wrap tactical-dock-wrap-l">
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-up" data-dock="tacticalDockLateral" data-dir="-1" aria-label="Rolar para cima">‹</button>
-    <div id="tacticalDockLateral" class="tactical-dock-lateral" data-target-map="mapNormal"></div>
+    <div id="tacticalDockLateral" class="tactical-dock-lateral metallic-dock-border" data-target-map="mapNormal"></div>
     <button type="button" class="dock-arrow dock-arrow-l dock-arrow-down" data-dock="tacticalDockLateral" data-dir="1" aria-label="Rolar para baixo">›</button>
     <button type="button" class="dock-toggle-btn" data-dock-toggle aria-label="Minimizar dock de riscos">▾</button>
   </div>
@@ -3166,7 +3195,7 @@ function tacticalPopupHtml(pin) {
       <div style="font-size:10px; color:var(--muted); margin-top:6px;">${pin.operator || ''}${when ? ' · ' + when : ''}</div>
       ${photo}
       ${completeBtn}
-      <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng})" style="margin-top:8px; width:100%; background:#25D366; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">📲 Compartilhar no WhatsApp</button>
+      <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" style="margin-top:8px; width:100%; background:#25D366; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">📲 Compartilhar no WhatsApp</button>
       <button onclick="deleteTacticalMarker('${pin.id}')" style="margin-top:6px; width:100%; background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir</button>
     </div>
   `;
@@ -3188,6 +3217,7 @@ function refreshTacticalMarkersUI() {
     const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin);
     const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin);
     const mkNormal = L.marker([pin.lat, pin.lng], { icon: iconNormal }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
+    mkNormal._pinId = pin.id;
     // aba Pontos (Relevo): só leitura/consulta pra QUALQUER marcador — dados
     // brutos registrados, sem inserir/arrastar/travar peças aqui. Isso agora
     // acontece só na aba Estratégia (mapEstrategia, abaixo).
@@ -3203,6 +3233,7 @@ function refreshTacticalMarkersUI() {
     if (tacticalLayerEstrategia && mapEstrategia) {
       const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin);
       const mkEstrategia = L.marker([pin.lat, pin.lng], { icon: iconEstrategia }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerEstrategia);
+      mkEstrategia._pinId = pin.id;
       attachTacticalMarkerLongPressDrag(mkEstrategia, pin, mapEstrategia);
       if (pin.piece) {
         attachPieceLockBadge(mkEstrategia, pin);
@@ -3513,7 +3544,7 @@ function renderTacticalMarkersTable() {
         <td style="text-align:center;">${photo}</td>
         <td style="text-align:center; white-space:nowrap;">
           <button onclick="focusTacticalMarker('${pin.id}')" title="Ver no mapa" style="background:var(--action); color:#fff; border:none; border-radius:4px; padding:4px 7px; margin-right:3px; cursor:pointer; font-size:11px;">📍</button>
-          <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng})" title="Compartilhar no WhatsApp" style="background:#25D366; color:#fff; border:none; border-radius:4px; padding:4px 7px; margin-right:3px; cursor:pointer; font-size:11px;">📲</button>
+          <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" title="Compartilhar no WhatsApp" style="background:#25D366; color:#fff; border:none; border-radius:4px; padding:4px 7px; margin-right:3px; cursor:pointer; font-size:11px;">📲</button>
           <button onclick="deleteTacticalMarker('${pin.id}')" title="Excluir" style="background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:4px; padding:4px 7px; cursor:pointer; font-size:11px;">🗑️</button>
         </td>
       </tr>
@@ -3998,7 +4029,9 @@ function setupDockCarousel(dockId, axis) {
 const DOCK_AXIS = { tacticalDockHorizontal: 'x', tacticalDockLateral: 'y', tacticalDockEstrategico: 'x' };
 // Distância mínima (px) antes de decidir qual dos dois gestos é: evita que
 // um toque com tremor mínimo já dispare rolagem ou arraste sem querer.
-const DOCK_GESTURE_THRESHOLD = 9;
+// Reduzido de 9 pra 6 — mais sensível ao toque, decide o gesto (rolar vs
+// soltar no mapa) com um deslocamento menor do dedo.
+const DOCK_GESTURE_THRESHOLD = 6;
 
 // Cada dock arrastável carrega em cima do próprio elemento (data-target-map)
 // pra qual mapa Leaflet ele solta o ícone — assim o mesmo mecanismo de
@@ -4483,6 +4516,7 @@ function initMaps(lat, lng) {
             <canvas id="mapReticleCanvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
             <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" style="background:var(--action); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:14px; cursor:pointer; flex-shrink:0;">📌</button>
           </div>
+          <div id="targetGuidanceBox"></div>
           <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
         `;
         restoreDistPanel();
@@ -4491,6 +4525,11 @@ function initMaps(lat, lng) {
       renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom || 16);
       injectEnvTelemetry(targetLat, targetLng);
       drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
+      // Antes só ligava quando o alvo chegava por link compartilhado (aba
+      // Medir). Um alvo marcado manualmente batendo no mapa nunca acionava
+      // a seta de guiagem nem a vibração de alinhamento — corrigido aqui,
+      // pra valer nos dois caminhos.
+      startTargetGuidance(targetLat, targetLng);
       syncMedirDistanceToBalistica(distanceMeters);
     });
 }
@@ -4636,7 +4675,7 @@ function initMaps(lat, lng) {
       }
     }
 
-    function sharePointWhatsApp(lat, lng) {
+    function sharePointWhatsApp(lat, lng, pinType, pinId) {
       // ANTES: usava window.location.origin/pathname — dentro do app nativo
       // (Capacitor) isso NÃO é uma URL http(s) de verdade, é algo como
       // "capacitor://localhost/index.html" ou "file:///android_asset/...".
@@ -4644,8 +4683,25 @@ function initMaps(lat, lng) {
       // ele reconhece — por isso o link chegava como texto puro, sem clicar.
       // Trocado pro domínio real de produção (mesma base já usada pros
       // ícones táticos no mapa).
-      const shareUrl = `${ASSET_BASE}?tab=medir&targetLat=${lat}&targetLng=${lng}`;
-      const message = `🎯 *GEOSNIPER - Localização de Alvo/Ponto*\n\nConfira a medição e coordenadas marcadas no mapa:\n${shareUrl}`;
+      //
+      // Pra qual aba o link abre: SÓ o marcador "Alvo" (type 'target') vai
+      // pra aba Medir (é o único com o fluxo balístico/guiagem daquela aba).
+      // Qualquer outro tipo de marcador (armas, veículos, peças etc. — aba
+      // Marker ou aba Estratégia) abre quem recebe na MESMA aba de onde foi
+      // compartilhado, com o caminho até o ponto indicado no mapa. Chamadas
+      // antigas (só lat/lng, sem pinType) continuam indo pra Medir — mesmo
+      // comportamento de antes, nada quebra.
+      let tab = 'medir';
+      if (pinType && pinType !== 'target') {
+        const activeTabName = document.querySelector('.tab-btn.active')?.getAttribute('data-tab')
+          || localStorage.getItem('geosniper_active_tab');
+        tab = (activeTabName === 'tabEstrategia') ? 'estrategia' : 'marker';
+      }
+      const idParam = pinId ? `&pinId=${encodeURIComponent(pinId)}` : '';
+      const shareUrl = `${ASSET_BASE}?tab=${tab}&targetLat=${lat}&targetLng=${lng}${idParam}`;
+      const message = tab === 'medir'
+        ? `🎯 *GEOSNIPER - Localização de Alvo/Ponto*\n\nConfira a medição e coordenadas marcadas no mapa:\n${shareUrl}`
+        : `📍 *GEOSNIPER - Marcador Compartilhado*\n\nConfira o marcador no mapa:\n${shareUrl}`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
     }
 
@@ -4730,7 +4786,103 @@ function initMaps(lat, lng) {
             }
           }
         }, 300);
+        return;
       }
+
+      // Qualquer marcador que NÃO seja "Alvo" (armas, veículos, peças etc.,
+      // lançados na aba Marker ou na aba Estratégia): abre na MESMA aba de
+      // onde foi compartilhado — tab=marker → aba Marker (tabNormal),
+      // tab=estrategia → aba Estratégia — e mostra o caminho até o ponto no
+      // mapa dessa aba, em vez de cair sempre na aba Medir.
+      if ((tab === 'marker' || tab === 'estrategia') && !isNaN(targetLat) && !isNaN(targetLng)) {
+        const destTabName = tab === 'estrategia' ? 'tabEstrategia' : 'tabNormal';
+        const pinId = urlParams.get('pinId');
+
+        const navEntries = performance.getEntriesByType('navigation');
+        const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+        if (forceTabSwitch || !isReload) {
+          openTab(null, destTabName);
+        }
+
+        // O marcador em si já existe (foi sincronizado via socket quando foi
+        // criado) — só falta o mapa certo estar pronto e, se possível, os
+        // dados já terem chegado do servidor pra abrir o popup de verdade.
+        // Tenta por até ~6s (o socket pode ainda estar conectando); se não
+        // achar o pin pelo id, cai pras coordenadas cruas da própria URL —
+        // o caminho/indicador aparece de qualquer jeito.
+        let attempts = 0;
+        const checkReady = setInterval(() => {
+          attempts++;
+          const targetMap = tab === 'estrategia' ? mapEstrategia : mapNormal;
+          const pin = pinId ? tacticalMarkers[pinId] : null;
+          const ready = targetMap && (pin || attempts >= 15);
+          if (ready) {
+            clearInterval(checkReady);
+            const lat = pin ? pin.lat : targetLat;
+            const lng = pin ? pin.lng : targetLng;
+            showSharedPointPath(targetMap, lat, lng);
+            if (pinId) {
+              const layerGroup = tab === 'estrategia' ? tacticalLayerEstrategia : tacticalLayerNormal;
+              focusAndOpenTacticalMarkerPopup(layerGroup, pinId);
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        }, 400);
+      }
+    }
+
+    // Marca visualmente, num mapa específico, o ponto que acabou de chegar
+    // por link compartilhado: uma linha tracejada da posição atual até o
+    // alvo ("caminho até o que foi compartilhado") + um marcador pulsante
+    // em cima do ponto, e enquadra os dois no mapa. Some sozinho depois de
+    // um tempo pra não poluir o mapa permanentemente — o marcador tático de
+    // verdade (já sincronizado) continua lá.
+    function showSharedPointPath(map, lat, lng) {
+      if (!map || typeof lat !== 'number' || typeof lng !== 'number') return;
+      if (map._sharedPointLayer) {
+        map.removeLayer(map._sharedPointLayer);
+        map._sharedPointLayer = null;
+      }
+      const layers = [];
+      if (currentPos) {
+        layers.push(L.polyline([currentPos, [lat, lng]], { color: '#ffffff', weight: 3, opacity: 0.85, dashArray: '6, 6' }));
+      }
+      const pingIcon = L.divIcon({
+        className: 'shared-point-ping-wrap',
+        html: '<div class="shared-point-ping"><span class="ring"></span><span class="dot"></span></div>',
+        iconSize: [40, 40], iconAnchor: [20, 20]
+      });
+      layers.push(L.marker([lat, lng], { icon: pingIcon, interactive: false, zIndexOffset: 1000 }));
+      map._sharedPointLayer = L.layerGroup(layers).addTo(map);
+
+      if (currentPos) {
+        map.fitBounds(L.latLngBounds([currentPos, [lat, lng]]), { padding: [60, 60], maxZoom: 17 });
+      } else {
+        map.setView([lat, lng], 17);
+      }
+
+      setTimeout(() => {
+        if (map._sharedPointLayer) {
+          map.removeLayer(map._sharedPointLayer);
+          map._sharedPointLayer = null;
+        }
+      }, 25000);
+    }
+
+    // Acha, dentro do grupo de camadas de uma aba, o marker Leaflet cujo pin
+    // tem esse id (marcado em refreshTacticalMarkersUI via `._pinId`) e abre
+    // o popup dele — é o popup de verdade do marcador (com foto/observação/
+    // compartilhar/excluir), não um balão avulso.
+    function focusAndOpenTacticalMarkerPopup(layerGroup, pinId) {
+      if (!layerGroup) return false;
+      let found = false;
+      layerGroup.eachLayer(mk => {
+        if (!found && mk._pinId === pinId) {
+          mk.openPopup();
+          found = true;
+        }
+      });
+      return found;
     }
 
     function syncTurretFromBalistica() {
