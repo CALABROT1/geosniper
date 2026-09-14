@@ -24,6 +24,10 @@
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- SheetJS — só pra gerar o .xlsx real da tabela da aba Pontos (botão
+       "Exportar Tabela"), com células de link clicável pro GeoSniper e pro
+       mapa externo. Não mexe em nada do Leaflet/Socket.IO acima. -->
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     /* ===== SISTEMA DE COR — instrumento gunmetal/latão (fase 2 da auditoria) =====
@@ -114,19 +118,20 @@
       pointer-events: auto; max-width: 320px; width: 90%;
       transition: font-size 0.15s ease, max-width 0.15s ease, padding 0.15s ease;
     }
-    /* Balão "ampliado" (botão 🔍) — cresce o texto/espaçamento; qualquer
-       elemento interno dimensionado em "em" (botões redondos, ícones)
-       acompanha o aumento automaticamente, sem precisar recalcular nada. */
-    .dist-info-panel.zoomed { font-size: 18px; padding: 20px 26px; max-width: 480px; }
-    /* Botões redondos no canto superior do balão (minimizar / ampliar) —
-       tamanho em "em" pra crescer junto com .zoomed acima. */
+    /* Botão redondo no canto superior do balão (minimizar) — tamanho em "em"
+       (mantido por consistência com os outros botões do balão, mesmo sem
+       mais nenhum toggle de fonte no próprio painel). */
     .dist-panel-icon-btn {
       position: absolute; top: 0.35em; width: 1.7em; height: 1.7em; border-radius: 50%;
       font-size: 1em; line-height: 1; cursor: pointer; display: flex; align-items: center;
       justify-content: center; padding: 0; border: none;
     }
     .dist-panel-icon-btn.btn-minimize { right: 0.35em; }
-    .dist-panel-icon-btn.btn-zoom { right: 2.35em; }
+    /* Zoom do retículo do balão da aba Medir — mesmo mecanismo (－ / 1.00x /
+       ＋) usado no retículo expandido da aba Balística: só o canvas escala
+       via CSS transform, o resto do balão fica do tamanho normal. Ver
+       adjustDistPanelReticleZoom(). */
+    .dist-panel-reticle-canvas { transition: transform 0.2s ease; transform-origin: 50% 100%; }
     /* Botão metálico — mesmo acabamento prata/grafite dos docks, mas
        preenchendo o botão inteiro (não só a borda), já que aqui o botão é
        pequeno e precisa ficar bem visível/tocável por cima do balão escuro. */
@@ -176,6 +181,12 @@
       background-image: linear-gradient(rgba(15,23,42,0.92), rgba(15,23,42,0.92)), linear-gradient(150deg, #9aa3ad 0%, #e8edf2 22%, #6b7280 48%, #d4dae0 72%, #838b94 100%);
       background-origin: border-box; background-clip: padding-box, border-box;
     }
+    /* Docks de bússola (Marker e Estratégia) — botão ▾ minimiza pra uma
+       pastilha compacta, escondendo o miolo (rosa + calibração + CALIBRAR)
+       e deixando só o botão pra reabrir. */
+    .compass-dock-toggle { width: 24px; height: 20px; font-size: 12px; }
+    .compass-dock-group.compass-dock-collapsed .compass-dock-body { display: none; }
+    .compass-dock-group.compass-dock-collapsed { padding-bottom: 6px !important; }
     .draw-toolbar {
       position: absolute; top: 80px; left: 8px; z-index: 900;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -1198,6 +1209,8 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
     <input id="pontosLocalidadeFilter" type="text" placeholder="🔎 Filtrar por localidade..." oninput="filterPontosTableByLocalidade()" style="flex:1; min-width:180px; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:9px 12px; font-size:13px;">
     <button onclick="shareFilteredPontos()" style="background:#25D366; color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap;">📲 Compartilhar Filtrado</button>
+    <button onclick="savePontosTableCSV()" title="Salva a tabela filtrada (.csv) neste aparelho" style="background:var(--action); color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap;">💾 Salvar</button>
+    <button onclick="exportPontosTableXLSX()" title="Exporta a tabela filtrada como planilha Excel (.xlsx), com links clicáveis" style="background:var(--accent); color:#15160f; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap;">📊 Exportar Tabela</button>
   </div>
   <div style="overflow-x:auto;">
     <table class="tactical-table" style="color:var(--ink);">
@@ -2130,22 +2143,36 @@ body.nvg-red-mode .leaflet-tile-container img {
 
     function startNormalCompassWatch() { startCompassWatch('normal', 'normal', 'normalCompass'); }
     function stopNormalCompassWatch() { stopCompassWatch('normal'); }
+    function startEstrategiaCompassWatch() { startCompassWatch('estrategia', 'estrategia', 'estrategiaCompass'); }
+    function stopEstrategiaCompassWatch() { stopCompassWatch('estrategia'); }
 
-    // A aba Marker (mapNormal) já tem bastante coisa fixa na tela — o dock de
-    // ferramentas de desenho (canto superior esquerdo, começa em top:80) e o
-    // dock lateral de ícones táticos (canto superior direito, começa em
-    // top:70) — então o mesmo layout empilhado usado na aba Medir (rosa à
-    // direita, calibração à esquerda, cada um com ~60px de altura) ficava
-    // por cima desses dois docks. Aqui em vez disso é UM widget só, compacto,
-    // centralizado no topo — não entra na coluna esquerda nem na direita,
-    // onde os outros docks vivem.
-    function ensureNormalCompassOverlay() {
-      if (!mapNormal || document.getElementById('normalCompassGroup')) return;
-      const container = mapNormal.getContainer();
+    // Minimiza/expande um dock de bússola (Marker ou Estratégia) — recolhe pra
+    // uma pastilha compacta só com o botão de reabrir, no mesmo padrão de
+    // minimizar já usado nos outros docks (.dock-toggle-btn / .collapsed).
+    function toggleCompassDockMinimize(groupId) {
+      const group = document.getElementById(groupId);
+      if (group) group.classList.toggle('compass-dock-collapsed');
+    }
+
+    // A aba Marker (mapNormal) e a aba Estratégia (mapEstrategia) já têm
+    // bastante coisa fixa na tela — docks de desenho e de ícones táticos —
+    // então o mesmo layout empilhado usado na aba Medir (rosa à direita,
+    // calibração à esquerda, cada um com ~60px de altura) ficava por cima
+    // desses docks. Aqui em vez disso é UM widget só, compacto, centralizado
+    // no topo — não entra na coluna esquerda nem na direita, onde os outros
+    // docks vivem. Parametrizado por map/groupId/rosePrefix pra ser reusado
+    // nas duas abas sem duplicar o HTML/CSS.
+    function ensureTabCompassDock(map, groupId, rosePrefix) {
+      if (!map || document.getElementById(groupId)) return;
+      const container = map.getContainer();
       if (!container) return;
 
       const group = document.createElement('div');
-      group.id = 'normalCompassGroup';
+      group.id = groupId;
+      // Borda metálica — mesma estética dos docks da aba Estratégia (ver
+      // .metallic-dock-border), aplicada aqui aos dois docks de bússola
+      // (Marker e Estratégia) a pedido.
+      group.className = 'metallic-dock-border compass-dock-group';
       // z-index ABAIXO dos controles nativos do Leaflet (zoom, seletor de
       // camadas — z-index:1000, ver comentário em ensureCompassOverlay) —
       // aqui, diferente da bússola da aba Medir, é de propósito: essa caixa
@@ -2155,9 +2182,10 @@ body.nvg-red-mode .leaflet-tile-container img {
       // +50% (botões 26->39, rosa 30->45) a pedido, com CALIBRAR escrito
       // embaixo — por isso o grupo virou coluna (linha de controles + rótulo
       // abaixo) em vez de só a linha horizontal de antes.
-      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" class="dock-toggle-btn compass-dock-toggle" onclick="toggleCompassDockMinimize('${groupId}')" aria-label="Minimizar bússola" title="Minimizar/expandir bússola">▾</button>
+        <div class="compass-dock-body" style="display:flex; align-items:center; gap:8px;">
           <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
           <svg width="45" height="45" viewBox="0 0 48 48" style="flex-shrink:0;">
             <circle cx="24" cy="24" r="21" fill="rgba(6,10,6,0.9)" stroke="#b6e06a" stroke-width="1.8"/>
@@ -2172,16 +2200,16 @@ body.nvg-red-mode .leaflet-tile-container img {
               <line x1="9.15" y1="9.15" x2="12.69" y2="12.69"/>
             </g>
             <text x="24" y="9" fill="#b6e06a" font-size="6.5" font-weight="800" text-anchor="middle" style="font-family: ${RETICLE_MONO};">N</text>
-            <line id="normalCompassNeedle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
+            <line id="${rosePrefix}Needle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
             <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
           </svg>
           <div style="display:flex; flex-direction:column; align-items:center; line-height:1.15; min-width:44px;">
-            <div id="normalCompassReadout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
+            <div id="${rosePrefix}Readout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
             <div style="font-size:11px; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
           </div>
           <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">▶</button>
         </div>
-        <div style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px;">CALIBRAR</div>
+        <div class="compass-dock-body" style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px;">CALIBRAR</div>
       `;
       container.appendChild(group);
 
@@ -2194,6 +2222,9 @@ body.nvg-red-mode .leaflet-tile-container img {
 
       updateCompassCalibrationUI();
     }
+
+    function ensureNormalCompassOverlay() { ensureTabCompassDock(mapNormal, 'normalCompassGroup', 'normalCompass'); }
+    function ensureEstrategiaCompassOverlay() { ensureTabCompassDock(mapEstrategia, 'estrategiaCompassGroup', 'estrategiaCompass'); }
 
     // Botões ⟲/⟳ da aba Medir — giram só o mapMedir (rotate:true), em passos
     // fixos de 22.5° (16 marcações, meio caminho entre as 8 da rosa-dos-
@@ -2266,6 +2297,11 @@ function openTab(evt, tabName) {
     if (typeof startNormalCompassWatch === 'function') startNormalCompassWatch();
   } else if (typeof stopNormalCompassWatch === 'function') {
     stopNormalCompassWatch();
+  }
+  if (tabName === 'tabEstrategia') {
+    if (typeof startEstrategiaCompassWatch === 'function') startEstrategiaCompassWatch();
+  } else if (typeof stopEstrategiaCompassWatch === 'function') {
+    stopEstrategiaCompassWatch();
   }
 
   // Sai de qualquer ferramenta de desenho ativa ao trocar de aba (evita ficar
@@ -3620,17 +3656,25 @@ function filterPontosTableByLocalidade() {
   });
 }
 
+// Lê o filtro de localidade atual da tabela em tela cheia e devolve as linhas
+// (dados reais de tacticalMarkers, não o texto truncado na tela) que batem
+// com ele — usado tanto pelo compartilhamento no WhatsApp quanto pelo
+// Salvar/Exportar da tabela, pra não duplicar essa lógica em 3 lugares.
+function getFilteredPontosRows() {
+  const input = document.getElementById('pontosLocalidadeFilter');
+  const rawQuery = input ? input.value.trim() : '';
+  const q = normalizeSearchText(rawQuery);
+  const rows = Object.values(tacticalMarkers)
+    .filter(pin => !q || normalizeSearchText(pin.localidade).includes(q))
+    .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+  return { rows, rawQuery };
+}
+
 // Compartilha no WhatsApp a lista de pontos que bate com o filtro de localidade
 // atual (ou todos, se o filtro estiver vazio) — monta a mensagem a partir dos
 // dados reais (tacticalMarkers), não do texto truncado na tela.
 function shareFilteredPontos() {
-  const input = document.getElementById('pontosLocalidadeFilter');
-  const rawQuery = input ? input.value.trim() : '';
-  const q = normalizeSearchText(rawQuery);
-
-  const rows = Object.values(tacticalMarkers)
-    .filter(pin => !q || normalizeSearchText(pin.localidade).includes(q))
-    .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+  const { rows, rawQuery } = getFilteredPontosRows();
 
   if (rows.length === 0) {
     alert('Nenhum ponto tático encontrado para esse filtro de localidade.');
@@ -3659,6 +3703,91 @@ function shareFilteredPontos() {
   });
 
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+// Monta as linhas de dados (array de arrays) compartilhadas pelo CSV e pelo
+// XLSX — mesmas colunas dos dois formatos, na mesma ordem da tabela em tela.
+function buildPontosExportRows() {
+  const { rows } = getFilteredPontosRows();
+  const header = ['Tipo', 'Rótulo', 'Localidade', 'Coordenadas', 'Posição do Atirador', 'Observação', 'Operador', 'Data/Hora', 'Link GeoSniper', 'Link Mapa Externo'];
+  const dataRows = rows.map(pin => {
+    const t = getTacticalType(pin.type);
+    const hasCoords = typeof pin.lat === 'number' && typeof pin.lng === 'number';
+    const coords = hasCoords ? `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)}` : '-';
+    const shooterCoords = (pin.type === 'target' && typeof pin.operatorLat === 'number' && typeof pin.operatorLng === 'number')
+      ? `${pin.operatorLat.toFixed(6)}, ${pin.operatorLng.toFixed(6)}` : '-';
+    const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '-';
+    const appPinUrl = hasCoords ? `${ASSET_BASE}?tab=pontos&targetLat=${pin.lat}&targetLng=${pin.lng}&pinId=${encodeURIComponent(pin.id)}` : '';
+    const mapsLink = hasCoords ? `https://www.google.com/maps?q=${pin.lat},${pin.lng}` : '';
+    return [t.label, pin.label || '-', pin.localidade || '-', coords, shooterCoords, pin.observation || '-', pin.operator || '-', when, appPinUrl, mapsLink];
+  });
+  return { header, dataRows };
+}
+
+// Botão "💾 Salvar" — grava a tabela filtrada (ou completa) como .csv direto
+// no aparelho de quem estiver com a tela aberta, sem precisar de servidor
+// nem do WhatsApp. Abre normal em Excel/Sheets/LibreOffice.
+function savePontosTableCSV() {
+  const { header, dataRows } = buildPontosExportRows();
+  if (dataRows.length === 0) {
+    alert('Nenhum ponto tático encontrado para esse filtro de localidade.');
+    return;
+  }
+  const escCsv = v => {
+    const s = String(v == null ? '' : v);
+    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  // ';' como separador (padrão do Excel em pt-BR) + BOM UTF-8 (acentos
+  // corretos ao abrir direto no Excel do Windows).
+  const csvLines = [header, ...dataRows].map(r => r.map(escCsv).join(';'));
+  const csvContent = '﻿' + csvLines.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+  a.href = url;
+  a.download = `geosniper_pontos_${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// Botão "📊 Exportar Tabela" — gera um .xlsx de verdade (via SheetJS) com as
+// colunas de link (GeoSniper e mapa externo) como hyperlinks clicáveis de
+// verdade, não só texto da URL.
+function exportPontosTableXLSX() {
+  if (typeof XLSX === 'undefined') {
+    alert('Biblioteca de exportação não carregou. Verifique a conexão e tente novamente.');
+    return;
+  }
+  const { header, dataRows } = buildPontosExportRows();
+  if (dataRows.length === 0) {
+    alert('Nenhum ponto tático encontrado para esse filtro de localidade.');
+    return;
+  }
+  const APP_LINK_COL = header.indexOf('Link GeoSniper');
+  const MAP_LINK_COL = header.indexOf('Link Mapa Externo');
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...dataRows]);
+  dataRows.forEach((row, i) => {
+    const excelRow = i + 2; // linha 1 = cabeçalho
+    [APP_LINK_COL, MAP_LINK_COL].forEach(col => {
+      const url = row[col];
+      if (!url) return;
+      const cellRef = XLSX.utils.encode_cell({ r: excelRow - 1, c: col });
+      if (ws[cellRef]) {
+        ws[cellRef].l = { Target: url };
+        ws[cellRef].s = { font: { color: { rgb: '1155CC' }, underline: true } };
+      }
+    });
+  });
+  ws['!cols'] = header.map((h, i) => ({ wch: (i === APP_LINK_COL || i === MAP_LINK_COL) ? 42 : Math.max(12, h.length + 2) }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pontos Táticos');
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+  XLSX.writeFile(wb, `geosniper_pontos_${stamp}.xlsx`);
 }
 
 function focusTacticalMarker(id) {
@@ -3716,17 +3845,28 @@ function restoreDistPanel() {
   if (restoreBtn) restoreBtn.style.display = 'none';
 }
 
-// Amplia/reduz o balão de informação (botão 🔍) — só alterna a classe
-// .zoomed; todo o resto (fonte, botões redondos em "em") acompanha sozinho
-// via CSS. Funciona igual nos dois jeitos de o balão aparecer (marcação
-// manual no mapa ou alvo recebido por link compartilhado), já que os dois
-// escrevem dentro do MESMO #distPanel.
-function toggleDistPanelZoom() {
-  const panel = document.getElementById('distPanel');
-  if (!panel) return;
-  const zoomed = panel.classList.toggle('zoomed');
-  const btn = document.getElementById('distPanelZoomBtn');
-  if (btn) btn.title = zoomed ? 'Reduzir balão' : 'Ampliar balão';
+// Zoom do retículo dentro do balão da aba Medir — mesmo mecanismo do
+// retículo expandido da aba Balística (adjustReticleExpandZoom): amplia/
+// reduz só o canvas via CSS transform (1x a 2.5x, passos de 0.25), sem
+// mexer no resto do balão. Um estado só, porque o balão sempre tem um único
+// #mapReticleCanvas por vez (marcação manual ou alvo recebido reescrevem o
+// mesmo #distPanel). Resetado pra 1x sempre que um novo alvo é desenhado
+// (ver resetDistPanelReticleZoom, chamada logo após cada renderMiniReticle).
+let distPanelReticleZoom = 1;
+function resetDistPanelReticleZoom() {
+  distPanelReticleZoom = 1;
+  applyDistPanelReticleZoomTransform();
+}
+function adjustDistPanelReticleZoom(delta) {
+  const val = Math.max(1, Math.min(2.5, distPanelReticleZoom + delta));
+  distPanelReticleZoom = Math.round(val * 100) / 100;
+  applyDistPanelReticleZoomTransform();
+}
+function applyDistPanelReticleZoomTransform() {
+  const canvas = document.getElementById('mapReticleCanvas');
+  if (canvas) canvas.style.transform = `scale(${distPanelReticleZoom})`;
+  const label = document.getElementById('distPanelReticleZoomLabel');
+  if (label) label.textContent = `${distPanelReticleZoom.toFixed(2)}x`;
 }
 
 function saveSharedTargetAsTacticalMarker(lat, lng, distanceMeters, attempt) {
@@ -4511,7 +4651,14 @@ function initMaps(lat, lng) {
     if (mapEstrategia) mapEstrategia.remove();
     mapEstrategia = L.map('mapEstrategia', { layers: [layersEstrategia["Mapbox Satélite (HD)"]], tapTolerance: 28 }).setView(currentPos, 14);
     L.control.layers(layersEstrategia).addTo(mapEstrategia);
-    markers.estrategia = L.marker(currentPos, { icon: opIcon }).addTo(mapEstrategia);
+    // Mesmo pontinho azul com cone de direção da aba Marker (ver comentário
+    // em markers.normal acima) — necessário pra bússola da aba Estratégia
+    // ter o que girar.
+    markers.estrategia = L.marker(currentPos, { icon: createOperatorDirectionalIcon(0) }).addTo(mapEstrategia);
+    ensureEstrategiaCompassOverlay();
+    if (document.getElementById('tabEstrategia')?.classList.contains('active')) {
+      startEstrategiaCompassWatch();
+    }
     tacticalLayerEstrategia.addTo(mapEstrategia);
     mapEstrategia.on('zoomend', refreshTacticalMarkersUI);
     tacticalDrawingLayerEstrategia.addTo(mapEstrategia);
@@ -4570,7 +4717,6 @@ function initMaps(lat, lng) {
       const panelEl = document.getElementById('distPanel');
       if (panelEl) {
         panelEl.innerHTML = `
-          <button type="button" id="distPanelZoomBtn" onclick="toggleDistPanelZoom()" title="Ampliar balão" class="dist-panel-icon-btn btn-zoom metallic-icon-btn">🔍</button>
           <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
           <div style="font-size: 13px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
           <div style="font-size: 12px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
@@ -4578,8 +4724,13 @@ function initMaps(lat, lng) {
           <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
           <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
             <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
-            <canvas id="mapReticleCanvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
+            <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
             <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
+          </div>
+          <div class="reticle-zoom-row" style="display:inline-flex; margin:6px 0 0;">
+            <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)">－</button>
+            <span id="distPanelReticleZoomLabel" class="reticle-zoom-label">1.00x</span>
+            <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)">＋</button>
           </div>
           <div id="targetGuidanceBox"></div>
           <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
@@ -4588,6 +4739,7 @@ function initMaps(lat, lng) {
       }
 
       renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom || 16);
+      resetDistPanelReticleZoom();
       injectEnvTelemetry(targetLat, targetLng);
       drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
       // Antes só ligava quando o alvo chegava por link compartilhado (aba
@@ -4819,8 +4971,7 @@ function initMaps(lat, lng) {
               if (!sol) return;
 
               document.getElementById('distPanel').innerHTML = `
-                <button type="button" id="distPanelZoomBtn" onclick="toggleDistPanelZoom()" title="Ampliar balão" class="dist-panel-icon-btn btn-zoom metallic-icon-btn">🔍</button>
-          <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
+                <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
                 <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">
                   Dist. Até Alvo Recebido: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b>
                 </div>
@@ -4831,8 +4982,13 @@ function initMaps(lat, lng) {
                 <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
                 <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
                   <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
-                  <canvas id="mapReticleCanvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
+                  <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
                   <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
+                </div>
+                <div class="reticle-zoom-row" style="display:inline-flex; margin:6px 0 0;">
+                  <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)">－</button>
+                  <span id="distPanelReticleZoomLabel" class="reticle-zoom-label">1.00x</span>
+                  <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)">＋</button>
                 </div>
                 <div id="targetGuidanceBox"></div>
                 <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -4843,6 +4999,7 @@ function initMaps(lat, lng) {
 
               startTargetGuidance(targetLat, targetLng);
               renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
+              resetDistPanelReticleZoom();
               injectEnvTelemetry(targetLat, targetLng);
               drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
               saveSharedTargetAsTacticalMarker(targetLat, targetLng, distanceMeters);
@@ -6918,10 +7075,13 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
           if (typeof stopTargetGuidance === 'function') stopTargetGuidance();
           if (typeof stopMedirCompassWatch === 'function') stopMedirCompassWatch();
           if (typeof stopNormalCompassWatch === 'function') stopNormalCompassWatch();
+          if (typeof stopEstrategiaCompassWatch === 'function') stopEstrategiaCompassWatch();
         } else if (document.getElementById('tabMedir')?.classList.contains('active') && typeof startMedirCompassWatch === 'function') {
           startMedirCompassWatch();
         } else if (document.getElementById('tabNormal')?.classList.contains('active') && typeof startNormalCompassWatch === 'function') {
           startNormalCompassWatch();
+        } else if (document.getElementById('tabEstrategia')?.classList.contains('active') && typeof startEstrategiaCompassWatch === 'function') {
+          startEstrategiaCompassWatch();
         }
       });
 
@@ -7113,6 +7273,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
         if (markers.normal) markers.normal.setLatLng(newPos);
         if (markers.relevo) markers.relevo.setLatLng(newPos);
         if (markers.medir) markers.medir.setLatLng(newPos);
+        if (markers.estrategia) markers.estrategia.setLatLng(newPos);
 
         updateRaios(lat, lng);
 
