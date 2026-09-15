@@ -127,11 +127,31 @@
       justify-content: center; padding: 0; border: none;
     }
     .dist-panel-icon-btn.btn-minimize { right: 0.35em; }
-    /* Zoom do retículo do balão da aba Medir — mesmo mecanismo (－ / 1.00x /
-       ＋) usado no retículo expandido da aba Balística: só o canvas escala
-       via CSS transform, o resto do balão fica do tamanho normal. Ver
-       adjustDistPanelReticleZoom(). */
+    /* Zoom do retículo do balão da aba Medir — mesmo mecanismo do retículo
+       expandido da aba Balística: só o canvas escala via CSS transform, o
+       resto do balão fica do tamanho normal. Ver adjustDistPanelReticleZoom(). */
     .dist-panel-reticle-canvas { transition: transform 0.2s ease; transform-origin: 50% 100%; }
+    /* Wrapper do canvas — âncora pra posicionar os botões －/＋ por cima do
+       retículo (position:absolute), sem entrar na largura do canvas (que é
+       quem de fato escala). O wrapper NUNCA escala, só o canvas dentro dele —
+       por isso o JS (positionDistPanelReticleZoomButtons) usa a largura "em
+       repouso" do canvas (offsetWidth, que o transform:scale não altera)
+       como referência pra calcular onde os botões devem ficar. */
+    .dist-panel-reticle-wrap { position: relative; flex-shrink: 0; }
+    /* Botões －/＋ do retículo — círculo prateado (mesmo acabamento metálico
+       dos docks) grudado nos lados do retículo, mais pra baixo (perto da
+       borda inferior do círculo) pra não ficar embaixo do texto de guiagem.
+       "left" é definido via JS a cada mudança de zoom, crescendo junto com
+       o retículo (mesma matemática do transform:scale — um ponto a X px do
+       centro se afasta X*(zoom-1) px), então o botão sempre acompanha a
+       borda do círculo crescendo e nunca fica coberto por ela. */
+    .dist-panel-reticle-zoom-btn {
+      position: absolute; top: 82%; transform: translate(-50%, -50%);
+      width: 30px; height: 30px; border-radius: 50%; font-size: 15px;
+      font-weight: 800; border: none; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: left 0.2s ease;
+    }
     /* Botão metálico — mesmo acabamento prata/grafite dos docks, mas
        preenchendo o botão inteiro (não só a borda), já que aqui o botão é
        pequeno e precisa ficar bem visível/tocável por cima do balão escuro. */
@@ -147,11 +167,6 @@
     }
     .dist-panel-round-btn.btn-clear { background: var(--line); }
     .dist-panel-round-btn.btn-register { background: var(--action); }
-    /* Botões －/＋ de zoom do retículo — antes ficavam numa fileira própria
-       embaixo do canvas, com "1.00x" escrito no meio (retirado a pedido).
-       Agora ficam encostados nos dois lados do próprio retículo, na mesma
-       fileira do 🗑️/📌, sem a fileira/rótulo extra — o balão fica mais baixo. */
-    .dist-panel-reticle-zoom-btn { width: 30px; height: 30px; flex-shrink: 0; }
 
     /* ===== BUSCA DE LOCALIDADE (centralizar mapa por nome) ===== */
     .location-search-box {
@@ -1344,7 +1359,16 @@ body.nvg-red-mode .leaflet-tile-container img {
         <span id="mrdToggleIcon" style="font-size:12px;">▸ ABRIR</span>
       </h3>
       <div id="mrdCalculatorBody" style="display:none;">
-        <svg viewBox="0 0 600 210" style="width:100%; height:auto; background:#0d0e08; border-radius:8px; margin-bottom:14px; display:block;">
+        <!-- viewBox mais alto (210->232) + textos mais curtos e com fonte maior
+             (11/12px -> 15/16px) a pedido — no celular esse SVG é exibido em
+             largura percentual (width:100%), então o texto encolhe junto com
+             o desenho inteiro; textos longos em fonte pequena ficavam
+             ilegíveis, e o último rótulo (y:212) já nascia fora do viewBox
+             de 210, sendo cortado. Frases longas viraram versões curtas com
+             o mesmo significado (ex.: "MRD — distância recomendada de
+             zeragem" -> "MRD (ZERAGEM)") só pra sobrar espaço pra aumentar a
+             fonte sem colidir com o desenho. -->
+        <svg viewBox="0 0 600 232" style="width:100%; height:auto; background:#0d0e08; border-radius:8px; margin-bottom:14px; display:block;">
           <!-- Linha de visada (reta, tracejada) -->
           <line x1="75" y1="130" x2="555" y2="130" stroke="#5b6472" stroke-width="2" stroke-dasharray="6,5"/>
           <!-- Trajetória real do projétil: sobe acima da linha de visada, cruza perto do alvo -->
@@ -1368,27 +1392,27 @@ body.nvg-red-mode .leaflet-tile-container img {
               <path d="M0,0 L6,3 L0,6 Z" fill="#5b8fc9"/>
             </marker>
           </defs>
-          <text x="200" y="55" fill="#5b8fc9" font-size="12" font-weight="700">Altura máx. da trajetória</text>
-          <text x="200" y="68" fill="#5b8fc9" font-size="12" font-weight="700">(raio da zona vital)</text>
-          <text x="480" y="95" fill="#93927c" font-size="11" font-weight="700" text-anchor="middle">Raio da zona vital</text>
-          <line x1="75" y1="170" x2="480" y2="170" stroke="#c39a4f" stroke-width="1.5"/>
-          <text x="277" y="185" fill="#c39a4f" font-size="11" font-weight="700" text-anchor="middle">MRD — distância recomendada de zeragem</text>
-          <line x1="75" y1="198" x2="555" y2="198" stroke="var(--sem-hostile,#c1483d)" stroke-width="1.5"/>
-          <text x="315" y="212" fill="var(--sem-hostile,#c1483d)" font-size="11" font-weight="700" text-anchor="middle">MPBR — distância máx. de ponto-em-branco</text>
+          <text x="200" y="55" fill="#5b8fc9" font-size="16" font-weight="700">ALTURA MÁX.</text>
+          <text x="200" y="74" fill="#5b8fc9" font-size="16" font-weight="700">(RAIO VITAL)</text>
+          <text x="480" y="95" fill="#93927c" font-size="15" font-weight="700" text-anchor="middle">RAIO VITAL</text>
+          <line x1="75" y1="172" x2="480" y2="172" stroke="#c39a4f" stroke-width="1.5"/>
+          <text x="277" y="192" fill="#c39a4f" font-size="16" font-weight="700" text-anchor="middle">MRD (ZERAGEM)</text>
+          <line x1="75" y1="203" x2="555" y2="203" stroke="var(--sem-hostile,#c1483d)" stroke-width="1.5"/>
+          <text x="315" y="224" fill="var(--sem-hostile,#c1483d)" font-size="16" font-weight="700" text-anchor="middle">MPBR (PONTO-EM-BRANCO)</text>
         </svg>
 
         <div class="form-group">
-          <label>Altura Máxima da Trajetória (ou Raio da Zona Vital), cm</label>
+          <label>Altura Máx. / Raio Vital (cm)</label>
           <input type="number" id="mrdRadiusCm" value="4.0" step="0.5">
         </div>
 
         <button onclick="calculateMRD()" class="btn-calc" style="background: linear-gradient(135deg, var(--action) 0%, var(--action-dim) 100%);">Calcular</button>
 
         <table class="bal-calc-table">
-          <tr><td>Distância de Zeragem Recomendada, metros</td><td id="mrdZeroDist">-</td></tr>
-          <tr><td>MPBR, metros</td><td id="mrdMpbr">-</td></tr>
-          <tr><td>Altura da Trajetória a 100 metros, cm</td><td id="mrdHeight100">-</td></tr>
-          <tr><td>Near Zero, metros</td><td id="mrdNearZero">-</td></tr>
+          <tr><td>Zeragem Recomendada (m)</td><td id="mrdZeroDist">-</td></tr>
+          <tr><td>MPBR (m)</td><td id="mrdMpbr">-</td></tr>
+          <tr><td>Altura a 100 m (cm)</td><td id="mrdHeight100">-</td></tr>
+          <tr><td>Near Zero (m)</td><td id="mrdNearZero">-</td></tr>
         </table>
       </div>
     </div>
@@ -3903,6 +3927,29 @@ function applyDistPanelReticleZoomTransform() {
   // Sem rótulo "1.00x" (retirado a pedido) — só o canvas escala mesmo.
   const canvas = document.getElementById('mapReticleCanvas');
   if (canvas) canvas.style.transform = `scale(${distPanelReticleZoom})`;
+  positionDistPanelReticleZoomButtons();
+}
+
+// Os botões －/＋ ficam grudados nos lados do retículo (perto da borda
+// inferior do círculo, não no meio) — como só o CANVAS tem o
+// transform:scale (os botões são elementos irmãos, sem escala própria),
+// sem esse cálculo eles ficariam sempre no mesmo lugar enquanto o círculo
+// cresce por cima, cobrindo os dois. A matemática do transform:scale com
+// origem no centro horizontal do canvas é simples: um ponto que está a X px
+// do centro (em repouso) se afasta pra X*zoom px quando o canvas escala —
+// então dá pra usar essa mesma fórmula pros botões, e eles "acompanham" a
+// borda crescendo em vez de ficar pra trás/cobertos.
+function positionDistPanelReticleZoomButtons() {
+  const canvas = document.getElementById('mapReticleCanvas');
+  const minusBtn = document.getElementById('distPanelZoomMinusBtn');
+  const plusBtn = document.getElementById('distPanelZoomPlusBtn');
+  if (!canvas || !minusBtn || !plusBtn) return;
+  const halfWidth = canvas.offsetWidth / 2; // largura "em repouso" — offsetWidth não muda com transform:scale
+  if (!halfWidth) return; // canvas ainda não tem layout (painel escondido) — tenta de novo no próximo zoom/render
+  const restGap = 12; // afastamento do círculo, em repouso (1x)
+  const offset = (halfWidth + restGap) * distPanelReticleZoom;
+  minusBtn.style.left = `calc(50% - ${offset}px)`;
+  plusBtn.style.left = `calc(50% + ${offset}px)`;
 }
 
 function saveSharedTargetAsTacticalMarker(lat, lng, distanceMeters, attempt) {
@@ -4767,11 +4814,13 @@ function initMaps(lat, lng) {
           <div style="font-size: 9px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
           <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
           <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
-          <div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
             <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
-            <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
-            <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
-            <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+            <div id="mapReticleWrap" class="dist-panel-reticle-wrap">
+              <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
+              <button type="button" id="distPanelZoomMinusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
+              <button type="button" id="distPanelZoomPlusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+            </div>
             <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
           </div>
           <div id="targetGuidanceBox"></div>
@@ -5022,11 +5071,13 @@ function initMaps(lat, lng) {
                 </div>
                 <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
                 <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
-                <div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
                   <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
-                  <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
-                  <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
-                  <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+                  <div id="mapReticleWrap" class="dist-panel-reticle-wrap">
+                    <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
+                    <button type="button" id="distPanelZoomMinusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
+                    <button type="button" id="distPanelZoomPlusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+                  </div>
                   <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
                 </div>
                 <div id="targetGuidanceBox"></div>
