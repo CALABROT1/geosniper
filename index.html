@@ -185,6 +185,15 @@
        pastilha compacta, escondendo o miolo (rosa + calibração + CALIBRAR)
        e deixando só o botão pra reabrir. */
     .compass-dock-toggle { width: 24px; height: 20px; font-size: 12px; }
+    /* Fileira interna (setas + rosa, ou setas sozinhas) de um dock de
+       bússola — precisa ser uma CLASSE (não style inline no próprio
+       elemento) porque um "display" inline tem prioridade sobre QUALQUER
+       regra vinda de classe, inclusive a de baixo que esconde tudo ao
+       minimizar: se essa fileira tivesse "display:flex" direto no atributo
+       style, o "display:none" do collapsed nunca conseguiria escondê-la —
+       só a linha CALIBRAR (que não tinha display inline) sumia, dando a
+       impressão de que "minimizar só esconde a palavra". */
+    .compass-dock-row { display: flex; align-items: center; gap: 8px; }
     .compass-dock-group.compass-dock-collapsed .compass-dock-body { display: none; }
     .compass-dock-group.compass-dock-collapsed { padding-bottom: 6px !important; }
     .draw-toolbar {
@@ -2041,8 +2050,9 @@ body.nvg-red-mode .leaflet-tile-container img {
       // abaixo (top:46px), pra não ficar por baixo/atrás do seletor de mapa
       // que ocupa o canto superior direito por padrão.
       // Rosa dos ventos +50% (37px -> 83px) a pedido — mais fácil de ler de
-      // relance — com o rótulo CALIBRAR embaixo (aponta pro grupo ◀/▶ de
-      // calibração ao lado, que já existia).
+      // relance. Sem rótulo CALIBRAR embaixo dela (removido a pedido — a
+      // rosa só mostra o rumo, o CALIBRAR fica só junto do grupo ◀/▶ de
+      // calibração ao lado, que é quem de fato calibra).
       const rose = document.createElement('div');
       rose.id = `${rosePrefix}Rose`;
       rose.style.cssText = 'position:absolute; top:46px; right:4px; z-index:1200; width:83px; text-align:center; pointer-events:none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
@@ -2064,25 +2074,31 @@ body.nvg-red-mode .leaflet-tile-container img {
           <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
         </svg>
         <div id="${rosePrefix}Readout" style="font-size:11px; color:#eef7d8; font-weight:800; margin-top:1px; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">--°</div>
-        <div style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px; margin-top:1px; text-shadow:0 1px 3px #000;">CALIBRAR</div>
       `;
       container.appendChild(rose);
 
       // Calibração de bússola em passos de 45° — direto sobre o mapa, pra o
       // operador ajustar comparando o cone azul com a direção real pra onde
       // está virado, sem precisar sair da aba. ◀/▶ giram o offset, o valor
-      // atual fica sempre visível abaixo dos botões. Fundo sólido (dock) +
-      // disableClickPropagation evitam que um toque perto dos botões vaze
-      // pro mapa por baixo e crie um ponto de medição indesejado.
+      // atual fica sempre visível abaixo dos botões. Borda metálica (mesmo
+      // acabamento dos outros docks) + disableClickPropagation evitam que um
+      // toque perto dos botões vaze pro mapa por baixo e crie um ponto de
+      // medição indesejado. Ícone/leitura +50% e setas +30% a pedido, com
+      // CALIBRAR escrito embaixo (igual ao dock de bússola do Marker/
+      // Estratégia) e botão ▾ que agora minimiza o grupo inteiro (setas +
+      // leitura + CALIBRAR), não só a palavra.
       const calibGroup = document.createElement('div');
       calibGroup.id = `${rosePrefix}CalibGroup`;
-      calibGroup.style.cssText = 'position:absolute; top:46px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      calibGroup.className = 'metallic-dock-border compass-dock-group';
+      calibGroup.style.cssText = 'position:absolute; top:46px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       calibGroup.innerHTML = `
-        <div style="display:flex; gap:5px;">
-          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:30px; height:30px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">◀</button>
-          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:30px; height:30px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">▶</button>
+        <button type="button" class="dock-toggle-btn compass-dock-toggle" onclick="toggleCompassDockMinimize('${rosePrefix}CalibGroup')" aria-label="Minimizar bússola" title="Minimizar/expandir bússola">▾</button>
+        <div class="compass-dock-body compass-dock-row" style="gap:5px;">
+          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:39px; height:39px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:18px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">◀</button>
+          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:39px; height:39px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:18px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">▶</button>
         </div>
-        <div style="font-size:9px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">🧭 <span class="compass-calib-deg">0°</span></div>
+        <div class="compass-dock-body" style="font-size:14px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">🧭 <span class="compass-calib-deg">0°</span></div>
+        <div class="compass-dock-body" style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px; text-shadow:0 1px 3px #000;">CALIBRAR</div>
       `;
       container.appendChild(calibGroup);
 
@@ -2179,15 +2195,23 @@ body.nvg-red-mode .leaflet-tile-container img {
       // fica bem no topo-centro da tela, exatamente onde o menu de camadas
       // se expande, então ela precisa ficar POR BAIXO do menu quando ele
       // abre, não por cima.
-      // +50% (botões 26->39, rosa 30->45) a pedido, com CALIBRAR escrito
-      // embaixo — por isso o grupo virou coluna (linha de controles + rótulo
-      // abaixo) em vez de só a linha horizontal de antes.
+      // Rosa reduzida (45->34, "diminua a rosa dos ventos") e leitura/ícone
+      // de calibração +50% (13->20 / 11->17), pra o dock não ficar dominado
+      // pelo círculo e sobrar destaque pro número/CALIBRAR, que é o que o
+      // operador realmente lê de relance. Setas mantidas em 39px (já
+      // aumentadas numa rodada anterior). A linha de controles e a linha
+      // CALIBRAR usam a classe .compass-dock-row/.compass-dock-body (não
+      // mais "display:flex" direto no style) justamente pra o botão ▾
+      // conseguir esconder as DUAS ao minimizar — um style inline nelas
+      // ganhava sempre do "display:none" do collapsed, e só a palavra
+      // CALIBRAR (sem display inline) sumia, dando a falsa impressão de que
+      // o minimizar não funcionava no dock inteiro.
       group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
         <button type="button" class="dock-toggle-btn compass-dock-toggle" onclick="toggleCompassDockMinimize('${groupId}')" aria-label="Minimizar bússola" title="Minimizar/expandir bússola">▾</button>
-        <div class="compass-dock-body" style="display:flex; align-items:center; gap:8px;">
+        <div class="compass-dock-body compass-dock-row">
           <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
-          <svg width="45" height="45" viewBox="0 0 48 48" style="flex-shrink:0;">
+          <svg width="34" height="34" viewBox="0 0 48 48" style="flex-shrink:0;">
             <circle cx="24" cy="24" r="21" fill="rgba(6,10,6,0.9)" stroke="#b6e06a" stroke-width="1.8"/>
             <g stroke="#eef7d8" stroke-width="1.8" stroke-linecap="round">
               <line x1="24" y1="3" x2="24" y2="9"/>
@@ -2203,9 +2227,9 @@ body.nvg-red-mode .leaflet-tile-container img {
             <line id="${rosePrefix}Needle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
             <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
           </svg>
-          <div style="display:flex; flex-direction:column; align-items:center; line-height:1.15; min-width:44px;">
-            <div id="${rosePrefix}Readout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
-            <div style="font-size:11px; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; line-height:1.15; min-width:50px;">
+            <div id="${rosePrefix}Readout" style="font-size:20px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
+            <div style="font-size:17px; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
           </div>
           <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">▶</button>
         </div>
