@@ -147,6 +147,11 @@
     }
     .dist-panel-round-btn.btn-clear { background: var(--line); }
     .dist-panel-round-btn.btn-register { background: var(--action); }
+    /* Botões －/＋ de zoom do retículo — antes ficavam numa fileira própria
+       embaixo do canvas, com "1.00x" escrito no meio (retirado a pedido).
+       Agora ficam encostados nos dois lados do próprio retículo, na mesma
+       fileira do 🗑️/📌, sem a fileira/rótulo extra — o balão fica mais baixo. */
+    .dist-panel-reticle-zoom-btn { width: 30px; height: 30px; flex-shrink: 0; }
 
     /* ===== BUSCA DE LOCALIDADE (centralizar mapa por nome) ===== */
     .location-search-box {
@@ -764,10 +769,11 @@
        (offset diferente de 0°). */
     .btn-compass-invert-icon.inverted { background: var(--action) !important; border-color: var(--accent) !important; }
 
-    /* Botões de girar o mapa (⟲/⟳), só na aba Medir. */
+    /* Botões de girar o mapa (⟲/⟳), só na aba Medir. +30% a pedido
+       (32px -> 42px, fonte 17px -> 22px) — ainda pareciam pequenos. */
     .btn-medir-rotate {
-      width:32px; height:32px; border-radius:7px; background:rgba(15,23,42,0.9); border:1px solid var(--line);
-      color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+      width:42px; height:42px; border-radius:7px; background:rgba(15,23,42,0.9); border:1px solid var(--line);
+      color:#fff; font-size:22px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
     }
     .btn-medir-rotate:hover { background: var(--action-dim); }
 
@@ -1148,8 +1154,12 @@ body.nvg-red-mode .leaflet-tile-container img {
 
   <!-- 2 painéis FLUTUANTES independentes sobre o mapa (mapa agora ocupa a
        aba inteira) — cada um arrastável pelo cabeçalho, redimensionável
-       puxando qualquer borda/canto, e minimizável. Ver makeFloatingPanel(). -->
-  <div class="floating-panel" id="tacticalFloatingPecas" data-floating-panel style="left:10px; top:14px; width:250px; height:280px;">
+       puxando qualquer borda/canto, e minimizável. Ver makeFloatingPanel().
+       Posição inicial (só vale antes do operador arrastar pela 1ª vez —
+       depois disso a posição salva no aparelho manda, ver makeFloatingPanel)
+       mais pra baixo/central: colados em top:14 ficavam por cima da caixa
+       de busca e do dock de bússola do topo. -->
+  <div class="floating-panel" id="tacticalFloatingPecas" data-floating-panel style="left:14px; top:170px; width:250px; height:280px;">
     <div class="floating-panel-header" data-panel-drag-handle>
       <span>🎯 Peças</span>
       <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar peças">▾</button>
@@ -1168,7 +1178,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="floating-panel-resize-handle corner-sw" data-resize="sw"></div>
   </div>
 
-  <div class="floating-panel" id="tacticalFloatingDesenho" data-floating-panel style="right:10px; top:14px; width:230px; height:280px;">
+  <div class="floating-panel" id="tacticalFloatingDesenho" data-floating-panel style="right:14px; top:170px; width:230px; height:280px;">
     <div class="floating-panel-header" data-panel-drag-handle>
       <span>✏️ Desenho</span>
       <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar desenho">▾</button>
@@ -2086,11 +2096,14 @@ body.nvg-red-mode .leaflet-tile-container img {
       // medição indesejado. Ícone/leitura +50% e setas +30% a pedido, com
       // CALIBRAR escrito embaixo (igual ao dock de bússola do Marker/
       // Estratégia) e botão ▾ que agora minimiza o grupo inteiro (setas +
-      // leitura + CALIBRAR), não só a palavra.
+      // leitura + CALIBRAR), não só a palavra. Centralizado embaixo da caixa
+      // de busca de localidade (não mais grudado no canto esquerdo) — a
+      // caixa de busca termina por volta de 44-46px, então top:58px garante
+      // uma folga visível entre os dois.
       const calibGroup = document.createElement('div');
       calibGroup.id = `${rosePrefix}CalibGroup`;
       calibGroup.className = 'metallic-dock-border compass-dock-group';
-      calibGroup.style.cssText = 'position:absolute; top:46px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      calibGroup.style.cssText = 'position:absolute; top:58px; left:50%; transform:translateX(-50%); z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       calibGroup.innerHTML = `
         <button type="button" class="dock-toggle-btn compass-dock-toggle" onclick="toggleCompassDockMinimize('${rosePrefix}CalibGroup')" aria-label="Minimizar bússola" title="Minimizar/expandir bússola">▾</button>
         <div class="compass-dock-body compass-dock-row" style="gap:5px;">
@@ -2129,15 +2142,13 @@ body.nvg-red-mode .leaflet-tile-container img {
       const container = mapMedir.getContainer();
       if (!container) return;
 
-      // Fica no MESMO lado (esquerdo) do grupo de calibração da bússola
-      // (◀ ▶ + graus), logo abaixo dele — não do lado da rosa-dos-ventos
-      // (direita), que é outro widget. O cálculo dinâmico por altura real
-      // (offsetHeight) tentado antes não é confiável logo após o elemento
-      // ser inserido no DOM, então aqui usamos um valor fixo já com folga
-      // (grupo de calibração: top 46px + ~60px de altura própria).
+      // Antes ficava embaixo do grupo de calibração da bússola (◀ ▶), que
+      // também morava no canto esquerdo — agora que a bússola foi pro centro
+      // (embaixo da busca), esse dock de giro "subiu" pro canto esquerdo
+      // que sobrou, no mesmo top:58px (mesma folga da busca) usado por ela.
       const group = document.createElement('div');
       group.id = 'medirRotateGroup';
-      group.style.cssText = 'position:absolute; top:122px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      group.style.cssText = 'position:absolute; top:58px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
         <div style="display:flex; gap:5px;">
           <button type="button" class="btn-medir-rotate" onclick="rotateMedirMap(-${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa -22.5°">⟲</button>
@@ -2206,7 +2217,9 @@ body.nvg-red-mode .leaflet-tile-container img {
       // ganhava sempre do "display:none" do collapsed, e só a palavra
       // CALIBRAR (sem display inline) sumia, dando a falsa impressão de que
       // o minimizar não funcionava no dock inteiro.
-      group.style.cssText = 'position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      // top:44 -> 60px: estava colado na caixa de busca de localidade
+      // (que termina por volta de 44-46px) — agora sobra uma folga visível.
+      group.style.cssText = 'position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
         <button type="button" class="dock-toggle-btn compass-dock-toggle" onclick="toggleCompassDockMinimize('${groupId}')" aria-label="Minimizar bússola" title="Minimizar/expandir bússola">▾</button>
         <div class="compass-dock-body compass-dock-row">
@@ -3887,10 +3900,9 @@ function adjustDistPanelReticleZoom(delta) {
   applyDistPanelReticleZoomTransform();
 }
 function applyDistPanelReticleZoomTransform() {
+  // Sem rótulo "1.00x" (retirado a pedido) — só o canvas escala mesmo.
   const canvas = document.getElementById('mapReticleCanvas');
   if (canvas) canvas.style.transform = `scale(${distPanelReticleZoom})`;
-  const label = document.getElementById('distPanelReticleZoomLabel');
-  if (label) label.textContent = `${distPanelReticleZoom.toFixed(2)}x`;
 }
 
 function saveSharedTargetAsTacticalMarker(lat, lng, distanceMeters, attempt) {
@@ -4039,11 +4051,20 @@ function makeFloatingPanel(panel) {
   const container = panel.parentElement; // #tabEstrategia — limite de arrasto/resize
   const storageKey = 'geosniper_panel_' + panel.id;
 
+  // Antes travava o painel 100% dentro da tela — a pedido, agora ele pode
+  // ser arrastado até quase sair por qualquer lado (só uma faixa de
+  // PANEL_EDGE_MARGIN sempre fica visível, o suficiente pra continuar
+  // segurando o cabeçalho e puxar de volta). Só vale pra ARRASTAR — o
+  // redimensionar (mais abaixo) continua limitado à tela, pra não perder
+  // as alças de redimensionar de vista.
+  const PANEL_EDGE_MARGIN = 40;
   function applyBounds(rect) {
-    const maxLeft = Math.max(0, container.clientWidth - rect.width);
-    const maxTop = Math.max(0, container.clientHeight - rect.height);
-    rect.left = Math.min(Math.max(0, rect.left), maxLeft);
-    rect.top = Math.min(Math.max(0, rect.top), maxTop);
+    const minLeft = -(rect.width - PANEL_EDGE_MARGIN);
+    const maxLeft = container.clientWidth - PANEL_EDGE_MARGIN;
+    const minTop = -(rect.height - PANEL_EDGE_MARGIN);
+    const maxTop = container.clientHeight - PANEL_EDGE_MARGIN;
+    rect.left = Math.min(Math.max(minLeft, rect.left), maxLeft);
+    rect.top = Math.min(Math.max(minTop, rect.top), maxTop);
     return rect;
   }
 
@@ -4742,19 +4763,16 @@ function initMaps(lat, lng) {
       if (panelEl) {
         panelEl.innerHTML = `
           <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
-          <div style="font-size: 13px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
-          <div style="font-size: 12px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
+          <div style="font-size: 9.75px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
+          <div style="font-size: 9px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
           <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
           <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
-          <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+          <div style="display:flex; align-items:center; justify-content:center; gap:5px;">
             <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
+            <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
             <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
+            <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
             <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
-          </div>
-          <div class="reticle-zoom-row" style="display:inline-flex; margin:6px 0 0;">
-            <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)">－</button>
-            <span id="distPanelReticleZoomLabel" class="reticle-zoom-label">1.00x</span>
-            <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)">＋</button>
           </div>
           <div id="targetGuidanceBox"></div>
           <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
@@ -4996,23 +5014,20 @@ function initMaps(lat, lng) {
 
               document.getElementById('distPanel').innerHTML = `
                 <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
-                <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">
+                <div style="font-size: 8.25px; color: var(--accent); margin-bottom: 2px;">
                   Dist. Até Alvo Recebido: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b>
                 </div>
-                <div style="font-size: 12px; color: var(--ink); margin-bottom: 4px;">
+                <div style="font-size: 9px; color: var(--ink); margin-bottom: 4px;">
                   <b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
                 </div>
                 <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
                 <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
-                <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:5px;">
                   <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
+                  <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
                   <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
+                  <button type="button" class="reticle-zoom-btn dist-panel-reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
                   <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
-                </div>
-                <div class="reticle-zoom-row" style="display:inline-flex; margin:6px 0 0;">
-                  <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(-0.25)">－</button>
-                  <span id="distPanelReticleZoomLabel" class="reticle-zoom-label">1.00x</span>
-                  <button type="button" class="reticle-zoom-btn" onclick="adjustDistPanelReticleZoom(0.25)">＋</button>
                 </div>
                 <div id="targetGuidanceBox"></div>
                 <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
