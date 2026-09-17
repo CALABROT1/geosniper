@@ -146,11 +146,11 @@
        centro se afasta X*(zoom-1) px), então o botão sempre acompanha a
        borda do círculo crescendo e nunca fica coberto por ela. */
     .dist-panel-reticle-zoom-btn {
-      position: absolute; top: 82%; transform: translate(-50%, -50%);
-      width: 30px; height: 30px; border-radius: 50%; font-size: 15px;
+      position: absolute; top: 88%; transform: translate(-50%, -50%);
+      width: 32px; height: 32px; border-radius: 50%; font-size: 21px;
       font-weight: 800; border: none; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
-      transition: left 0.2s ease;
+      transition: left 0.2s ease, top 0.2s ease;
     }
     /* Botão metálico — mesmo acabamento prata/grafite dos docks, mas
        preenchendo o botão inteiro (não só a borda), já que aqui o botão é
@@ -167,6 +167,21 @@
     }
     .dist-panel-round-btn.btn-clear { background: var(--line); }
     .dist-panel-round-btn.btn-register { background: var(--action); }
+
+    /* Botões de "girar torre" do balão compacto (zeragem simulada) — mesmo
+       princípio em "em" dos botões redondos ao lado do retículo, mas no tom
+       dourado do marcador simulado (🟡), pra deixar visualmente ligados. */
+    .dist-panel-turret-btn {
+      color: #12141a; border: none; border-radius: 50%; width: 2.47em; height: 2.47em;
+      font-size: 1.1em; font-weight: 800; cursor: pointer; flex-shrink: 0;
+      background: linear-gradient(150deg, #f3d878 0%, #e6b428 55%, #b8871a 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dist-panel-turret-btn:active { filter: brightness(0.85); }
+    .dist-panel-turret-btn-onreticle {
+      position: absolute; transform: translate(-50%, -50%);
+      transition: left 0.2s ease, top 0.2s ease;
+    }
 
     /* ===== BUSCA DE LOCALIDADE (centralizar mapa por nome) ===== */
     .location-search-box {
@@ -1264,6 +1279,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <input id="locSearchMedir" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
     <div id="locSearchMedirList" class="location-search-list"></div>
   </div>
+  <button type="button" onclick="openTacticalCameraFromEquip()" title="Mire no ponto marcado no mapa e capture o ângulo de sítio e o azimute com foto de comprovação (retículo GEOSNIPER AÇÃO)." class="metallic-dock-border" style="position:absolute; top:56px; right:10px; z-index:950; color:#fff; font-weight:700; padding:8px 12px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📷 Visada</button>
   <div id="distPanel" class="dist-info-panel metallic-dock-border">Clique em qualquer ponto no mapa para medir</div>
   <div id="distPanelRestoreBtn" onclick="restoreDistPanel()" title="Mostrar o balão de informação do ponto" class="metallic-dock-border" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:1000; color:#fff; font-weight:700; padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📍 Ver Ponto Marcado ▲</div>
 </div>
@@ -1468,6 +1484,9 @@ body.nvg-red-mode .leaflet-tile-container img {
         <span>📐 TELEMETRIA & POSIÇÃO DE DISPARO</span>
         <button type="button" class="btn-sensor" onclick="readDeviceSensors(this)">
           📱 Ler Sensores do Celular
+        </button>
+        <button type="button" class="btn-sensor" onclick="openTacticalCameraFromEquip()" title="Abre a câmera com o retículo de aquisição — mire no alvo marcado na Aba Medir e capture o ângulo de sítio e o azimute com foto de comprovação.">
+          📷 Capturar Visada
         </button>
         <div class="compass-calib-group" title="Calibração da bússola — compare o cone azul (ou a seta de guiagem) com a direção real pra onde você está virado e ajuste em passos de 45° até bater.">
           <button type="button" class="btn-compass-calib-step" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°">◀</button>
@@ -1685,6 +1704,9 @@ body.nvg-red-mode .leaflet-tile-container img {
         <button type="button" class="btn-sensor" onclick="readDeviceSensors(this)">
           📱 Ler Sensores do Celular
         </button>
+        <button type="button" class="btn-sensor" onclick="openTacticalCameraFromEquip()" title="Abre a câmera com o retículo de aquisição — mire no alvo marcado na Aba Medir e capture o ângulo de sítio e o azimute com foto de comprovação.">
+          📷 Capturar Visada
+        </button>
         <div class="compass-calib-group" title="Calibração da bússola — compare o cone azul (ou a seta de guiagem) com a direção real pra onde você está virado e ajuste em passos de 45° até bater.">
           <button type="button" class="btn-compass-calib-step" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°">◀</button>
           <span class="compass-calib-value">🧭 <span class="compass-calib-deg">0°</span></span>
@@ -1713,13 +1735,28 @@ body.nvg-red-mode .leaflet-tile-container img {
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
   <video id="cameraVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
   
+  <!-- Retículo de aquisição (canto de enquadramento + círculo + cruz), mantido
+       exatamente centrado na tela (é ele que o operador usa pra alinhar o
+       celular no alvo) — a etiqueta "GEOSNIPER AÇÃO" fica num elemento
+       separado, ao lado, pra não deslocar o centro de mira. -->
   <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); pointer-events:none;">
     <svg width="220" height="220" viewBox="0 0 200 200">
-      <circle cx="100" cy="100" r="45" stroke="var(--accent)" stroke-width="2" fill="none" opacity="0.8"/>
-      <line x1="100" y1="10" x2="100" y2="190" stroke="var(--sem-hostile)" stroke-width="2" />
-      <line x1="10" y1="100" x2="190" y2="100" stroke="var(--sem-hostile)" stroke-width="2" />
-      <circle cx="100" cy="100" r="3" fill="var(--sem-hostile)"/>
+      <path d="M18 42 V18 H42" stroke="#ff2222" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M158 18 H182 V42" stroke="#ff2222" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M182 158 V182 H158" stroke="#ff2222" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M42 182 H18 V158" stroke="#ff2222" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <circle cx="100" cy="100" r="45" stroke="#ffd400" stroke-width="3" fill="none"/>
+      <line x1="100" y1="20" x2="100" y2="80" stroke="#ff2222" stroke-width="3" />
+      <line x1="100" y1="120" x2="100" y2="180" stroke="#ff2222" stroke-width="3" />
+      <line x1="20" y1="100" x2="80" y2="100" stroke="#ff2222" stroke-width="3" />
+      <line x1="120" y1="100" x2="180" y2="100" stroke="#ff2222" stroke-width="3" />
+      <line x1="100" y1="92" x2="100" y2="108" stroke="#ffd400" stroke-width="2" />
+      <line x1="92" y1="100" x2="108" y2="100" stroke="#ffd400" stroke-width="2" />
     </svg>
+  </div>
+
+  <div style="position:absolute; top:50%; left:min(calc(50% + 92px), calc(100vw - 84px)); transform:translate(0, -50%); pointer-events:none; background:rgba(15,23,42,0.82); border:1px solid #ff2222; border-radius:5px; padding:4px 6px; text-align:center; line-height:1.2; max-width:64px;">
+    <span style="color:#ffd400; font-weight:800; font-size:10px; letter-spacing:0.2px;">GEOSNIPER<br>AÇÃO</span>
   </div>
 
   <div id="cameraHUD" style="position:absolute; top:20px; background:rgba(15,23,42,0.9); color:var(--accent); padding:10px 18px; border-radius:10px; font-weight:800; font-size:13px; border:1px solid var(--line); text-align:center;">
@@ -3928,6 +3965,11 @@ function applyDistPanelReticleZoomTransform() {
   const canvas = document.getElementById('mapReticleCanvas');
   if (canvas) canvas.style.transform = `scale(${distPanelReticleZoom})`;
   positionDistPanelReticleZoomButtons();
+  // O texto de cliques/MOA (abaixo do retículo) cresce/diminui junto com o
+  // zoom do retículo — mesma ideia visual do canvas, só que aqui é o texto
+  // inteiro (não o botão) que escala.
+  const textWrap = document.getElementById('miniTurretDialTextWrap');
+  if (textWrap) textWrap.style.transform = `scale(${distPanelReticleZoom})`;
 }
 
 // Os botões －/＋ ficam grudados nos lados do retículo (perto da borda
@@ -3946,10 +3988,37 @@ function positionDistPanelReticleZoomButtons() {
   if (!canvas || !minusBtn || !plusBtn) return;
   const halfWidth = canvas.offsetWidth / 2; // largura "em repouso" — offsetWidth não muda com transform:scale
   if (!halfWidth) return; // canvas ainda não tem layout (painel escondido) — tenta de novo no próximo zoom/render
-  const restGap = 12; // afastamento do círculo, em repouso (1x)
-  const offset = (halfWidth + restGap) * distPanelReticleZoom;
+  // Botões mais próximos um do outro e mais pro centro (antes ficavam bem
+  // afastados, quase colados na lateral externa do círculo): usa uma fração
+  // do raio em vez do raio inteiro, então eles ficam bem mais próximos do
+  // meio — mas a multiplicação por distPanelReticleZoom continua igual, então
+  // eles ainda se afastam/aproximam junto com o retículo ao usar－/＋.
+  const radiusFraction = 0.68;
+  const restGap = 6; // afastamento do círculo, em repouso (1x)
+  const offset = (halfWidth * radiusFraction + restGap) * distPanelReticleZoom;
   minusBtn.style.left = `calc(50% - ${offset}px)`;
   plusBtn.style.left = `calc(50% + ${offset}px)`;
+
+  // Botões ▼/▲ da torre simulada, atracados nos "ombros" superiores do
+  // círculo. Diferente do －/＋ (perto da base, onde o transform:scale tem
+  // origem — 50% 100% —, então o deslocamento vertical é pequeno o
+  // suficiente pra ignorar), aqui o ponto de repouso está bem mais longe da
+  // âncora: então tanto o eixo X quanto o Y precisam ser recalculados junto
+  // com o zoom, senão os botões "descolam" do círculo em zooms maiores.
+  const downBtn = document.getElementById('distPanelTurretDownBtn');
+  const upBtn = document.getElementById('distPanelTurretUpBtn');
+  if (downBtn && upBtn) {
+    const canvasSize = canvas.offsetWidth || canvas.offsetHeight || 190;
+    const anchorX = canvasSize / 2, anchorY = canvasSize; // âncora do transform-origin (50% 100%)
+    const baseDX = canvasSize * 0.342;   // ~65px numa base de 190px — afastamento horizontal do centro, em repouso
+    const baseDY = canvasSize * 0.763;   // ~145px numa base de 190px — distância vertical da âncora até o "ombro" do círculo, em repouso
+    const dx = baseDX * distPanelReticleZoom;
+    const dy = baseDY * distPanelReticleZoom;
+    downBtn.style.left = `${anchorX - dx}px`;
+    downBtn.style.top = `${anchorY - dy}px`;
+    upBtn.style.left = `${anchorX + dx}px`;
+    upBtn.style.top = `${anchorY - dy}px`;
+  }
 }
 
 function saveSharedTargetAsTacticalMarker(lat, lng, distanceMeters, attempt) {
@@ -4810,25 +4879,45 @@ function initMaps(lat, lng) {
       if (panelEl) {
         panelEl.innerHTML = `
           <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
-          <div style="font-size: 9.75px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
-          <div style="font-size: 9px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
-          <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
-          <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
-          <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+          <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
+          <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
+          <div id="mapReticleTelemetry" class="mono" style="font-size:12.5px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px;">
             <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
             <div id="mapReticleWrap" class="dist-panel-reticle-wrap">
               <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
               <button type="button" id="distPanelZoomMinusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
               <button type="button" id="distPanelZoomPlusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+              <!-- Torre de elevação simulada — ▼/▲ atracados nos "ombros" superiores
+                   do retículo (mesma variável global da torre da aba Balística;
+                   zerar/girar aqui também atualiza o retículo grande e vice-versa).
+                   Útil pra distâncias acima de ~700m, onde só o zoom recomendado já
+                   não é suficiente e o operador precisa simular uma nova zeragem "na
+                   mão" pra essa distância específica. -->
+              <button type="button" id="distPanelTurretDownBtn" onclick="dialTurret(-1)" class="dist-panel-turret-btn dist-panel-turret-btn-onreticle" title="Descer 1 clique (zeragem simulada)">▼</button>
+              <button type="button" id="distPanelTurretUpBtn" onclick="dialTurret(1)" class="dist-panel-turret-btn dist-panel-turret-btn-onreticle" title="Subir 1 clique (zeragem simulada)">▲</button>
             </div>
             <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
           </div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+            <div id="miniTurretDialTextWrap" style="text-align:center; min-width:9.5em; line-height:1.15; transition:transform 0.2s ease;">
+              <div id="miniTurretDialReadout" class="mono" style="font-weight:800; color:#e6b428; font-size:0.85em;">0 cliques (0.00 MOA)</div>
+              <div style="font-size:0.5em; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px;">🟡 Zeragem Simulada</div>
+            </div>
+            <button type="button" onclick="resetTurretDial()" title="Zerar torre" class="dist-panel-turret-btn" style="background:var(--surface); color:var(--muted); border:1px solid var(--line); width:2.05em; height:2.05em; font-size:0.67em;">↺</button>
+          </div>
           <div id="targetGuidanceBox"></div>
-          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
+          <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 16px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">📲 Compartilhar Alvo no WhatsApp</button>
         `;
         restoreDistPanel();
       }
 
+      // Ponto novo medido = distância nova: reinicia a torre de cliques
+      // simulada (mesma lógica de "nova zeragem" já usada na aba Balística a
+      // cada novo cálculo), pra não deixar um ajuste dialado pra uma
+      // distância anterior enganando o operador num alvo diferente.
+      reticleDialedClicks = 0;
+      updateTurretDialReadout();
       renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom || 16);
       resetDistPanelReticleZoom();
       injectEnvTelemetry(targetLat, targetLng);
@@ -5063,31 +5152,49 @@ function initMaps(lat, lng) {
 
               document.getElementById('distPanel').innerHTML = `
                 <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
-                <div style="font-size: 8.25px; color: var(--accent); margin-bottom: 2px;">
+                <div style="font-size: 9.5px; color: var(--accent); margin-bottom: 2px;">
                   Dist. Até Alvo Recebido: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b>
                 </div>
-                <div style="font-size: 9px; color: var(--ink); margin-bottom: 4px;">
+                <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;">
                   <b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
                 </div>
-                <div id="envTelemetryBox" style="display:flex; justify-content:center; gap:7px; flex-wrap:wrap; font-size:9px; color:var(--muted); margin:2px 0 6px;">⏳ Telemetria...</div>
-                <div id="mapReticleTelemetry" class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
-                <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <div id="mapReticleTelemetry" class="mono" style="font-size:12.5px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px;">
                   <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
                   <div id="mapReticleWrap" class="dist-panel-reticle-wrap">
                     <canvas id="mapReticleCanvas" class="dist-panel-reticle-canvas" width="190" height="190" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); max-width:60vw;"></canvas>
                     <button type="button" id="distPanelZoomMinusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(-0.25)" title="Reduzir retículo">－</button>
                     <button type="button" id="distPanelZoomPlusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustDistPanelReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+                    <!-- Torre de elevação simulada — ▼/▲ atracados nos "ombros" superiores
+                         do retículo (mesma variável global da torre da aba Balística;
+                         zerar/girar aqui também atualiza o retículo grande e vice-versa).
+                         Útil pra distâncias acima de ~700m, onde só o zoom recomendado já
+                         não é suficiente e o operador precisa simular uma nova zeragem "na
+                         mão" pra essa distância específica. -->
+                    <button type="button" id="distPanelTurretDownBtn" onclick="dialTurret(-1)" class="dist-panel-turret-btn dist-panel-turret-btn-onreticle" title="Descer 1 clique (zeragem simulada)">▼</button>
+                    <button type="button" id="distPanelTurretUpBtn" onclick="dialTurret(1)" class="dist-panel-turret-btn dist-panel-turret-btn-onreticle" title="Subir 1 clique (zeragem simulada)">▲</button>
                   </div>
                   <button onclick="openTacticalPinModal('target', ${targetLat}, ${targetLng})" title="Registrar ponto na aba Relevo" class="dist-panel-round-btn btn-register">📌</button>
                 </div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+                  <div id="miniTurretDialTextWrap" style="text-align:center; min-width:9.5em; line-height:1.15; transition:transform 0.2s ease;">
+                    <div id="miniTurretDialReadout" class="mono" style="font-weight:800; color:#e6b428; font-size:0.85em;">0 cliques (0.00 MOA)</div>
+                    <div style="font-size:0.5em; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px;">🟡 Zeragem Simulada</div>
+                  </div>
+                  <button type="button" onclick="resetTurretDial()" title="Zerar torre" class="dist-panel-turret-btn" style="background:var(--surface); color:var(--muted); border:1px solid var(--line); width:2.05em; height:2.05em; font-size:0.67em;">↺</button>
+                </div>
                 <div id="targetGuidanceBox"></div>
-                <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 8px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <button onclick="sharePointWhatsApp(${targetLat}, ${targetLng})" style="width: 100%; margin-top: 16px; background: #25D366; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                   📲 Compartilhar Alvo no WhatsApp
                 </button>
               `;
               restoreDistPanel();
 
               startTargetGuidance(targetLat, targetLng);
+              // Alvo recebido novo = distância nova: reinicia a torre de cliques
+              // simulada (mesma lógica de "nova zeragem" já usada na aba Balística).
+              reticleDialedClicks = 0;
+              updateTurretDialReadout();
               renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
               resetDistPanelReticleZoom();
               injectEnvTelemetry(targetLat, targetLng);
@@ -5589,6 +5696,7 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
 // ajuste — como se fosse uma zeragem manual nova, na hora.
 let reticleDialedClicks = 0;
 let lastReticleRenderArgs = null;
+let lastMiniReticleRenderArgs = null;
 let lastBallisticData = null;
 let lastBallisticDistance = null;
 
@@ -5628,19 +5736,30 @@ function resetTurretDial() {
   redrawReticleWithDial();
 }
 
+// Atualiza os mostradores de cliques/MOA da torre simulada — o da aba
+// Balística ("turretDialReadout") E o do balão compacto da aba Medir
+// ("miniTurretDialReadout"). Os dois refletem o MESMO ajuste
+// (reticleDialedClicks é uma única variável global): só mudam de lugar onde
+// aparecem, então girar a torre em qualquer um dos dois atualiza o outro também.
 function updateTurretDialReadout() {
-  const el = document.getElementById('turretDialReadout');
-  if (!el) return;
   const turretVal = document.getElementById('balTurret')?.value || '1/4_MOA';
   const unit = TURRET_CLICK_ANGLE_UNIT[turretVal] || TURRET_CLICK_ANGLE_UNIT['1/4_MOA'];
   const total = (reticleDialedClicks * unit.val).toFixed(2);
   const sign = reticleDialedClicks > 0 ? '+' : '';
-  el.textContent = `${sign}${reticleDialedClicks} cliques (${sign}${total} ${unit.unit})`;
+  const text = `${sign}${reticleDialedClicks} cliques (${sign}${total} ${unit.unit})`;
+  const el = document.getElementById('turretDialReadout');
+  if (el) el.textContent = text;
+  const miniEl = document.getElementById('miniTurretDialReadout');
+  if (miniEl) miniEl.textContent = text;
 }
 
+// Redesenha TODOS os retículos que estiverem na tela agora — o grande da aba
+// Balística (lastReticleRenderArgs) e/ou o compacto do balão da aba Medir
+// (lastMiniReticleRenderArgs) — cada um só redesenha se já tiver sido
+// renderizado alguma vez; os dois usam a mesma torre simulada.
 function redrawReticleWithDial() {
-  if (!lastReticleRenderArgs) return;
-  renderReticle(...lastReticleRenderArgs);
+  if (lastReticleRenderArgs) renderReticle(...lastReticleRenderArgs);
+  if (lastMiniReticleRenderArgs) renderMiniReticle(...lastMiniReticleRenderArgs);
 }
 
 // Ângulo (radianos) que a torre está adicionando/removendo em cima da zeragem
@@ -6240,6 +6359,13 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
   const canvas = document.getElementById('mapReticleCanvas');
   if (!canvas) return;
 
+  // Guarda os últimos parâmetros usados pra poder redesenhar este mesmo
+  // retículo (ex: quando o operador gira a torre simulada) sem precisar
+  // recalcular a solução balística de novo — igual o lastReticleRenderArgs
+  // do retículo grande da aba Balística.
+  lastMiniReticleRenderArgs = [mradElev, mradWind, distanceMeters, zoomLevel];
+  if (typeof updateTurretDialReadout === 'function') updateTurretDialReadout();
+
   const width = 190, height = 190; // espaço CSS — o buffer real é maior (ver setupCrispCanvas)
   const ctx = setupCrispCanvas(canvas, width, height);
   const cx = width / 2;
@@ -6252,7 +6378,7 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
   const telemetryEl = document.getElementById('mapReticleTelemetry');
   if (telemetryEl) {
     const inclinationDeg = parseFloat(document.getElementById('eqInclination')?.value) || 0;
-    telemetryEl.textContent = `DIST ${Math.round(distanceMeters)}m  ·  ÂNGULO ${inclinationDeg > 0 ? '+' : ''}${inclinationDeg}°`;
+    telemetryEl.textContent = `DIST ${Math.round(distanceMeters)}m  ·  ÂNGULO ${inclinationDeg > 0 ? '+' : ''}${inclinationDeg}°  ·  ZOOM ${zoomLevel}x`;
   }
 
   ctx.clearRect(0, 0, width, height);
@@ -6315,6 +6441,48 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
   ctx.arc(targetX, targetY, 1.5, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
+
+  // PONTO SIMULADO (AMARELO) — mesma lógica da torre simulada da aba
+  // Balística (renderReticle), em escala compacta: o vermelho acima é a
+  // mira/hold real da zeragem base (nunca muda com o dial); o amarelo mostra
+  // pra onde esse ponto de mira "sobe" ou "desce" se o operador girar a
+  // torre simulada — só aparece quando ela está dialada (reticleDialedClicks != 0).
+  // É essencial pra distâncias acima de ~700m, onde o zoom recomendado por si
+  // só já não é suficiente e o operador precisa simular uma nova zeragem "na
+  // mão" pra aquela distância específica.
+  if (typeof reticleDialedClicks !== 'undefined' && reticleDialedClicks !== 0
+      && typeof currentDialedAngleRad === 'function' && typeof trajectoryHeightCmDialed === 'function') {
+    const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
+    const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
+    const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
+    const dialedAngleRad = currentDialedAngleRad();
+    const dialedDropCm = trajectoryHeightCmDialed(distanceMeters, dialedAngleRad, fps, bcVal, scopeH_m);
+    const dialedMrad = distanceMeters <= 100 ? 0 : dialedDropCm / (distanceMeters * 0.1);
+    const dialedY = cy + (dialedMrad * pxPerMrad);
+    const dialedX = targetX;
+
+    ctx.setLineDash([2, 2]);
+    ctx.strokeStyle = "rgba(230,180,40,0.7)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(targetX, targetY);
+    ctx.lineTo(dialedX, dialedY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.arc(dialedX, dialedY, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = "#e6b428";
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#8a6415";
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(dialedX, dialedY, 1.3, 0, Math.PI * 2);
+    ctx.fillStyle = "#12141a";
+    ctx.fill();
+  }
 
   // Distâncias reais por MIL, no lado direito da cruzeta — mesma lógica do
   // retículo grande da aba Balística, em escala compacta.
@@ -7044,19 +7212,66 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      
-      ctx.strokeStyle = '#c1483d';
-      ctx.lineWidth = 3;
+
+      // Grava na foto o MESMO retículo mostrado em tempo real na tela (cantos
+      // de enquadramento + círculo + cruz vermelho/amarelo, com a etiqueta
+      // "GEOSNIPER AÇÃO" ao lado) — "s" escala o desenho (pensado pra uma
+      // grade de 200x200) pra resolução real da foto capturada.
+      const s = Math.min(canvas.width, canvas.height) / 200;
+
+      ctx.strokeStyle = '#ff2222';
+      ctx.lineWidth = 4 * s;
+      ctx.lineCap = 'round';
+      [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy]) => {
+        ctx.beginPath();
+        ctx.moveTo(cx + sx * 58 * s, cy + sy * 82 * s);
+        ctx.lineTo(cx + sx * 82 * s, cy + sy * 82 * s);
+        ctx.lineTo(cx + sx * 82 * s, cy + sy * 58 * s);
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = '#ffd400';
+      ctx.lineWidth = 3 * s;
       ctx.beginPath();
-      ctx.moveTo(cx - 80, cy); ctx.lineTo(cx + 80, cy);
-      ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy + 80);
+      ctx.arc(cx, cy, 45 * s, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.strokeStyle = '#c39a4f';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ff2222';
+      ctx.lineWidth = 3 * s;
       ctx.beginPath();
-      ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+      ctx.moveTo(cx, cy - 80 * s); ctx.lineTo(cx, cy - 20 * s);
+      ctx.moveTo(cx, cy + 20 * s); ctx.lineTo(cx, cy + 80 * s);
+      ctx.moveTo(cx - 80 * s, cy); ctx.lineTo(cx - 20 * s, cy);
+      ctx.moveTo(cx + 20 * s, cy); ctx.lineTo(cx + 80 * s, cy);
       ctx.stroke();
+
+      ctx.strokeStyle = '#ffd400';
+      ctx.lineWidth = 2 * s;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 8 * s); ctx.lineTo(cx, cy + 8 * s);
+      ctx.moveTo(cx - 8 * s, cy); ctx.lineTo(cx + 8 * s, cy);
+      ctx.stroke();
+
+      // A maioria dos aparelhos entrega o frame da câmera em paisagem mesmo
+      // com o app em retrato, mas nem todos — por segurança, se o vídeo
+      // capturado vier em retrato (altura > largura), a etiqueta desce pra
+      // debaixo do retículo em vez de ir pro lado, pra nunca ficar cortada
+      // fora do canvas da foto.
+      const lw = 92 * s, lh = 40 * s;
+      const portraitPhoto = canvas.height > canvas.width;
+      const labelX = portraitPhoto ? cx : Math.min(cx + 118 * s, canvas.width - lw / 2 - 10);
+      const labelY = portraitPhoto ? Math.min(cy + 118 * s, canvas.height - 60 - lh / 2 - 6) : cy;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+      ctx.strokeStyle = '#ff2222';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(labelX - lw / 2, labelY - lh / 2, lw, lh);
+      ctx.strokeRect(labelX - lw / 2, labelY - lh / 2, lw, lh);
+      ctx.fillStyle = '#ffd400';
+      ctx.font = `bold ${Math.round(13 * s)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('GEOSNIPER', labelX, labelY - 2 * s);
+      ctx.fillText('AÇÃO', labelX, labelY + 15 * s);
+      ctx.textAlign = 'left';
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.fillRect(10, canvas.height - 60, canvas.width - 20, 50);
