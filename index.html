@@ -847,6 +847,10 @@
     .bal-final-row td:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
     #tabEquipamento { overflow-y: auto; max-height: calc(100vh - 70px); -webkit-overflow-scrolling: touch; padding-bottom: 30px; }
+    /* Cena de Disparo (Simulação/Perfis): cards empilhados passam facilmente da
+       altura da viewport — sem isso, .tab-content (overflow:hidden por padrão)
+       corta tudo que não cabe na tela, sem barra de rolagem nenhuma. */
+    #tabCenaSimulacao, #tabCenaPerfis { overflow-y: auto; max-height: calc(100vh - 70px); -webkit-overflow-scrolling: touch; padding-bottom: 30px; }
     .equip-container { display: flex; flex-direction: column; gap: 15px; padding: 12px; max-width: 1200px; margin: 0 auto; }
     .equip-card { background: var(--bg); border: 1px solid var(--surface); border-radius: 10px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     .equip-card.header-card { background: linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%); border-left: 4px solid var(--accent); }
@@ -1745,14 +1749,18 @@ body.nvg-red-mode .leaflet-tile-container img {
      trajetória, perfil compensado). Fase 1 desta rodada: só os campos
      isolados + resetar; o resto chega nas fases seguintes do plano. -->
 <div id="tabCenaSimulacao" class="tab-content">
-  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px;">
-    <div style="font-weight:800; color:var(--accent); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px; font-size:12px;">🎯 Cena de Disparo — Simulação</div>
-    <div style="font-size:11px; color:var(--muted); margin-bottom:12px; line-height:1.4;">Os campos abaixo começam com os valores da Balística/Equipamento, mas são independentes: editar aqui não altera nada nessas abas. Use "Resetar" pra puxar os valores atuais de novo.</div>
+  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px;">
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 10px; margin-bottom:8px;">
+      <div style="font-size:10px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; color:var(--accent);">🎯 Simulação</div>
+      <span class="badge-status" id="cenaSimProfileBadge">PERFIL ATIVO: PADRÃO</span>
+    </div>
+    <div style="font-weight:900; font-size:20px; letter-spacing:0.3px; color:var(--ink); margin-bottom:6px;">CENA DE DISPARO</div>
+    <div style="font-size:12px; color:var(--muted); line-height:1.55; margin-bottom:16px;">Visualização didática de <b style="color:var(--ink);">trajetória</b>, <b style="color:var(--ink);">deriva de vento</b> e <b style="color:var(--ink);">risco a terceiros</b> na linha de tiro — usando a mesma física de queda e o mesmo motor de balística do GeoSniper. Os campos abaixo começam com os valores da Balística/Equipamento, mas são independentes: editar aqui não altera nada nessas abas. Use "Resetar" pra puxar os valores atuais de novo.</div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-      <div>
-        <label for="simZeroDist" style="font-size:11px; font-weight:700; color:var(--ink); display:block; margin-bottom:3px;">Zeragem (m)</label>
-        <select id="simZeroDist" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--line); color:#fff; border-radius:6px; padding:8px; font-size:13px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px;">
+      <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
+        <label for="simZeroDist" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Zeragem</label>
+        <select id="simZeroDist" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
           <option value="100">100m</option>
           <option value="200">200m</option>
           <option value="300">300m</option>
@@ -1765,9 +1773,9 @@ body.nvg-red-mode .leaflet-tile-container img {
           <option value="1000">1000m</option>
         </select>
       </div>
-      <div>
-        <label for="simDistance" style="font-size:11px; font-weight:700; color:var(--ink); display:block; margin-bottom:3px;">Distância do alvo (m)</label>
-        <select id="simDistance" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--line); color:#fff; border-radius:6px; padding:8px; font-size:13px;">
+      <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
+        <label for="simDistance" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Distância alvo</label>
+        <select id="simDistance" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
           <option value="50">50m</option>
           <option value="100">100m</option>
           <option value="150">150m</option>
@@ -1790,9 +1798,9 @@ body.nvg-red-mode .leaflet-tile-container img {
           <option value="1000">1000m</option>
         </select>
       </div>
-      <div>
-        <label for="simWindClock" style="font-size:11px; font-weight:700; color:var(--ink); display:block; margin-bottom:3px;">Vento — Relógio (1-12h)</label>
-        <select id="simWindClock" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--line); color:#fff; border-radius:6px; padding:8px; font-size:13px;">
+      <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
+        <label for="simWindClock" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Vento — relógio</label>
+        <select id="simWindClock" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
           <option value="12">12h (Frente)</option>
           <option value="1">1h</option>
           <option value="2">2h</option>
@@ -1807,9 +1815,9 @@ body.nvg-red-mode .leaflet-tile-container img {
           <option value="11">11h</option>
         </select>
       </div>
-      <div>
-        <label for="simWindSpeed" style="font-size:11px; font-weight:700; color:var(--ink); display:block; margin-bottom:3px;">Vento — Velocidade (km/h)</label>
-        <select id="simWindSpeed" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--line); color:#fff; border-radius:6px; padding:8px; font-size:13px;">
+      <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
+        <label for="simWindSpeed" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Vento — vel. (km/h)</label>
+        <select id="simWindSpeed" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
           <option value="0">0 (sem vento)</option>
           <option value="5">5</option>
           <option value="10">10</option>
@@ -1823,9 +1831,9 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
-    <button onclick="resetSimFields()" style="margin-top:12px; width:100%; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; font-size:12px; cursor:pointer;">↺ Resetar (puxar da Balística/Equipamento)</button>
+    <button onclick="resetSimFields()" style="margin-top:14px; width:100%; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; font-size:12px; cursor:pointer;">↺ Resetar (puxar da Balística/Equipamento)</button>
 
-    <div id="cenaAdjustSummary" style="margin-top:12px; display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:var(--muted); border-top:1px solid var(--line); padding-top:10px;"></div>
+    <div id="cenaAdjustSummary" style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:10px;"></div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px dashed var(--line); border-radius:8px; padding:14px; text-align:center; color:var(--muted); font-size:12px;">
@@ -1835,7 +1843,10 @@ body.nvg-red-mode .leaflet-tile-container img {
 
 <div id="tabCenaPerfis" class="tab-content">
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px;">
-    <div style="font-weight:800; color:var(--accent); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px; font-size:12px;">📈 Perfis de Trajetória</div>
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 10px; margin-bottom:4px;">
+      <div style="font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; font-size:12px;">📈 Perfis de Trajetória</div>
+      <span class="badge-status" id="cenaPerfilProfileBadge">PERFIL ATIVO: PADRÃO</span>
+    </div>
     <div style="font-size:11px; color:var(--muted); line-height:1.4;">Usa os mesmos campos da aba Simulação (zeragem, distância, vento) — mude ali pra ver o efeito aqui.</div>
   </div>
 
@@ -2552,6 +2563,7 @@ function openTab(evt, tabName) {
   // implementação — esse estado nunca escreve de volta nessas abas).
   if (tabName === 'tabCenaSimulacao') {
     if (typeof initSimTabIfNeeded === 'function') initSimTabIfNeeded();
+    if (typeof syncCenaProfileBadge === 'function') syncCenaProfileBadge();
   }
   // Perfis de Trajetória: os SVGs existem mesmo com a aba escondida
   // (display:none só oculta, não desmonta), mas garantimos que o estado
@@ -2559,6 +2571,7 @@ function openTab(evt, tabName) {
   // caso do operador abrir esta aba direto, sem passar pela Simulação.
   if (tabName === 'tabCenaPerfis') {
     if (typeof initSimTabIfNeeded === 'function') initSimTabIfNeeded();
+    if (typeof syncCenaProfileBadge === 'function') syncCenaProfileBadge();
     if (typeof renderCenaDisparoVisuals === 'function') renderCenaDisparoVisuals();
   } else if (typeof pauseCenaCameraIfPlaying === 'function') {
     // Câmera lenta (fase 5): pausa ao sair da aba Perfis, mesmo padrão
@@ -2791,6 +2804,20 @@ function initSimTabIfNeeded() {
   applySimStateToFields();
   window._simFieldsInitialized = true;
   renderCenaDisparoVisuals();
+}
+
+// Espelha o badge "PERFIL ATIVO" (arma/carga configurada em Equipamento) nas
+// abas Simulação e Perfis também — o operador vê de cara qual equipamento
+// está sendo usado no cálculo, sem precisar trocar de aba. Chamado a cada
+// abertura dessas abas (não só na primeira vez), pra sempre refletir o
+// perfil ativo mais recente.
+function syncCenaProfileBadge() {
+  const source = document.getElementById('profileStatusBadge');
+  const text = (source && (source.innerText || source.textContent)) || 'PERFIL ATIVO: PADRÃO';
+  const simBadge = document.getElementById('cenaSimProfileBadge');
+  const perfilBadge = document.getElementById('cenaPerfilProfileBadge');
+  if (simBadge) simBadge.textContent = text;
+  if (perfilBadge) perfilBadge.textContent = text;
 }
 
 // ============================================================
@@ -3117,8 +3144,14 @@ function renderAdjustSummary() {
   const windMrad = computeWindMrad(fps, bcVal, simState.distance, simState.windClock, simState.windSpeed);
   const windDir = windMrad >= 0 ? '► dir' : '◄ esq';
   el.innerHTML = `
-    <span style="display:inline-flex; align-items:center; gap:4px;">⬆️ Elevação: <b style="color:var(--ink);">${fmtMradMoa(elevMrad)}</b></span>
-    <span style="display:inline-flex; align-items:center; gap:4px;">💨 Vento: <b style="color:var(--ink);">${fmtMradMoa(Math.abs(windMrad))} ${windDir}</b></span>
+    <div style="background:rgba(195,154,79,0.10); border:1px solid var(--accent); border-radius:6px; padding:8px 10px;">
+      <div style="font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.3px;">⬆️ Ajuste elevação</div>
+      <div style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${fmtMradMoa(elevMrad)}</div>
+    </div>
+    <div style="background:rgba(195,154,79,0.10); border:1px solid var(--accent); border-radius:6px; padding:8px 10px;">
+      <div style="font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.3px;">💨 Ajuste vento</div>
+      <div style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${fmtMradMoa(Math.abs(windMrad))} ${windDir}</div>
+    </div>
   `;
 }
 
