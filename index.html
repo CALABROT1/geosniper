@@ -3270,9 +3270,16 @@ function flightTimeS(d, fps, bcVal) {
   return dFeet / ((fps + v_t) / 2);
 }
 
-function setupCrispCanvas(canvas) {
+// Nome próprio (não "setupCrispCanvas") de propósito: já existe uma função
+// global com esse nome (usada pelos retículos, com assinatura diferente —
+// (canvas, cssW, cssH)) — declarações de function com o mesmo nome no mesmo
+// escopo se sobrescrevem, e a última do arquivo "ganha" pra TODAS as
+// chamadas, mesmo as anteriores no arquivo. Isso fazia as câmeras lentas
+// chamarem a função errada (cssW/cssH undefined -> canvas 0x0 -> nada
+// desenhado, mesmo com checkpoints/readout atualizando normalmente).
+function setupCenaCrispCanvas(canvas, cssW, cssH) {
   const dpr = window.devicePixelRatio || 1;
-  const w = canvas.getAttribute('width') * dpr, h = canvas.getAttribute('height') * dpr;
+  const w = Math.round(cssW * dpr), h = Math.round(cssH * dpr);
   if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
   const ctx = canvas.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3303,8 +3310,8 @@ function initCenaCameraForCurrentState() {
   // câmera exatamente como estava (posição pausada, checkpoints já
   // marcados). Só recria quando a "foto" dos parâmetros muda de fato.
   if (cenaCam && cenaCam.sig === sig) {
-    cenaCam.ctxLat = setupCrispCanvas(canvasLat);
-    cenaCam.ctxRear = setupCrispCanvas(canvasRear);
+    cenaCam.ctxLat = setupCenaCrispCanvas(canvasLat, 620, 320);
+    cenaCam.ctxRear = setupCenaCrispCanvas(canvasRear, 320, 320);
     cenaCamFrame(cenaDistanceForAnimElapsed(cenaCam.elapsedAnim));
     return;
   }
@@ -3326,8 +3333,8 @@ function initCenaCameraForCurrentState() {
     playing: false, elapsedAnim: 0, lastTs: null, rafId: null,
     outOfViewFlagged: false,
     passed: {},
-    ctxLat: setupCrispCanvas(canvasLat),
-    ctxRear: setupCrispCanvas(canvasRear)
+    ctxLat: setupCenaCrispCanvas(canvasLat, 620, 320),
+    ctxRear: setupCenaCrispCanvas(canvasRear, 320, 320)
   };
   CHECKPOINTS.forEach(cp => cenaCam.passed[cp] = false);
 
@@ -3498,6 +3505,15 @@ function drawCenaRear(d) {
   }
 }
 
+// Subida = verde (--sem-good), queda = vermelho (--sem-hostile) — o pico já
+// compensado (comp.peakD) é o que divide as duas fases, mesma referência
+// usada no gráfico estático (renderCompensatedProfileDiagram).
+function cenaCheckpointPhaseColor(c, cp) {
+  return cp <= c.comp.peakD
+    ? { bg: 'var(--sem-good)', fg: '#0d0e08', arrow: '▲' }
+    : { bg: 'var(--sem-hostile)', fg: '#fff', arrow: '▼' };
+}
+
 function cenaRenderCheckpoints() {
   const c = cenaCam;
   const latBox = document.getElementById('cenaCpLateral');
@@ -3506,10 +3522,12 @@ function cenaRenderCheckpoints() {
     latBox.innerHTML = c.CHECKPOINTS.map(cp => {
       const on = c.passed[cp];
       const val = on ? `${c.comp.hAGComp(cp).toFixed(2).replace('.', ',')}m` : '—';
+      const phase = cenaCheckpointPhaseColor(c, cp);
       const style = on
-        ? 'background:var(--accent); color:var(--bg); border-color:var(--accent);'
+        ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
-      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${cp}m: ${val}</span>`;
+      const arrow = on ? phase.arrow + ' ' : '';
+      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m: ${val}</span>`;
     }).join('');
   }
   if (rearBox) {
@@ -3518,10 +3536,12 @@ function cenaRenderCheckpoints() {
       const drift = windDriftCm(cp, c.windClock, c.windSpeed, c.fps, c.bcVal);
       const drop = -trajectoryHeightCm(cp, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
       const val = on ? `${drift.toFixed(1).replace('.', ',')}/${drop.toFixed(1).replace('.', ',')}cm` : '—';
+      const phase = cenaCheckpointPhaseColor(c, cp);
       const style = on
-        ? 'background:var(--action); color:#fff; border-color:var(--action);'
+        ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
-      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${cp}m: ${val}</span>`;
+      const arrow = on ? phase.arrow + ' ' : '';
+      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m: ${val}</span>`;
     }).join('');
   }
 }
