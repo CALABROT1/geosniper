@@ -1860,6 +1860,17 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:12px;">📉 Perfil de trajetória (altura x distância)</div>
     <svg id="trajectoryProfileSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
     <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:var(--muted);"></div>
+
+    <div style="font-size:11px; font-weight:700; color:var(--accent); margin-top:16px; margin-bottom:4px;">Com câmera lenta (animada)</div>
+    <canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
+    <div id="cenaCpRaw" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
+
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button onclick="toggleCenaRawCameraPlay()" id="cenaCamRawPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:12px; cursor:pointer;">▶ Reproduzir</button>
+      <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:12px; cursor:pointer;">↺ Reiniciar</button>
+    </div>
+    <div id="cenaCamRawReadout" style="margin-top:8px; font-size:10.5px; color:var(--muted); font-family:var(--font-mono);"></div>
+    <div style="font-size:9.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -1867,7 +1878,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div id="compensatedReadout" style="font-size:11px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
 
     <div style="font-size:11px; font-weight:700; color:var(--accent); margin-bottom:4px;">Com câmera lenta (animada)</div>
-    <canvas id="cenaCamLateral" width="620" height="320" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
+    <canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
     <div id="cenaCpLateral" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
 
     <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:12px auto 0; background:var(--bg); border-radius:6px;"></canvas>
@@ -2577,6 +2588,7 @@ function openTab(evt, tabName) {
     // Câmera lenta (fase 5): pausa ao sair da aba Perfis, mesmo padrão
     // das bússolas contínuas — evita gastar bateria animando fora de tela.
     pauseCenaCameraIfPlaying();
+    if (typeof pauseCenaRawCameraIfPlaying === 'function') pauseCenaRawCameraIfPlaying();
   }
 
   // Sai de qualquer ferramenta de desenho ativa ao trocar de aba (evita ficar
@@ -3054,6 +3066,8 @@ function renderTrajectoryProfileDiagram() {
       <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:var(--muted); display:inline-block;"></span>linha de mira (ponto de mira)</span>
     `;
   }
+
+  initCenaRawCameraForCurrentState(); // "com câmera lenta" — mesmos números, calculados por getRawTrajectory()
 }
 
 // ============================================================
@@ -3110,6 +3124,37 @@ function getCompensatedTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, s
   const splitM = Math.min(peakD, drawEndM);
 
   return { AIM_HEIGHT_M, compMrad, hAGComp, peakD, peakH, impactD, drawEndM, targetReachable, splitM };
+}
+
+// Mesma ideia da getCompensatedTrajectory acima, mas para a trajetória SEM
+// nenhuma compensação — os mesmos números do gráfico "Perfil de trajetória"
+// (renderTrajectoryProfileDiagram), reaproveitados aqui pra alimentar a
+// câmera lenta desse diagrama (pedido do usuário: o diagrama estático de
+// queda também precisa de uma versão animada, com os mesmos números).
+function getRawTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM) {
+  const AIM_HEIGHT_M = 1.2;
+  const hAG = d => AIM_HEIGHT_M - trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) / 100;
+
+  let impactD = null;
+  if (hAG(sceneEndM) <= 0) {
+    let lo = 0, hi = sceneEndM;
+    for (let i = 0; i < 50; i++) {
+      const mid = (lo + hi) / 2;
+      if (hAG(mid) > 0) lo = mid; else hi = mid;
+    }
+    impactD = (lo + hi) / 2;
+  }
+  const drawEndM = impactD != null ? impactD : sceneEndM;
+  const targetReachable = targetDistM <= drawEndM + 0.01;
+  const splitM = Math.min(zeroDist, drawEndM);
+
+  let peakH = AIM_HEIGHT_M;
+  for (let d = 0; d <= drawEndM; d += Math.max(2, drawEndM / 150)) {
+    const h = hAG(d);
+    if (h > peakH) peakH = h;
+  }
+
+  return { AIM_HEIGHT_M, hAG, splitM, peakH, impactD, drawEndM, targetReachable };
 }
 
 // Mesmo fator já usado no retículo real (ver moaAtDist em renderReticle) —
@@ -3310,7 +3355,7 @@ function initCenaCameraForCurrentState() {
   // câmera exatamente como estava (posição pausada, checkpoints já
   // marcados). Só recria quando a "foto" dos parâmetros muda de fato.
   if (cenaCam && cenaCam.sig === sig) {
-    cenaCam.ctxLat = setupCenaCrispCanvas(canvasLat, 620, 320);
+    cenaCam.ctxLat = setupCenaCrispCanvas(canvasLat, 620, 230);
     cenaCam.ctxRear = setupCenaCrispCanvas(canvasRear, 320, 320);
     cenaCamFrame(cenaDistanceForAnimElapsed(cenaCam.elapsedAnim));
     return;
@@ -3333,7 +3378,7 @@ function initCenaCameraForCurrentState() {
     playing: false, elapsedAnim: 0, lastTs: null, rafId: null,
     outOfViewFlagged: false,
     passed: {},
-    ctxLat: setupCenaCrispCanvas(canvasLat, 620, 320),
+    ctxLat: setupCenaCrispCanvas(canvasLat, 620, 230),
     ctxRear: setupCenaCrispCanvas(canvasRear, 320, 320)
   };
   CHECKPOINTS.forEach(cp => cenaCam.passed[cp] = false);
@@ -3374,12 +3419,20 @@ function drawCenaLateral(d) {
   const ctx = c.ctxLat;
   const muted = cssVar('--muted'), line = cssVar('--line'),
         accent = cssVar('--accent'), danger = cssVar('--sem-hostile'), bg = cssVar('--bg');
-  const W = 620, H = 320, ML = 46, MR = 14, MT = 16, MB = 26;
+  // H reduzido (era 320) e mantendo a mesma largura — achata visualmente o
+  // arco pra bater com a proporção do gráfico estático equivalente (760x260,
+  // área útil ~3,3:1). Com H=320 a área útil ficava ~2:1, o que fazia a
+  // MESMA parábola (mesmos números) parecer bem mais "pontuda" aqui do que
+  // no SVG estático — só a caixa era diferente, não a trajetória.
+  const W = 620, H = 230, ML = 46, MR = 14, MT = 16, MB = 26;
   const plotW = W - ML - MR, plotH = H - MT - MB;
   const scaleX = plotW / c.sceneEndM;
   const hRange = Math.max(0.8, c.comp.peakH * 1.15);
   const scaleY = plotH / hRange;
   const X = dd => ML + dd * scaleX, Yh = h => MT + (hRange - h) * scaleY;
+  // Mesma fórmula do gráfico estático (renderCompensatedProfileDiagram) —
+  // grade horizontal com valores de altura, que faltava aqui.
+  const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -3388,6 +3441,12 @@ function drawCenaLateral(d) {
   for (let dd = 0; dd <= c.sceneEndM; dd += (c.sceneEndM <= 400 ? 50 : 100)) {
     ctx.beginPath(); ctx.moveTo(X(dd), MT); ctx.lineTo(X(dd), MT + plotH); ctx.stroke();
     ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 10);
+  }
+  for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
+    ctx.strokeStyle = line;
+    ctx.beginPath(); ctx.moveTo(ML, Yh(h)); ctx.lineTo(ML + plotW, Yh(h)); ctx.stroke();
+    ctx.fillStyle = muted; ctx.textAlign = 'right';
+    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3);
   }
 
   ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
@@ -3521,18 +3580,20 @@ function cenaRenderCheckpoints() {
   if (latBox) {
     latBox.innerHTML = c.CHECKPOINTS.map(cp => {
       const on = c.passed[cp];
+      const t = flightTimeS(cp, c.fps, c.bcVal);
       const val = on ? `${c.comp.hAGComp(cp).toFixed(2).replace('.', ',')}m` : '—';
       const phase = cenaCheckpointPhaseColor(c, cp);
       const style = on
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
       const arrow = on ? phase.arrow + ' ' : '';
-      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m: ${val}</span>`;
+      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
     }).join('');
   }
   if (rearBox) {
     rearBox.innerHTML = c.CHECKPOINTS.map(cp => {
       const on = c.passed[cp];
+      const t = flightTimeS(cp, c.fps, c.bcVal);
       const drift = windDriftCm(cp, c.windClock, c.windSpeed, c.fps, c.bcVal);
       const drop = -trajectoryHeightCm(cp, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
       const val = on ? `${drift.toFixed(1).replace('.', ',')}/${drop.toFixed(1).replace('.', ',')}cm` : '—';
@@ -3541,7 +3602,7 @@ function cenaRenderCheckpoints() {
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
       const arrow = on ? phase.arrow + ' ' : '';
-      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m: ${val}</span>`;
+      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
     }).join('');
   }
 }
@@ -3641,6 +3702,280 @@ function pauseCenaCameraIfPlaying() {
     cenaCam.playing = false;
     if (cenaCam.rafId) cancelAnimationFrame(cenaCam.rafId);
     const playBtn = document.getElementById('cenaCamPlayBtn');
+    if (playBtn) playBtn.textContent = '▶ Reproduzir';
+  }
+}
+
+// ============================================================
+// CÂMERA LENTA DO PERFIL SEM COMPENSAÇÃO (item 4 do pedido do usuário:
+// "o diagrama estático de queda deve ter uma versão animada"). Mesma
+// arquitetura da câmera do perfil compensado (cenaCam) acima, só que como
+// uma instância PARALELA e independente (cenaRawCam) — mantém o cenaCam
+// já testado intacto, e usa os mesmos números do gráfico estático "Perfil
+// de trajetória" (getRawTrajectory), sem nenhuma compensação. Só existe
+// visão lateral aqui — essa trajetória não tem equivalente "câmera
+// traseira" (não há compensação nenhuma pra comparar contra a mira).
+// ============================================================
+let cenaRawCam = null;
+
+function initCenaRawCameraForCurrentState() {
+  const canvasLat = document.getElementById('cenaCamRawLateral');
+  if (!canvasLat) { cenaRawCam = null; return; }
+
+  const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
+  const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
+  const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
+  const zeroDist = simState.zeroDist;
+  const targetDistM = simState.distance;
+  const sceneEndM = Math.max(targetDistM, zeroDist) + Math.max(20, Math.round(targetDistM * 0.1));
+  const sig = [fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM].join('|');
+
+  // Mesmo cuidado da Fase 6 pra câmera compensada: se nada mudou desde a
+  // última vez (só saiu e voltou pra aba), mantém a animação como estava.
+  if (cenaRawCam && cenaRawCam.sig === sig) {
+    cenaRawCam.ctxLat = setupCenaCrispCanvas(canvasLat, 620, 230);
+    cenaRawCamFrame(cenaRawDistanceForAnimElapsed(cenaRawCam.elapsedAnim));
+    return;
+  }
+
+  if (cenaRawCam && cenaRawCam.rafId) cancelAnimationFrame(cenaRawCam.rafId);
+
+  const raw = getRawTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM);
+  const totalFlightS = flightTimeS(sceneEndM, fps, bcVal);
+  const CHECKPOINTS = [];
+  for (let cp = 50; cp <= targetDistM; cp += 50) CHECKPOINTS.push(cp);
+
+  cenaRawCam = {
+    sig,
+    fps, bcVal, scopeH_m, zeroDist, targetDistM,
+    raw, sceneEndM, totalFlightS, CHECKPOINTS,
+    ANIM_DURATION_S: 14,
+    playing: false, elapsedAnim: 0, lastTs: null, rafId: null,
+    passed: {},
+    ctxLat: setupCenaCrispCanvas(canvasLat, 620, 230)
+  };
+  CHECKPOINTS.forEach(cp => cenaRawCam.passed[cp] = false);
+
+  const playBtn = document.getElementById('cenaCamRawPlayBtn');
+  if (playBtn) playBtn.textContent = '▶ Reproduzir';
+
+  cenaRawCamFrame(0);
+}
+
+function cenaRawDistanceForAnimElapsed(animElapsedS) {
+  const c = cenaRawCam;
+  const realElapsedS = Math.min(c.totalFlightS, (animElapsedS / c.ANIM_DURATION_S) * c.totalFlightS);
+  return cenaDistanceForRealElapsed(realElapsedS, c.sceneEndM, c.fps, c.bcVal);
+}
+// Inverso — usado pelo clique nos checkpoints, mesmo padrão da câmera compensada.
+function cenaRawAnimElapsedForDistance(d) {
+  const c = cenaRawCam;
+  const realS = Math.min(c.totalFlightS, flightTimeS(d, c.fps, c.bcVal));
+  return (realS / c.totalFlightS) * c.ANIM_DURATION_S;
+}
+
+function drawCenaRawLateral(d) {
+  const c = cenaRawCam;
+  const ctx = c.ctxLat;
+  const muted = cssVar('--muted'), line = cssVar('--line'),
+        accent = cssVar('--accent'), danger = cssVar('--sem-hostile'), bg = cssVar('--bg');
+  const W = 620, H = 230, ML = 46, MR = 14, MT = 16, MB = 26;
+  const plotW = W - ML - MR, plotH = H - MT - MB;
+  const scaleX = plotW / c.sceneEndM;
+  const hRange = Math.max(0.8, c.raw.peakH * 1.15);
+  const scaleY = plotH / hRange;
+  const X = dd => ML + dd * scaleX, Yh = h => MT + (hRange - h) * scaleY;
+  const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '10px ' + cssVar('--font-mono');
+  for (let dd = 0; dd <= c.sceneEndM; dd += (c.sceneEndM <= 400 ? 50 : 100)) {
+    ctx.beginPath(); ctx.moveTo(X(dd), MT); ctx.lineTo(X(dd), MT + plotH); ctx.stroke();
+    ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 10);
+  }
+  for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
+    ctx.strokeStyle = line;
+    ctx.beginPath(); ctx.moveTo(ML, Yh(h)); ctx.lineTo(ML + plotW, Yh(h)); ctx.stroke();
+    ctx.fillStyle = muted; ctx.textAlign = 'right';
+    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3);
+  }
+
+  ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(ML, Yh(0)); ctx.lineTo(ML + plotW, Yh(0)); ctx.stroke();
+  ctx.setLineDash([5, 4]); ctx.globalAlpha = 0.7;
+  ctx.beginPath(); ctx.moveTo(X(0), Yh(c.raw.AIM_HEIGHT_M)); ctx.lineTo(X(c.sceneEndM), Yh(c.raw.AIM_HEIGHT_M)); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+  // trajetória completa (prévia fraca) — mesma divisão do gráfico estático:
+  // zeragem mecânica (raw.splitM), não um "pico" (essa trajetória não tem
+  // compensação nenhuma pra ter pico compensado).
+  const splitM = c.raw.splitM;
+  ctx.globalAlpha = 0.28;
+  ctx.setLineDash([6, 4]); ctx.strokeStyle = accent; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let dd = 0; dd <= splitM; dd += 5) {
+    const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
+    dd === 0 ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = danger; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let dd = splitM; dd <= c.sceneEndM; dd += 5) {
+    const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
+    dd === splitM ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
+  }
+  ctx.stroke(); ctx.globalAlpha = 1;
+
+  // trajetória percorrida (sólida, mesma divisão de cor)
+  const travelRiseEnd = Math.min(splitM, d);
+  ctx.setLineDash([6, 4]); ctx.strokeStyle = accent; ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  for (let dd = 0; dd <= travelRiseEnd; dd += 5) {
+    const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
+    dd === 0 ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  if (d > splitM) {
+    ctx.strokeStyle = danger; ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    for (let dd = splitM; dd <= d; dd += 5) {
+      const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
+      dd === splitM ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
+    }
+    ctx.stroke();
+  }
+
+  // rastro (motion blur) + marcador
+  const hNow = Math.max(0, Math.min(hRange, c.raw.hAG(d)));
+  [24, 16, 8].forEach((back, i) => {
+    const dd = Math.max(0, d - back);
+    const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
+    ctx.globalAlpha = 0.15 + i * 0.1;
+    ctx.beginPath(); ctx.arc(X(dd), Yh(h), 4, 0, Math.PI * 2); ctx.fillStyle = danger; ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.arc(X(d), Yh(hNow), 5.5, 0, Math.PI * 2);
+  ctx.fillStyle = danger; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
+}
+
+// Subida = verde, queda = vermelho — aqui a divisão é a zeragem mecânica
+// (raw.splitM), a mesma referência já usada no gráfico estático
+// (renderTrajectoryProfileDiagram) — essa trajetória sem compensar não
+// tem "pico compensado" como a câmera do perfil compensado.
+function cenaRawCheckpointPhaseColor(c, cp) {
+  return cp <= c.raw.splitM
+    ? { bg: 'var(--sem-good)', fg: '#0d0e08', arrow: '▲' }
+    : { bg: 'var(--sem-hostile)', fg: '#fff', arrow: '▼' };
+}
+
+function cenaRenderRawCheckpoints() {
+  const c = cenaRawCam;
+  const box = document.getElementById('cenaCpRaw');
+  if (!box) return;
+  box.innerHTML = c.CHECKPOINTS.map(cp => {
+    const on = c.passed[cp];
+    const t = flightTimeS(cp, c.fps, c.bcVal);
+    const val = on ? `${c.raw.hAG(cp).toFixed(2).replace('.', ',')}m` : '—';
+    const phase = cenaRawCheckpointPhaseColor(c, cp);
+    const style = on
+      ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
+      : 'background:transparent; color:var(--muted); border-color:var(--line);';
+    const arrow = on ? phase.arrow + ' ' : '';
+    return `<span onclick="seekCenaRawCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
+  }).join('');
+}
+
+function cenaRawCamUpdateReadout(d) {
+  const c = cenaRawCam;
+  const el = document.getElementById('cenaCamRawReadout');
+  if (!el) return;
+  const realS = Math.min(c.totalFlightS, flightTimeS(d, c.fps, c.bcVal));
+  el.innerHTML = `t real = <b style="color:var(--ink);">${realS.toFixed(3)}s</b> · distância <b style="color:var(--ink);">${d.toFixed(0)}m</b>`;
+}
+
+function cenaRawCamFrame(d) {
+  const c = cenaRawCam;
+  if (!c) return;
+  drawCenaRawLateral(d);
+  cenaRawCamUpdateReadout(d);
+  c.CHECKPOINTS.forEach(cp => { if (!c.passed[cp] && d >= cp) c.passed[cp] = true; });
+  cenaRenderRawCheckpoints();
+}
+
+function resetCenaRawCameraAnim() {
+  if (!cenaRawCam) return;
+  cenaRawCam.playing = false;
+  if (cenaRawCam.rafId) cancelAnimationFrame(cenaRawCam.rafId);
+  cenaRawCam.elapsedAnim = 0;
+  cenaRawCam.lastTs = null;
+  cenaRawCam.CHECKPOINTS.forEach(cp => cenaRawCam.passed[cp] = false);
+  const playBtn = document.getElementById('cenaCamRawPlayBtn');
+  if (playBtn) playBtn.textContent = '▶ Reproduzir';
+  cenaRawCamFrame(0);
+}
+
+function cenaRawCamTick(ts) {
+  const c = cenaRawCam;
+  if (!c || !c.playing) return;
+  if (c.lastTs == null) c.lastTs = ts;
+  const dt = (ts - c.lastTs) / 1000;
+  c.lastTs = ts;
+  c.elapsedAnim = Math.min(c.ANIM_DURATION_S, c.elapsedAnim + dt);
+  const d = cenaRawDistanceForAnimElapsed(c.elapsedAnim);
+  cenaRawCamFrame(d);
+  if (c.elapsedAnim < c.ANIM_DURATION_S) {
+    c.rafId = requestAnimationFrame(cenaRawCamTick);
+  } else {
+    c.playing = false;
+    const playBtn = document.getElementById('cenaCamRawPlayBtn');
+    if (playBtn) playBtn.textContent = '▶ Reproduzir';
+  }
+}
+
+function toggleCenaRawCameraPlay() {
+  const c = cenaRawCam;
+  if (!c) return;
+  const playBtn = document.getElementById('cenaCamRawPlayBtn');
+  if (c.playing) {
+    c.playing = false;
+    if (c.rafId) cancelAnimationFrame(c.rafId);
+    if (playBtn) playBtn.textContent = '▶ Reproduzir';
+    return;
+  }
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) {
+    c.elapsedAnim = c.ANIM_DURATION_S;
+    cenaRawCamFrame(cenaRawDistanceForAnimElapsed(c.elapsedAnim));
+    return;
+  }
+  c.playing = true;
+  c.lastTs = null;
+  if (playBtn) playBtn.textContent = '⏸ Pausar';
+  c.rafId = requestAnimationFrame(cenaRawCamTick);
+}
+
+// Mesmo comportamento da câmera compensada: clicar num checkpoint pausa
+// exatamente naquela distância, e o play seguinte retoma do mesmo ponto.
+function seekCenaRawCameraToCheckpoint(cp) {
+  const c = cenaRawCam;
+  if (!c) return;
+  c.playing = false;
+  c.lastTs = null;
+  if (c.rafId) cancelAnimationFrame(c.rafId);
+  const playBtn = document.getElementById('cenaCamRawPlayBtn');
+  if (playBtn) playBtn.textContent = '▶ Reproduzir';
+  c.elapsedAnim = cenaRawAnimElapsedForDistance(cp);
+  cenaRawCamFrame(cp);
+}
+
+function pauseCenaRawCameraIfPlaying() {
+  if (cenaRawCam && cenaRawCam.playing) {
+    cenaRawCam.playing = false;
+    if (cenaRawCam.rafId) cancelAnimationFrame(cenaRawCam.rafId);
+    const playBtn = document.getElementById('cenaCamRawPlayBtn');
     if (playBtn) playBtn.textContent = '▶ Reproduzir';
   }
 }
