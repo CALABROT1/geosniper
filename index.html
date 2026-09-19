@@ -1453,11 +1453,20 @@ body.nvg-red-mode .leaflet-tile-container img {
       <div class="form-group">
         <label for="eqReticleType">Estilo de Retículo (Luneta)</label>
         <select id="eqReticleType" onchange="runBallistics()">
-          <option value="mildot" selected>Mil-Dot Tradicional (Pontos)</option>
-          <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
-          <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
-          <option value="duplex">Duplex / BDC Simples</option>
-          <option value="horus">Horus TReMoR3 (Grade Numerada)</option>
+          <optgroup label="Genéricos">
+            <option value="mildot" selected>Mil-Dot Tradicional (Pontos)</option>
+            <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
+            <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
+            <option value="duplex">Duplex / BDC Simples</option>
+            <option value="horus">Horus TReMoR3 (Grade Numerada)</option>
+          </optgroup>
+          <optgroup label="Fabricante (Precisão)">
+            <option value="nf_milxt">Nightforce MIL-XT</option>
+            <option value="leupold_tmr">Leupold TMR</option>
+            <option value="vortex_ebr7c">Vortex EBR-7C (MRAD)</option>
+            <option value="sb_gr2id">Schmidt &amp; Bender GR²ID</option>
+            <option value="kahles_skmr4">Kahles SKMR4</option>
+          </optgroup>
         </select>
       </div>
 
@@ -1805,6 +1814,26 @@ body.nvg-red-mode .leaflet-tile-container img {
           <div class="form-group">
             <label for="eqScopeCustomObjective">Objetiva (mm) — opcional</label>
             <input type="number" id="eqScopeCustomObjective" step="1" placeholder="Ex: 50">
+          </div>
+          <div class="form-group">
+            <label for="eqScopeCustomReticleStyle">Estilo de Retículo — opcional</label>
+            <select id="eqScopeCustomReticleStyle">
+              <option value="">-- Não informar --</option>
+              <optgroup label="Genéricos">
+                <option value="mildot">Mil-Dot Tradicional (Pontos)</option>
+                <option value="moa_hash">MOA Hash-Mark (Traços 1 MOA)</option>
+                <option value="tree">Árvore de Natal / Christmas Tree (PRS)</option>
+                <option value="duplex">Duplex / BDC Simples</option>
+                <option value="horus">Horus TReMoR3 (Grade Numerada)</option>
+              </optgroup>
+              <optgroup label="Fabricante (Precisão)">
+                <option value="nf_milxt">Nightforce MIL-XT</option>
+                <option value="leupold_tmr">Leupold TMR</option>
+                <option value="vortex_ebr7c">Vortex EBR-7C (MRAD)</option>
+                <option value="sb_gr2id">Schmidt &amp; Bender GR²ID</option>
+                <option value="kahles_skmr4">Kahles SKMR4</option>
+              </optgroup>
+            </select>
           </div>
         </div>
         <button onclick="submitCustomScope()" style="width: 100%; margin-top: 10px; background: var(--surface); color: var(--action); border: 1px solid var(--action); padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;">➕ CADASTRAR LUNETA NO CATÁLOGO COMPARTILHADO</button>
@@ -8080,7 +8109,7 @@ let SCOPE_FOV_CATALOG = {
   'leupold_mark5hd_5-25x56':  { name: 'Leupold Mark 5HD 5-25x56',    zoomMin: 5, zoomMax: 25, fovMinM: 6.8,  fovMaxM: 1.4 },
   'sig_tango6_5-30x56':       { name: 'Sig Sauer Tango6 5-30x56',    zoomMin: 5, zoomMax: 30, fovMinM: 6.3,  fovMaxM: 1.1 },
   'leupold_vxfreedom_3-9x40': { name: 'Leupold VX-Freedom 3-9x40',   zoomMin: 3, zoomMax: 9,  fovMinM: 11.0, fovMaxM: 4.5 },
-  'leupold_mark4_6_5-20x50':  { name: 'Leupold Mark 4 LR/T 6.5-20x50', zoomMin: 6.5, zoomMax: 20, fovMinM: 4.8, fovMaxM: 1.8 },
+  'leupold_mark4_6_5-20x50':  { name: 'Leupold Mark 4 LR/T 6.5-20x50', zoomMin: 6.5, zoomMax: 20, fovMinM: 4.8, fovMaxM: 1.8, reticleStyle: 'mildot' },
 };
 
 async function fetchScopeFovCatalog() {
@@ -8114,6 +8143,7 @@ async function fetchScopeFovCatalog() {
 function applyScopeFovPreset() {
   const key = document.getElementById('eqScopeFovPreset')?.value;
   const preset = SCOPE_FOV_CATALOG[key];
+  let reticleStyleChanged = false;
   if (preset) {
     const zMinEl = document.getElementById('eqScopeZoomMin');
     const zMaxEl = document.getElementById('eqScopeZoomMax');
@@ -8123,8 +8153,28 @@ function applyScopeFovPreset() {
     if (zMaxEl) zMaxEl.value = preset.zoomMax;
     if (fMinEl) fMinEl.value = preset.fovMinM;
     if (fMaxEl) fMaxEl.value = preset.fovMaxM;
+
+    // Sugere o estilo de retículo dessa luneta (quando o catálogo tem essa
+    // info) no dropdown "Estilo de Retículo" da aba Balística — mas o
+    // dropdown continua 100% manual: o operador pode trocar na hora seguinte
+    // se souber que a luneta dele é outra variante (ex: mesma luneta, versão
+    // com reticle diferente). Só troca quando o valor realmente muda, pra
+    // não disparar recálculo à toa.
+    if (preset.reticleStyle) {
+      const styleEl = document.getElementById('eqReticleType');
+      const hasOption = styleEl && Array.from(styleEl.options).some(o => o.value === preset.reticleStyle);
+      if (styleEl && hasOption && styleEl.value !== preset.reticleStyle) {
+        styleEl.value = preset.reticleStyle;
+        reticleStyleChanged = true;
+      }
+    }
   }
   onScopeFovFieldsChanged();
+  // lastReticleRenderArgs guarda o estilo antigo — só runBallistics() (que já
+  // é o que o próprio dropdown chama no onchange manual) atualiza esse cache
+  // com o estilo novo; um redraw sozinho (dentro de onScopeFovFieldsChanged)
+  // continuaria desenhando com o estilo de antes.
+  if (reticleStyleChanged && typeof runBallistics === 'function') runBallistics();
 }
 
 // Cadastro de luneta personalizada — igual em espírito ao "Fuzil Personalizado"
@@ -8151,6 +8201,11 @@ async function submitCustomScope() {
   const fovMaxM = parseFloat(document.getElementById('eqScopeFovMax')?.value);
   const objRaw = document.getElementById('eqScopeCustomObjective')?.value;
   const objectiveMm = objRaw ? parseFloat(objRaw) : null;
+  // Opcional — quando informado, cadastrar essa luneta no dropdown de Campo de
+  // Visão também sugere esse estilo no dropdown "Estilo de Retículo" da aba
+  // Balística (igual acontece com os presets fixos do catálogo semente).
+  const reticleStyleRaw = document.getElementById('eqScopeCustomReticleStyle')?.value;
+  const reticleStyle = reticleStyleRaw || null;
 
   if (!name) return setStatus('⚠️ Informe o nome da luneta.', false);
   if (!(zoomMin > 0) || !(zoomMax > zoomMin)) return setStatus('⚠️ Preencha Zoom Mínimo e Máximo (o máximo precisa ser maior que o mínimo).', false);
@@ -8161,7 +8216,7 @@ async function submitCustomScope() {
     const response = await fetch('https://api.geosniper.com.br/api/scopes/custom', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
-      body: JSON.stringify({ name, zoomMin, zoomMax, fovMinM, fovMaxM, objectiveMm })
+      body: JSON.stringify({ name, zoomMin, zoomMax, fovMinM, fovMaxM, objectiveMm, reticleStyle })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -8174,8 +8229,10 @@ async function submitCustomScope() {
     if (selectEl && data.key) selectEl.value = data.key;
     const nameEl = document.getElementById('eqScopeCustomName');
     const objEl = document.getElementById('eqScopeCustomObjective');
+    const styleEl = document.getElementById('eqScopeCustomReticleStyle');
     if (nameEl) nameEl.value = '';
     if (objEl) objEl.value = '';
+    if (styleEl) styleEl.value = '';
   } catch (err) {
     setStatus('⚠️ Falha de conexão com o servidor — tente novamente.', false);
   }
@@ -8420,6 +8477,239 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
         ctx.font = `700 12px ${RETICLE_MONO}`;
       }
     }
+    ctx.restore();
+    return;
+  }
+
+  // ===== RETÍCULOS DE FABRICANTE (constantes reais de subtensão) =====
+  // Os 5 presets abaixo usam as subtensões publicadas por cada fabricante
+  // (espaçamento de traços, tamanho do ponto central, padrão da grade de
+  // vento/elevação) na mesma escala física fixa (pxPerMrad) já usada pelo
+  // Mil-Dot — todos os 5 reticles-alvo (MIL-XT, TMR, EBR-7C, GR²ID, SKMR4)
+  // são graduados em MRAD/MIL, então não há conversão de unidade a fazer.
+  // Réplica óptica pixel-a-pixel não é o objetivo (o canvas é pequeno demais
+  // pra isso) — o que importa, e o que foi conferido contra a documentação
+  // de cada fabricante, é a proporção real entre os espaçamentos e o
+  // desenho estrutural de cada grade, pra bater com o que o operador vê na
+  // luneta de verdade.
+
+  if (style === 'nf_milxt') {
+    // Nightforce MIL-XT: ponto central flutuante fino (0.05 MRAD), traços de
+    // vento a cada 0.2 MRAD (mais longos nos MRAD cheios) e pontos vazados
+    // "flutuantes" a cada MRAD cheio na haste de elevação, com numeração
+    // alternando tamanho grande/pequeno — assinatura visual real do MIL-XT.
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+
+    const centerDotR = Math.max(1, 0.05 * pxPerMrad);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(cx, cy, centerDotR, 0, Math.PI * 2); ctx.stroke();
+
+    for (let s = 1; s <= 40; s++) {
+      const mrad = s * 0.2;
+      if (mrad > 8) break;
+      const full = Math.abs(mrad - Math.round(mrad)) < 0.001;
+      const hLen = full ? 6 : 3;
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * mrad * pxPerMrad;
+        if (!withinGlass(hx, cy)) return;
+        ctx.lineWidth = full ? 1.4 : 0.9;
+        ctx.beginPath(); ctx.moveTo(hx, cy - hLen); ctx.lineTo(hx, cy + hLen); ctx.stroke();
+      });
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      const vy = cy + (i * pxPerMrad);
+      if (!withinGlass(cx, vy)) continue;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(cx, vy, 2.2, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.font = `${i % 2 === 0 ? '800 12px' : '600 9px'} ${RETICLE_MONO}`;
+      if (withinGlass(cx + 10, vy)) ctx.fillText(`${i}`, cx + 10, vy + 3);
+    }
+    ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'leupold_tmr') {
+    // Leupold TMR (Tactical Milling Reticle): traços curtos (não pontos) a
+    // cada MIL cheio nas 4 direções, com um traço mais curto de meio-MIL
+    // entre eles, e numeração nas duas pontas do eixo horizontal — a marca
+    // registrada do TMR frente ao Mil-Dot (pontos) e ao MOA Hash (sem
+    // numeração).
+    ctx.strokeStyle = '#12141a';
+    for (let i = 1; i <= 8; i++) {
+      const half = i - 0.5;
+      if (half > 0) {
+        [1, -1].forEach(sign => {
+          const hx = cx + sign * half * pxPerMrad, hy = cy + sign * half * pxPerMrad;
+          ctx.lineWidth = 0.9;
+          if (withinGlass(hx, cy)) { ctx.beginPath(); ctx.moveTo(hx, cy - 3.5); ctx.lineTo(hx, cy + 3.5); ctx.stroke(); }
+          if (withinGlass(cx, hy)) { ctx.beginPath(); ctx.moveTo(cx - 3.5, hy); ctx.lineTo(cx + 3.5, hy); ctx.stroke(); }
+        });
+      }
+
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * i * pxPerMrad, hy = cy + sign * i * pxPerMrad;
+        ctx.lineWidth = 1.5;
+        if (withinGlass(hx, cy)) { ctx.beginPath(); ctx.moveTo(hx, cy - 6.5); ctx.lineTo(hx, cy + 6.5); ctx.stroke(); }
+        if (withinGlass(cx, hy)) { ctx.beginPath(); ctx.moveTo(cx - 6.5, hy); ctx.lineTo(cx + 6.5, hy); ctx.stroke(); }
+      });
+    }
+
+    // Numeração só no eixo horizontal — no vertical colidiria com a coluna
+    // de distância/zoom por ponto (mesmo motivo dos estilos genéricos acima).
+    ctx.font = `700 10px ${RETICLE_MONO}`;
+    ctx.fillStyle = '#12141a';
+    ctx.textAlign = 'center';
+    for (let i = 2; i <= 8; i += 2) {
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * i * pxPerMrad;
+        if (!withinGlass(hx, cy)) return;
+        ctx.fillText(`${i}`, hx, cy - 10);
+      });
+    }
+    ctx.textAlign = 'left';
+    ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_ebr7c') {
+    // Vortex EBR-7C (MRAD): grade "árvore" de holdover abaixo do centro com
+    // pontos de referência de vento sobre cada barra (característica dos
+    // reticles EBR) e traços finos de vento a cada 0.5 MRAD no eixo
+    // horizontal principal.
+    ctx.strokeStyle = '#12141a';
+
+    for (let s = 1; s <= 16; s++) {
+      const mrad = s * 0.5;
+      if (mrad > 8) break;
+      const full = Math.abs(mrad - Math.round(mrad)) < 0.001;
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * mrad * pxPerMrad;
+        if (!withinGlass(hx, cy)) return;
+        ctx.lineWidth = full ? 1.4 : 0.9;
+        ctx.beginPath(); ctx.moveTo(hx, cy - (full ? 6 : 3.5)); ctx.lineTo(hx, cy + (full ? 6 : 3.5)); ctx.stroke();
+      });
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      const by = cy + (i * pxPerMrad);
+      if (!withinGlass(cx, by)) continue;
+      const halfW = Math.min(pxPerMrad * 0.4 * i, radius - 20);
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(cx - halfW, by); ctx.lineTo(cx + halfW, by); ctx.stroke();
+
+      for (let w = 0.5; w * pxPerMrad < halfW; w += 0.5) {
+        [1, -1].forEach(sign => {
+          const wx = cx + sign * w * pxPerMrad;
+          ctx.beginPath(); ctx.arc(wx, by, 1.6, 0, Math.PI * 2);
+          ctx.fillStyle = '#12141a'; ctx.fill();
+        });
+      }
+
+      ctx.font = `700 10px ${RETICLE_MONO}`;
+      ctx.fillStyle = '#5b6472';
+      if (withinGlass(cx - halfW, by)) ctx.fillText(`${i}`, cx - halfW - 10, by + 3);
+      if (withinGlass(cx + halfW, by)) ctx.fillText(`${i}`, cx + halfW + 3, by + 3);
+    }
+    ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'sb_gr2id') {
+    // Schmidt & Bender GR²ID: ponto central fino (0.05 MRAD), grade de vento
+    // com pontos a cada 0.2 MRAD (maiores nos MRAD cheios) e traços finos de
+    // elevação a cada 0.2 MRAD numerados de 1 em 1 MIL — grade balística
+    // densa, característica S&B.
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+
+    const centerDotR2 = Math.max(1, 0.05 * pxPerMrad);
+    ctx.beginPath(); ctx.arc(cx, cy, centerDotR2, 0, Math.PI * 2); ctx.fill();
+
+    for (let s = 1; s <= 40; s++) {
+      const mrad = s * 0.2;
+      if (mrad > 8) break;
+      const full = Math.abs(mrad - Math.round(mrad)) < 0.001;
+      const r = full ? 1.8 : 1.1;
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * mrad * pxPerMrad;
+        if (!withinGlass(hx, cy)) return;
+        ctx.beginPath(); ctx.arc(hx, cy, r, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+
+    for (let s = 1; s <= 40; s++) {
+      const mrad = s * 0.2;
+      if (mrad > 8) break;
+      const full = Math.abs(mrad - Math.round(mrad)) < 0.001;
+      const vy = cy + mrad * pxPerMrad;
+      if (!withinGlass(cx, vy)) continue;
+      ctx.lineWidth = full ? 1.3 : 0.8;
+      ctx.beginPath(); ctx.moveTo(cx - (full ? 5 : 2.5), vy); ctx.lineTo(cx + (full ? 5 : 2.5), vy); ctx.stroke();
+      if (full) {
+        ctx.font = `700 9px ${RETICLE_MONO}`;
+        if (withinGlass(cx + 9, vy)) ctx.fillText(`${Math.round(mrad)}`, cx + 9, vy + 3);
+      }
+    }
+    ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'kahles_skmr4') {
+    // Kahles SKMR4: barras de vento a cada 0.5 MIL (sólidas e mais longas
+    // nos MILs cheios) mais a escala fina adicional de 0.2 MIL perto do
+    // centro (novidade do SKMR4 frente ao SKMR3) — desenhado pela atiradora
+    // de PRS Shannon Kay.
+    ctx.strokeStyle = '#12141a';
+
+    for (let s = 1; s <= 10; s++) {
+      const mrad = s * 0.2;
+      if (mrad > 2) break;
+      if (Math.abs(mrad % 0.5) < 0.001) continue;
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * mrad * pxPerMrad;
+        if (!withinGlass(hx, cy)) return;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(hx, cy - 3); ctx.lineTo(hx, cy + 3); ctx.stroke();
+      });
+    }
+
+    for (let s = 1; s <= 16; s++) {
+      const mrad = s * 0.5;
+      if (mrad > 8) break;
+      const full = Math.abs(mrad - Math.round(mrad)) < 0.001;
+      [1, -1].forEach(sign => {
+        const hx = cx + sign * mrad * pxPerMrad;
+        if (!withinGlass(hx, cy)) return;
+        ctx.lineWidth = full ? 1.6 : 1;
+        ctx.beginPath(); ctx.moveTo(hx, cy - (full ? 7 : 4)); ctx.lineTo(hx, cy + (full ? 7 : 4)); ctx.stroke();
+      });
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      const vy = cy + i * pxPerMrad;
+      if (!withinGlass(cx, vy)) continue;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(cx - 5, vy); ctx.lineTo(cx + 5, vy); ctx.stroke();
+    }
+
+    ctx.font = `700 10px ${RETICLE_MONO}`;
+    ctx.fillStyle = '#5b6472';
+    ctx.textAlign = 'center';
+    for (let i = 1; i <= 8; i++) {
+      const hxP = cx + i * pxPerMrad;
+      if (withinGlass(hxP, cy)) ctx.fillText(`${i}`, hxP, cy - 9);
+      const hxN = cx - i * pxPerMrad;
+      if (withinGlass(hxN, cy)) ctx.fillText(`${i}`, hxN, cy - 9);
+    }
+    ctx.textAlign = 'left';
+    ctx.font = `700 12px ${RETICLE_MONO}`;
     ctx.restore();
     return;
   }
