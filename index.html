@@ -829,6 +829,24 @@
     .reticle-expand-telemetry .t-item { border-bottom: 1px dashed #263019; padding-bottom: 6px; }
     .reticle-expand-telemetry .t-label { font-size: 8.5px; color: #63754a; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; }
     .reticle-expand-telemetry .t-value { font-size: 13px; color: #d7e6ba; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+    /* Painel de leitura do modo "Diagonal 45° (relógio)" do segundo
+       retículo — só aparece nesse modo (ver reticleExpandState.leadMode).
+       Mesma paleta escura oliva do resto do Modo Campo. */
+    .diag-lead-readout {
+      margin: 4px 14px 8px; background: #10160c; border: 1px solid #2e3a20; border-radius: 6px;
+      padding: 10px 12px; font-family: var(--font-mono, monospace);
+    }
+    .diag-lead-title { font-size: 10.5px; color: #9fc25f; font-weight: 800; letter-spacing: 0.3px; margin-bottom: 8px; }
+    .diag-lead-legs { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 10px; }
+    .diag-leg-item { font-size: 10.5px; color: #cddab8; display: flex; align-items: center; gap: 5px; }
+    .diag-leg-arrow { font-size: 13px; color: #9fc25f; font-weight: 800; }
+    .diag-lead-table-scroll { overflow-x: auto; }
+    .diag-lead-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .diag-lead-table th { text-align: left; color: #63754a; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; padding: 0 8px 6px 0; border-bottom: 1px solid #263019; }
+    .diag-lead-table td { color: #d7e6ba; font-weight: 700; padding: 6px 8px 6px 0; border-bottom: 1px dashed #263019; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .diag-lead-note { font-size: 9.5px; color: #63754a; line-height: 1.5; margin-top: 8px; }
+    .diag-lead-empty { font-size: 11px; color: #9fb37e; }
     @media (min-width: 640px) {
       .reticle-expand-canvases { flex-direction: row; justify-content: center; align-items: flex-start; }
     }
@@ -1008,20 +1026,20 @@ body.nvg-red-mode .leaflet-tile-container img {
 
 .cd2-alert-banner {
   display: flex; align-items: center; gap: 12px;
-  background: rgba(116,143,95,0.12); border: 1px solid var(--sem-good);
+  background: rgba(76,175,107,0.12); border: 1px solid #4caf6b;
   border-radius: 10px; padding: 12px 14px; margin: 10px;
 }
 .cd2-alert-banner .cd2-icon { font-size: 20px; flex-shrink: 0; }
 .cd2-alert-banner .cd2-txt { font-size: 12.5px; line-height: 1.4; color: var(--ink); }
-.cd2-alert-banner .cd2-txt b { font-weight: 700; color: var(--sem-good); }
-.cd2-alert-banner.cd2-alert-critical { background: rgba(193,72,61,0.14); border-color: var(--sem-hostile); }
-.cd2-alert-banner.cd2-alert-critical .cd2-txt b { color: var(--sem-hostile); }
+.cd2-alert-banner .cd2-txt b { font-weight: 700; color: #4caf6b; }
+.cd2-alert-banner.cd2-alert-critical { background: rgba(229,72,77,0.16); border-color: #e5484d; }
+.cd2-alert-banner.cd2-alert-critical .cd2-txt b { color: #e5484d; }
 @media (prefers-reduced-motion: no-preference) {
   .cd2-alert-banner.cd2-alert-critical { animation: cd2PulseAlert 1.8s ease-in-out infinite; }
 }
 @keyframes cd2PulseAlert {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(193,72,61,0); }
-  50% { box-shadow: 0 0 0 4px rgba(193,72,61,0.18); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77,0); }
+  50% { box-shadow: 0 0 0 4px rgba(229,72,77,0.22); }
 }
 
 .cd2-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin: 0 10px 10px; }
@@ -1029,8 +1047,8 @@ body.nvg-red-mode .leaflet-tile-container img {
 .cd2-stat-tile .cd2-lbl { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
 .cd2-stat-tile .cd2-big { font-family: var(--font-mono); font-size: 20px; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; color: var(--ink); }
 .cd2-stat-tile .cd2-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.cd2-stat-tile.cd2-stat-warn .cd2-big { color: var(--sem-caution); }
-.cd2-stat-tile.cd2-stat-critical .cd2-big { color: var(--sem-hostile); }
+.cd2-stat-tile.cd2-stat-warn .cd2-big { color: #f0b429; }
+.cd2-stat-tile.cd2-stat-critical .cd2-big { color: #e5484d; }
 
 .cd2-anim-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .cd2-anim-btn {
@@ -1096,9 +1114,9 @@ body.nvg-red-mode .leaflet-tile-container img {
   padding: 5px 6px; font-family: var(--font-mono); font-size: 11px; width: 100%; min-width: 96px;
 }
 .cd2-risk-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-weight: 700; font-size: 11px; }
-.cd2-risk-badge.cd2-low { background: rgba(116,143,95,0.16); color: var(--sem-good); border: 1px solid var(--sem-good); }
-.cd2-risk-badge.cd2-warn { background: rgba(209,165,63,0.16); color: var(--sem-caution); border: 1px solid var(--sem-caution); }
-.cd2-risk-badge.cd2-critical { background: rgba(193,72,61,0.18); color: var(--sem-hostile); border: 1px solid var(--sem-hostile); }
+.cd2-risk-badge.cd2-low { background: rgba(76,175,107,0.18); color: #4caf6b; border: 1px solid #4caf6b; }
+.cd2-risk-badge.cd2-warn { background: rgba(240,180,41,0.18); color: #f0b429; border: 1px solid #f0b429; }
+.cd2-risk-badge.cd2-critical { background: rgba(229,72,77,0.2); color: #e5484d; border: 1px solid #e5484d; }
 
   </style>
 </head>
@@ -1736,6 +1754,43 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
+    <div class="equip-card" style="border-left: 4px solid var(--action);">
+      <div class="card-title" style="color:var(--action);">🔭 CAMPO DE VISÃO DA LUNETA (ZOOM)</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+        O campo de visão em MRAD que cabe dentro do retículo encolhe conforme o zoom aumenta — é por isso que uma marcação de compensação pode aparecer na tela em zoom baixo e sumir no mesmo tiro em zoom alto. Informe abaixo o campo de visão real da sua luneta (a ficha técnica do fabricante costuma trazer "campo de visão a 100m/100 jardas", no zoom mínimo e no máximo) para o retículo representar isso com precisão. Se deixar em branco, o app usa um valor médio de referência (baseado em lunetas reais pesquisadas) — funcional, mas menos preciso que o dado real da sua luneta.
+      </div>
+      <div class="form-grid-4">
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="eqScopeFovPreset">Modelo de Luneta (preenche automático)</label>
+          <select id="eqScopeFovPreset" onchange="applyScopeFovPreset()">
+            <option value="">-- Manual / Outra luneta --</option>
+            <option value="hilux_pr5_5-25x56">Hi-Lux PR5 5-25x56 FFP</option>
+            <option value="vortex_venom_5-25x56">Vortex Venom 5-25x56</option>
+            <option value="nightforce_atacr_5-25x56">Nightforce ATACR 5-25x56 F1</option>
+            <option value="leupold_mark5hd_5-25x56">Leupold Mark 5HD 5-25x56</option>
+            <option value="sig_tango6_5-30x56">Sig Sauer Tango6 5-30x56</option>
+            <option value="leupold_vxfreedom_3-9x40">Leupold VX-Freedom 3-9x40</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eqScopeZoomMin">Zoom Mínimo da Luneta (x)</label>
+          <input type="number" id="eqScopeZoomMin" step="0.5" placeholder="Ex: 5" onchange="onScopeFovFieldsChanged()">
+        </div>
+        <div class="form-group">
+          <label for="eqScopeZoomMax">Zoom Máximo da Luneta (x)</label>
+          <input type="number" id="eqScopeZoomMax" step="0.5" placeholder="Ex: 25" onchange="onScopeFovFieldsChanged()">
+        </div>
+        <div class="form-group">
+          <label for="eqScopeFovMin">Campo de Visão a 100m no Zoom Mínimo (m)</label>
+          <input type="number" id="eqScopeFovMin" step="0.1" placeholder="Opcional — Ex: 6.8" onchange="onScopeFovFieldsChanged()">
+        </div>
+        <div class="form-group">
+          <label for="eqScopeFovMax">Campo de Visão a 100m no Zoom Máximo (m)</label>
+          <input type="number" id="eqScopeFovMax" step="0.1" placeholder="Opcional — Ex: 1.4" onchange="onScopeFovFieldsChanged()">
+        </div>
+      </div>
+    </div>
+
     <div class="equip-card" style="border-left: 4px solid var(--sem-caution);">
       <div class="card-title" style="color:var(--sem-caution);">🎯 CALIBRAÇÃO DE CAMPO (VELOCITY TRUING)</div>
       <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
@@ -2165,6 +2220,9 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="reticle-pill-group-label">Tipo de Alvo (referência)</div>
   <div id="reticleExpandTargetPills" class="reticle-pill-row"></div>
 
+  <div class="reticle-pill-group-label">Modo de Lead (retículo de deslocamento)</div>
+  <div id="reticleLeadModePills" class="reticle-pill-row"></div>
+
   <div class="reticle-expand-canvases">
     <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
       <div class="reticle-expand-sub-label">Retículo Principal</div>
@@ -2176,7 +2234,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
     <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-      <div class="reticle-expand-sub-label">Deslocamento Lateral (Lead)</div>
+      <div class="reticle-expand-sub-label" id="reticleLeadSubLabel">Deslocamento Lateral (Lead)</div>
       <canvas id="reticleExpandCanvasLead" width="320" height="320" style="background:#fff; border-radius:50%; border:4px solid #4b5a3a; box-shadow: 0 4px 16px rgba(0,0,0,0.6);"></canvas>
       <div class="reticle-zoom-row">
         <button type="button" class="reticle-zoom-btn" onclick="adjustReticleExpandZoom('lead', -0.25)">－</button>
@@ -2186,6 +2244,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
   </div>
 
+  <div id="diagLeadReadout" class="diag-lead-readout" style="display:none;"></div>
   <div id="reticleExpandTelemetry" class="reticle-expand-telemetry"></div>
 </div>
 
@@ -3149,7 +3208,7 @@ function renderTrajectoryProfileDiagram() {
   const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
   const zeroDist = simState.zeroDist;
   const targetDistM = simState.distance;
-  const AIM_HEIGHT_M = 1.2; // altura ilustrativa do ponto de mira sobre o "solo" do desenho — referência visual, não vem da balística
+  const AIM_HEIGHT_M = 0.3; // altura de zeragem do equipamento: posição do atirador deitado (boca do cano até o chão, com bipé) — referência real da posição de tiro, não é constante de balística
   const sceneEndM = Math.max(targetDistM, zeroDist) + Math.max(20, Math.round(targetDistM * 0.1));
   const gridStep = sceneEndM <= 400 ? 50 : 100;
   const hAG = d => AIM_HEIGHT_M - trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) / 100;
@@ -3201,7 +3260,7 @@ function renderTrajectoryProfileDiagram() {
 
   s += `<line x1="${ML}" y1="${Yh(0)}" x2="${ML+plotW}" y2="${Yh(0)}" stroke="var(--ink)" stroke-width="1.6"/>`;
   s += `<line x1="${X(0)}" y1="${Yh(AIM_HEIGHT_M)}" x2="${X(drawEndM)}" y2="${Yh(AIM_HEIGHT_M)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
-  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="10" text-anchor="start">ponto de mira ≈${AIM_HEIGHT_M.toFixed(1).replace('.', ',')}m</text>`;
+  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="10" text-anchor="start">altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
 
   s += `<line x1="${X(splitM)}" y1="${MT}" x2="${X(splitM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
   s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="9.5" text-anchor="middle">zero ${zeroDist}m</text>`;
@@ -3271,7 +3330,7 @@ function computeCompensationMrad(fps, bcVal, scopeH_m, zeroDist, targetDistM) {
 // que os dois leem exatamente os mesmos números (o pedido explícito do
 // plano: "só a apresentação muda").
 function getCompensatedTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM) {
-  const AIM_HEIGHT_M = 1.2; // altura ilustrativa do ponto de mira — referência visual, não vem da balística
+  const AIM_HEIGHT_M = 0.3; // altura de zeragem do equipamento: posição do atirador deitado (boca do cano até o chão, com bipé)
   const compMrad = computeCompensationMrad(fps, bcVal, scopeH_m, zeroDist, targetDistM);
   const hAGComp = d => {
     const compHeightCm = trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) - d * 0.1 * compMrad;
@@ -3308,7 +3367,7 @@ function getCompensatedTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, s
 // câmera lenta desse diagrama (pedido do usuário: o diagrama estático de
 // queda também precisa de uma versão animada, com os mesmos números).
 function getRawTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM) {
-  const AIM_HEIGHT_M = 1.2;
+  const AIM_HEIGHT_M = 0.3; // altura de zeragem do equipamento (atirador deitado)
   const hAG = d => AIM_HEIGHT_M - trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) / 100;
 
   let impactD = null;
@@ -3415,7 +3474,7 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
 
   s += `<line x1="${ML}" y1="${Yh(0)}" x2="${ML+plotW}" y2="${Yh(0)}" stroke="var(--ink)" stroke-width="1.6"/>`;
   s += `<line x1="${X(0)}" y1="${Yh(AIM_HEIGHT_M)}" x2="${X(drawEndM)}" y2="${Yh(AIM_HEIGHT_M)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
-  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="10" text-anchor="start">linha de mira original ≈${AIM_HEIGHT_M.toFixed(1).replace('.', ',')}m</text>`;
+  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="10" text-anchor="start">linha de mira original — altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
 
   s += `<line x1="${X(splitM)}" y1="${MT}" x2="${X(splitM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
   s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="9.5" text-anchor="middle">pico ~${splitM.toFixed(0)}m</text>`;
@@ -3567,8 +3626,35 @@ function cd2RiskTier(risk) {
   if (risk >= CD2_RISK_WARN) return 'warn';
   return 'low';
 }
+// Cores de risco mais vivas que os tokens --sem-* padrão do app (que são
+// deliberadamente dessaturados/"instrumento") — aqui a cor É a informação
+// principal (verde/âmbar/vermelho do ícone, do badge, do stat tile e do
+// banner), então usamos tons mais saturados só nesta seção.
+const CD2_COLOR_GOOD = '#4caf6b';
+const CD2_COLOR_WARN = '#f0b429';
+const CD2_COLOR_CRITICAL = '#e5484d';
+
 function cd2RiskColor(tier) {
-  return tier === 'critical' ? 'var(--sem-hostile)' : (tier === 'warn' ? 'var(--sem-caution)' : 'var(--sem-good)');
+  return tier === 'critical' ? CD2_COLOR_CRITICAL : (tier === 'warn' ? CD2_COLOR_WARN : CD2_COLOR_GOOD);
+}
+
+// Ícone do alvo móvel: placa de mira (miras concêntricas) sobre um carrinho
+// com rodinhas, apoiado no trilho — substitui o emoji 🎯 por algo que
+// ilustra de verdade "alvo de treinamento em esteira/trilho" (escolhido
+// entre 4 opções apresentadas ao usuário). O anel do meio usa a cor de
+// risco (parâmetro ringColor); o resto do desenho é neutro. `scale` encolhe
+// o ícone pros alvos não-selecionados no sistema de compensação.
+function cd2TargetIconSvg(ringColor, scale) {
+  const sc = scale || 1;
+  return `<g transform="scale(${sc})">
+    <line x1="0" y1="-2" x2="0" y2="-9" stroke="var(--muted)" stroke-width="1.6"/>
+    <circle cx="0" cy="-13.5" r="6.2" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
+    <circle cx="0" cy="-13.5" r="4.1" fill="none" stroke="${ringColor}" stroke-width="2.1"/>
+    <circle cx="0" cy="-13.5" r="1.9" fill="var(--accent)"/>
+    <rect x="-6.5" y="-2" width="13" height="6.5" rx="1.6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.1"/>
+    <circle cx="-4" cy="5.5" r="2.1" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.2"/>
+    <circle cx="4" cy="5.5" r="2.1" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.2"/>
+  </g>`;
 }
 
 // ---- geometria da cena — compartilhada pelos dois diagramas, pra ficarem
@@ -3649,15 +3735,13 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
     const yArrive = Y(row.posAtArrival);
     const yBullet = Y(row.driftM);
     const upperHalf = row.posAtArrival < 0;
-    const arrowDir = row.posAtArrival < row.p.offset ? -1 : 1;
 
     s += `<rect id="cd2-halo-${row.d}" x="${xC-5}" y="${yBullet - CD2_RISK_SIGMA*scaleY}" width="10" height="${CD2_RISK_SIGMA*2*scaleY}" rx="5" fill="${color}" opacity="0.13"/>`;
     s += `<line id="cd2-trail-${row.d}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="1.6" stroke-dasharray="3 3" opacity="0.75"/>`;
     s += `<circle cx="${xC}" cy="${yStart}" r="3" fill="none" stroke="var(--muted)" stroke-width="1.3"/>`;
 
     s += `<g id="cd2-mover-${row.d}" transform="translate(${xC},${yArrive})">`;
-    s += `<path d="M -4,${-arrowDir*8} L 0,0 L 4,${-arrowDir*8}" fill="none" stroke="${color}" stroke-width="1.6"/>`;
-    s += `<text x="0" y="6" font-size="18" text-anchor="middle">🎯</text>`;
+    s += cd2TargetIconSvg(color, 1);
     s += `</g>`;
 
     const labelY0 = upperHalf ? yArrive + 22 : yArrive - 26;
@@ -3684,9 +3768,9 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--muted);"></span>linha de mira (reta)</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--action);"></span>trajetória real (com deriva de vento)</span>
     <span class="cd2-sw">🎯 lento (1,4 m/s) · 🎯 rápido (3,8 m/s)</span>
-    <span class="cd2-sw"><span class="cd2-dot" style="background:var(--sem-good);"></span>risco baixo</span>
-    <span class="cd2-sw"><span class="cd2-dot" style="background:var(--sem-caution);"></span>risco moderado</span>
-    <span class="cd2-sw"><span class="cd2-dot" style="background:var(--sem-hostile);"></span>risco crítico de interceptação</span>
+    <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_GOOD};"></span>risco baixo</span>
+    <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_WARN};"></span>risco moderado</span>
+    <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_CRITICAL};"></span>risco crítico de interceptação</span>
   `;
 }
 
@@ -3770,7 +3854,7 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     s += `<line id="cd2-comp-trail-${row.d}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="1.6" stroke-dasharray="3 3" opacity="${isSel ? 0.75 : 0.35}"/>`;
     s += `<circle cx="${xC}" cy="${yArrive}" r="3" fill="none" stroke="${isSel ? 'var(--muted)' : 'var(--line)'}" stroke-width="1.3"/>`;
     s += `<g id="cd2-comp-mover-${row.d}" transform="translate(${xC},${yStart})" opacity="${isSel ? 1 : 0.45}">`;
-    s += `<text x="0" y="6" font-size="${isSel ? 18 : 13}" text-anchor="middle">🎯</text>`;
+    s += cd2TargetIconSvg(color, isSel ? 1 : 0.72);
     s += `</g>`;
   });
 
@@ -7948,6 +8032,117 @@ const RETICLE_MONO = `'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, m
 // estourar a largura em telas de celular mais estreitas.
 const RETICLE_SIZE_PX = 320;
 const RETICLE_PX_PER_MRAD = 23;
+
+// ---------- Campo de visão real da luneta (varia com o zoom) ----------
+// O campo de visão angular de QUALQUER luneta encolhe conforme o zoom
+// aumenta — é desenho da ocular, não da objetiva (pesquisado com fichas
+// técnicas reais: Hi-Lux, Vortex, Nightforce, Leupold x2, Sig Sauer, de
+// objetivas 40mm a 56mm — todas com "campo de visão x zoom" praticamente
+// constante dentro da própria luneta, girando entre ~310 e ~405 MRAD·zoom).
+// Por isso o retículo NÃO pode usar um pxPerMrad fixo: o mesmo círculo de
+// pixels do canvas representa uma fatia de MRAD diferente em cada zoom —
+// mais estreita em zoom alto, mais larga em zoom baixo. É por isso que uma
+// marcação pode aparecer dentro do vidro a 10x e sumir a 20x.
+//   K = campo_de_visão_m_a_100m(zoom) × zoom × 10
+//   raio_visível_MRAD(zoom) = K / (2 × zoom)
+const SCOPE_FOV_K_DEFAULT = 360; // média das lunetas reais pesquisadas — só entra em jogo quando o operador não informa a luneta dele
+
+// Catálogo semente com lunetas reais pesquisadas em ficha técnica de
+// fabricante. Diferente do catálogo de armas (weaponsCatalog), que vem do
+// servidor (fetchWeaponsCatalog), este é local: ainda não existe endpoint
+// de lunetas na API. Se o operador não achar a luneta dele aqui, preenche
+// manual (a prioridade é sempre do dado real informado — ver getScopeFovConstant).
+let SCOPE_FOV_CATALOG = {
+  'hilux_pr5_5-25x56':        { name: 'Hi-Lux PR5 5-25x56 FFP',      zoomMin: 5, zoomMax: 25, fovMinM: 8.0,  fovMaxM: 1.6 },
+  'vortex_venom_5-25x56':     { name: 'Vortex Venom 5-25x56',        zoomMin: 5, zoomMax: 25, fovMinM: 7.1,  fovMaxM: 1.6 },
+  'nightforce_atacr_5-25x56': { name: 'Nightforce ATACR 5-25x56 F1', zoomMin: 5, zoomMax: 25, fovMinM: 6.2,  fovMaxM: 1.6 },
+  'leupold_mark5hd_5-25x56':  { name: 'Leupold Mark 5HD 5-25x56',    zoomMin: 5, zoomMax: 25, fovMinM: 6.8,  fovMaxM: 1.4 },
+  'sig_tango6_5-30x56':       { name: 'Sig Sauer Tango6 5-30x56',    zoomMin: 5, zoomMax: 30, fovMinM: 6.3,  fovMaxM: 1.1 },
+  'leupold_vxfreedom_3-9x40': { name: 'Leupold VX-Freedom 3-9x40',   zoomMin: 3, zoomMax: 9,  fovMinM: 11.0, fovMaxM: 4.5 },
+};
+
+async function fetchScopeFovCatalog() {
+  try {
+    const response = await fetch('https://api.geosniper.com.br/api/scopes');
+    if (!response.ok) return;
+    const remote = await response.json();
+    if (!remote || !Object.keys(remote).length) return;
+    SCOPE_FOV_CATALOG = remote;
+
+    // Reconstroi as opções do select com o catálogo do servidor, preservando
+    // a luneta já selecionada (se ela ainda existir na lista nova) — mesmo
+    // padrão do fetchWeaponsCatalog(). Se a chamada falhar (offline etc.), o
+    // catálogo local semente (6 lunetas) definido acima continua valendo.
+    const selectEl = document.getElementById('eqScopeFovPreset');
+    if (!selectEl) return;
+    const currentVal = selectEl.value;
+    selectEl.innerHTML = '<option value="">-- Manual / Outra luneta --</option>';
+    for (const key in SCOPE_FOV_CATALOG) {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.innerText = SCOPE_FOV_CATALOG[key].name;
+      selectEl.appendChild(opt);
+    }
+    if (currentVal && SCOPE_FOV_CATALOG[currentVal]) selectEl.value = currentVal;
+  } catch (err) {
+    console.warn('Não foi possível carregar catálogo remoto de lunetas (usando lista local):', err);
+  }
+}
+
+function applyScopeFovPreset() {
+  const key = document.getElementById('eqScopeFovPreset')?.value;
+  const preset = SCOPE_FOV_CATALOG[key];
+  if (preset) {
+    const zMinEl = document.getElementById('eqScopeZoomMin');
+    const zMaxEl = document.getElementById('eqScopeZoomMax');
+    const fMinEl = document.getElementById('eqScopeFovMin');
+    const fMaxEl = document.getElementById('eqScopeFovMax');
+    if (zMinEl) zMinEl.value = preset.zoomMin;
+    if (zMaxEl) zMaxEl.value = preset.zoomMax;
+    if (fMinEl) fMinEl.value = preset.fovMinM;
+    if (fMaxEl) fMaxEl.value = preset.fovMaxM;
+  }
+  onScopeFovFieldsChanged();
+}
+
+// Prioridade: dado real da luneta do operador (zoom + campo de visão
+// preenchidos, direto da ficha técnica ou via preset acima) > valor padrão
+// genérico (SCOPE_FOV_K_DEFAULT), usado só quando falta informação.
+function getScopeFovConstant() {
+  const zMin = parseFloat(document.getElementById('eqScopeZoomMin')?.value);
+  const zMax = parseFloat(document.getElementById('eqScopeZoomMax')?.value);
+  const fMin = parseFloat(document.getElementById('eqScopeFovMin')?.value);
+  const fMax = parseFloat(document.getElementById('eqScopeFovMax')?.value);
+
+  const ks = [];
+  if (zMin > 0 && fMin > 0) ks.push(fMin * zMin * 10);
+  if (zMax > 0 && fMax > 0) ks.push(fMax * zMax * 10);
+
+  if (ks.length) return ks.reduce((a, b) => a + b, 0) / ks.length;
+  return SCOPE_FOV_K_DEFAULT;
+}
+
+// pxPerMrad deixa de ser fixo (RETICLE_PX_PER_MRAD segue existindo só como
+// fallback de segurança): o raio do vidro em pixels não muda, mas quanto de
+// MRAD cabe nele muda com o zoom — em zoom alto, cada MRAD ocupa mais
+// pixels (menos MRAD cabe no mesmo círculo); em zoom baixo, cada MRAD ocupa
+// menos pixels (mais MRAD cabe).
+function computeDynamicPxPerMrad(zoomLevel, radiusPx) {
+  const z = parseFloat(zoomLevel) || 15;
+  const K = getScopeFovConstant();
+  const visibleMradRadius = K / (2 * z);
+  if (!visibleMradRadius || !isFinite(visibleMradRadius) || visibleMradRadius <= 0) return RETICLE_PX_PER_MRAD;
+  return radiusPx / visibleMradRadius;
+}
+
+function onScopeFovFieldsChanged() {
+  saveGunProfile();
+  if (typeof redrawReticleWithDial === 'function') redrawReticleWithDial();
+  if (document.getElementById('reticleExpandModal')?.style.display === 'block') {
+    renderReticleExpandView();
+  }
+}
+
 const DIST_LABEL_FONT_PX = 13;
 const DIST_LABEL_OFFSET_PX = 36;
 
@@ -8360,7 +8555,7 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   ctx.beginPath(); ctx.moveTo(cx, cy - taperAt); ctx.lineTo(cx, cy + taperAt); ctx.stroke();
 
   // Escala Mil-Dot Fixo (1 MRAD no Canvas)
-  const pxPerMrad = opts.pxPerMrad || RETICLE_PX_PER_MRAD;
+  const pxPerMrad = opts.pxPerMrad || computeDynamicPxPerMrad(zoomLevel, radius);
 
   // false só nos dois retículos do modo Campo (EXPANDIR) — no retículo
   // original da aba Balística continua tudo como estava.
@@ -8469,7 +8664,13 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
     const dialedDropCm = trajectoryHeightCmDialed(distanceMeters, dialedAngleRad, fps, bcVal, scopeH_m);
     const dialedMrad = distanceMeters <= 100 ? 0 : dialedDropCm / (distanceMeters * 0.1);
     const dialedY = cy + (dialedMrad * pxPerMrad);
-    const dialedX = targetX;
+    // CORRIGIDO: a torre simulada só dial ELEVAÇÃO (cliques verticais) — nunca
+    // deve carregar deriva de vento. Antes usava "targetX" (= cx + mradWind),
+    // então se o vento ficasse desatualizado (campo zerado sem recalcular a
+    // solução) o ponto amarelo continuava mostrando a influência do vento
+    // antigo. Fixo em cx: o ponto simulado fica sempre na coluna vertical do
+    // centro, sem depender do vento em hipótese nenhuma.
+    const dialedX = cx;
 
     ctx.setLineDash([3, 3]);
     ctx.strokeStyle = "rgba(230,180,40,0.65)";
@@ -8553,7 +8754,42 @@ const LEAD_SPEED_PRESETS = [
   { id: 'correndo', label: '🏃 Correndo', emoji: '🏃',   mps: 3.5, color: '#c1483d' },
 ];
 
-let reticleExpandState = { style: 'mildot', targetTypeId: 'humano', zoomMain: 1, zoomLead: 1 };
+// Pernas de deslocamento diagonal (relógio de 12h como referência, igual o
+// vento) — o alvo se desloca em linha reta a exatos 45° entre o eixo lateral
+// e o vertical do retículo, numa das quatro direções pedidas: subindo rumo
+// à 1h30, descendo rumo à 4h30, descendo rumo à 7h30, subindo rumo à 10h30
+// — as quatro diagonais de um relógio, sempre alternando subida/descida.
+// dirX/dirY são os sinais (±1) de cada eixo NO RETÍCULO (tela): X positivo
+// é direita, Y positivo é pra baixo — mesmo referencial de cy/targetY já
+// usado em todo o motor de desenho (renderReticle).
+const DIAG_LEAD_LEGS = [
+  { id: 'ne', clock: '1h30',  arrow: '↗', verb: 'subindo',  dirX: +1, dirY: -1 },
+  { id: 'se', clock: '4h30',  arrow: '↘', verb: 'descendo', dirX: +1, dirY: +1 },
+  { id: 'sw', clock: '7h30',  arrow: '↙', verb: 'descendo', dirX: -1, dirY: +1 },
+  { id: 'nw', clock: '10h30', arrow: '↖', verb: 'subindo',  dirX: -1, dirY: -1 },
+];
+
+// cos(45°) = sen(45°) — como as quatro pernas são sempre a exatos 45°, o
+// deslocamento total do alvo (lead(m) = velocidade × tempo de voo, igual ao
+// retículo horizontal) se reparte em partes IGUAIS entre o eixo lateral e o
+// eixo vertical. Por isso o valor "por eixo" é o mesmo número nas quatro
+// direções — só o sinal (pra que lado somar/subtrair) muda com a perna.
+const DIAG_45 = Math.SQRT1_2; // 0.70710678...
+
+// Compensação diagonal pra um ritmo (preset) de deslocamento: reaproveita a
+// MESMA física já usada em drawLateralLeadMarkers (lead(m) = velocidade ×
+// tempo de voo REAL do tiro atual — já vindo da solução balística completa,
+// com vento/ângulo/temperatura/pressão da aba Equipamento embutidos no
+// cálculo de t_flight do motor). Só decompõe esse lead total nos dois eixos
+// do retículo, em vez de aplicar tudo na horizontal.
+function calcDiagLeadForPreset(preset, tFlight, distanceMeters) {
+  const leadM = preset.mps * tFlight;
+  const totalMil = (leadM * 1000) / distanceMeters;
+  const axisMil = totalMil * DIAG_45;
+  return { totalMil, totalMoa: mradToMoa(totalMil), axisMil, axisMoa: mradToMoa(axisMil) };
+}
+
+let reticleExpandState = { style: 'mildot', targetTypeId: 'humano', zoomMain: 1, zoomLead: 1, leadMode: 'horizontal' };
 
 function openReticleExpandModal() {
   if (!lastReticleRenderArgs) {
@@ -8566,6 +8802,7 @@ function openReticleExpandModal() {
 
   renderReticleExpandStylePills();
   renderReticleExpandTargetPills();
+  renderReticleLeadModePills();
   document.getElementById('reticleExpandModal').style.display = 'block';
   renderReticleExpandView();
   applyReticleExpandZoomTransforms();
@@ -8603,6 +8840,33 @@ function selectReticleExpandTarget(targetId) {
   renderReticleExpandView();
 }
 
+// Modo do retículo de deslocamento (segundo canvas, "EXPANDIR"): Horizontal
+// é o lead lateral original (sempre existiu); Diagonal 45° é a extensão
+// pedida — quatro pernas em relógio, sempre a 45°, alternando subida/descida
+// (ver DIAG_LEAD_LEGS). Os dois nunca aparecem juntos — troca por pill, como
+// o estilo de retículo e o tipo de alvo logo acima.
+const RETICLE_LEAD_MODES = [
+  { id: 'horizontal', label: '↔ Horizontal' },
+  { id: 'diagonal',   label: '◇ Diagonal 45° (relógio)' },
+];
+
+function renderReticleLeadModePills() {
+  const box = document.getElementById('reticleLeadModePills');
+  if (box) {
+    box.innerHTML = RETICLE_LEAD_MODES.map(m => `
+      <button type="button" class="reticle-pill ${m.id === reticleExpandState.leadMode ? 'active' : ''}" onclick="selectReticleLeadMode('${m.id}')">${m.label}</button>
+    `).join('');
+  }
+  const label = document.getElementById('reticleLeadSubLabel');
+  if (label) label.textContent = reticleExpandState.leadMode === 'diagonal' ? 'Deslocamento Diagonal (relógio)' : 'Deslocamento Lateral (Lead)';
+}
+
+function selectReticleLeadMode(modeId) {
+  reticleExpandState.leadMode = modeId;
+  renderReticleLeadModePills();
+  renderReticleExpandView();
+}
+
 // Zoom independente por retículo — não redesenha em escala diferente (o
 // desenho continua o mesmo pxPerMrad dos dois), só amplia visualmente via
 // CSS, então cada canvas pode ter seu próprio nível sem afetar o outro.
@@ -8630,8 +8894,20 @@ function renderReticleExpandView() {
   const [mradElevVal, mradWindVal, dist, zoomLevel] = lastReticleRenderArgs;
   const style = reticleExpandState.style;
 
-  renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: false });
+  // Retículo Principal (esquerda): volta a mostrar a coluna de distância
+  // real dialada + zoom estimado (igual o retículo original da aba
+  // Balística) — só o retículo de Deslocamento (direita) usa a coluna de
+  // MOA por referência, já que ali o espaço à esquerda é ocupado pelas
+  // marcações de lead/diagonal.
+  renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: true });
   renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasLead', sizePx: 320, telemetryId: null, showDialedDistances: false });
+
+  // Mesma escala dinâmica (campo de visão real da luneta no zoom sugerido)
+  // que renderReticle acabou de usar nos dois canvases acima — sem isso, a
+  // faixa de altura do alvo e as marcações de lead ficariam desalinhadas da
+  // cruzeta/graduação assim que o campo de visão deixasse de usar o fixo
+  // RETICLE_PX_PER_MRAD.
+  const pxPerMradExpand = computeDynamicPxPerMrad(zoomLevel, (320 / 2) - 12);
 
   // Faixa de altura do alvo selecionado (javali/veado/humano/placa), desenhada
   // sobre o retículo principal, ao lado do ponto de mira — é o efeito visual
@@ -8642,33 +8918,53 @@ function renderReticleExpandView() {
     const ctx = mainCanvas.getContext('2d');
     const size = 320;
     const cx = size / 2, cy = size / 2;
-    drawTargetHeightBracket(ctx, cx, cy, RETICLE_PX_PER_MRAD, mradElevVal, mradWindVal, dist);
+    drawTargetHeightBracket(ctx, cx, cy, pxPerMradExpand, mradElevVal, mradWindVal, dist);
   }
 
-  // Marcações de lead lateral por cima do retículo base do segundo canvas —
-  // usa o mesmo contexto/escala que renderReticle acabou de configurar nele.
+  // Marcações de lead por cima do retículo base do segundo canvas — usa o
+  // mesmo contexto/escala que renderReticle acabou de configurar nele. Dois
+  // modos possíveis (pill acima do canvas): horizontal (só lateral, como
+  // sempre foi) ou diagonal 45° (as quatro pernas em relógio).
   const leadCanvas = document.getElementById('reticleExpandCanvasLead');
   if (leadCanvas) {
     const ctx = leadCanvas.getContext('2d');
     const size = 320;
     const cx = size / 2, cy = size / 2, radius = (size / 2) - 12;
-    drawLateralLeadMarkers(ctx, cx, cy, RETICLE_PX_PER_MRAD, radius, dist);
+    if (reticleExpandState.leadMode === 'diagonal') {
+      drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
+    } else {
+      drawLateralLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
+    }
   }
 
+  renderDiagLeadReadout(dist);
   renderReticleExpandTelemetry(dist, zoomLevel);
 }
 
-// Marca, nos dois lados da linha horizontal do retículo, quantos MILs
-// adiantar a mira pra cada ritmo de deslocamento lateral humano — lead (m) =
-// velocidade (m/s) × tempo de voo do tiro atual; lead (MIL) = lead(m)×1000/dist.
-// Legenda compacta, posicionada por distância real ao centro (não pelo canto
-// do canvas quadrado) pra nunca cair fora do vidro circular — antes ela usava
-// "cx-radius+14" como se o vidro fosse quadrado, e o texto saía cortado pelo
-// arredondamento do canvas.
-function drawLateralLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters) {
+// Marca, nos dois lados do ponto de mira JÁ compensado (queda + deriva do
+// vento — o mesmo ponto vermelho que renderReticle desenha neste canvas),
+// quantos MILs adiantar a mira pra cada ritmo de deslocamento lateral
+// humano — lead (m) = velocidade (m/s) × tempo de voo do tiro atual;
+// lead (MIL) = lead(m)×1000/dist. CORRIGIDO: antes essas marcas partiam do
+// centro geométrico do vidro (cx,cy) e ignoravam a deriva do vento — mas o
+// vento já desloca o ponto de encontro pro lado (é o que o marcador
+// vermelho mostra), e é A PARTIR DESSE PONTO, não do meio do vidro, que o
+// lead do alvo se soma.
+// Legenda compacta, posicionada por distância real ao centro geométrico
+// (não pelo canto do canvas quadrado) pra nunca cair fora do vidro circular
+// — antes ela usava "cx-radius+14" como se o vidro fosse quadrado, e o
+// texto saía cortado pelo arredondamento do canvas. Ela fica fixa nesse
+// canto (não acompanha o ponto de mira) só pra não sair do vidro quando o
+// vento empurra o ponto pra perto da borda.
+function drawLateralLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters, mradElev, mradWind) {
   const data = lastBallisticData || {};
   const tFlight = parseFloat(data.t_flight) || 0;
   if (!tFlight || !distanceMeters) return;
+
+  // Ponto de mira já compensado (mesmo "alvo vermelho" que renderReticle
+  // desenha neste canvas) — o lead lateral se soma A PARTIR dele.
+  const anchorX = cx + ((mradWind || 0) * pxPerMrad);
+  const anchorY = cy + ((mradElev || 0) * pxPerMrad);
 
   ctx.save();
   // Ponto de partida bem dentro do círculo (86px acima do centro, num
@@ -8687,13 +8983,14 @@ function drawLateralLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters) 
     const px = leadMil * pxPerMrad;
 
     // Traços mais grossos e mais longos que antes — precisavam ficar mais
-    // visíveis no vidro.
+    // visíveis no vidro. Partem de anchorX/anchorY (ponto já compensado),
+    // não de cx/cy — por isso o vento desloca as duas marcas juntas.
     [1, -1].forEach(sign => {
-      const x = cx + sign * px;
-      if (Math.abs(x - cx) > radius - 16) return;
+      const x = anchorX + sign * px;
+      if (Math.hypot(x - cx, anchorY - cy) > radius - 16) return;
       ctx.beginPath();
-      ctx.moveTo(x, cy - 11);
-      ctx.lineTo(x, cy + 11);
+      ctx.moveTo(x, anchorY - 11);
+      ctx.lineTo(x, anchorY + 11);
       ctx.strokeStyle = preset.color;
       ctx.lineWidth = 4;
       ctx.lineCap = 'round';
@@ -8731,6 +9028,176 @@ function drawLateralLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters) 
   });
 
   ctx.restore();
+}
+
+// Marca, nas quatro diagonais A PARTIR DO PONTO DE MIRA JÁ COMPENSADO (queda
+// + deriva do vento — o mesmo ponto vermelho que renderReticle desenha neste
+// canvas; ver a mesma correção em drawLateralLeadMarkers), quantos MILs
+// adiantar a mira EM CADA EIXO pra cada ritmo de deslocamento — mesma física
+// de drawLateralLeadMarkers, só decomposta nos dois eixos
+// (calcDiagLeadForPreset). Como as quatro pernas são sempre 45°, a distância
+// do ponto de mira até cada marca é IGUAL nas quatro direções, pra um mesmo
+// ritmo — só muda o sinal de cada eixo. Desenha, pra cada ritmo, um "losango"
+// tracejado ligando as quatro pernas, do mais lento (mais interno) ao mais
+// rápido (mais externo).
+//
+// PRINCÍPIO (o mesmo que vale pro lead lateral, só que nas quatro direções):
+// o ponto de mira É o ponto de encontro — fica À FRENTE do alvo, no sentido
+// em que ele se desloca (por isso a marca da perna "1h30 subindo" fica pra
+// cima-e-direita a partir do ponto de mira: é aonde o alvo vai chegar). Na
+// hora do disparo, a posição ATUAL do alvo aparece no sentido OPOSTO ao da
+// perna a partir desse mesmo ponto — alvo subindo rumo a 1h30 está, agora,
+// visualmente a 7h30 do ponto de mira.
+function drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters, mradElev, mradWind) {
+  const data = lastBallisticData || {};
+  const tFlight = parseFloat(data.t_flight) || 0;
+  if (!tFlight || !distanceMeters) return;
+
+  // Ponto de mira já compensado (mesmo "alvo vermelho" que renderReticle
+  // desenha neste canvas) — as quatro pernas partem DELE, não do centro
+  // geométrico do vidro, por isso o vento desloca o losango inteiro junto.
+  const anchorX = cx + ((mradWind || 0) * pxPerMrad);
+  const anchorY = cy + ((mradElev || 0) * pxPerMrad);
+
+  ctx.save();
+  ctx.lineJoin = 'round';
+
+  LEAD_SPEED_PRESETS.forEach((preset) => {
+    const { axisMil } = calcDiagLeadForPreset(preset, tFlight, distanceMeters);
+    const axisPx = axisMil * pxPerMrad;
+
+    const pts = DIAG_LEAD_LEGS.map(leg => ({ leg, x: anchorX + leg.dirX * axisPx, y: anchorY + leg.dirY * axisPx }));
+    if (pts.some(p => Math.hypot(p.x - cx, p.y - cy) > radius - 16)) return; // alguma perna sai do vidro — não desenha o losango incompleto
+
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = preset.color;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    pts.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+      ctx.fillStyle = preset.color;
+      ctx.fill();
+    });
+  });
+
+  // Rótulos das quatro direções (seta + hora do relógio), uma vez cada, na
+  // perna mais externa (🏃 Correndo — a mais visível) que ainda couber no
+  // vidro — halo branco atrás do texto, mesmo recurso de drawTargetHeightBracket,
+  // pra ficar legível em cima do vidro claro e das linhas tracejadas.
+  const outer = LEAD_SPEED_PRESETS[LEAD_SPEED_PRESETS.length - 1];
+  const outerCalc = calcDiagLeadForPreset(outer, tFlight, distanceMeters);
+  const outerPx = outerCalc.axisMil * pxPerMrad;
+  const outerPts = DIAG_LEAD_LEGS.map(leg => ({ leg, x: anchorX + leg.dirX * outerPx, y: anchorY + leg.dirY * outerPx }));
+  if (outerPts.every(p => Math.hypot(p.x - cx, p.y - cy) <= radius - 16)) {
+    ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.lineWidth = 3;
+    ctx.textBaseline = 'middle';
+    outerPts.forEach(({ leg, x, y }) => {
+      const labelX = x + leg.dirX * 10;
+      const labelY = y + leg.dirY * 10;
+      ctx.textAlign = leg.dirX > 0 ? 'left' : 'right';
+      const text = `${leg.arrow} ${leg.clock}`;
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.strokeText(text, labelX, labelY);
+      ctx.fillStyle = '#4a3a1a';
+      ctx.fillText(text, labelX, labelY);
+    });
+  }
+
+  // Legenda compacta (mesma posição/estilo do lead horizontal) — mil por
+  // EIXO de cada ritmo (o que efetivamente dá pra "ler e aplicar": adiante
+  // a mira em X mil pra cada lado que o alvo se move, nos dois eixos).
+  const legendX = cx - Math.min(95, radius - 40);
+  let legendY = cy - Math.min(58, radius - 60);
+  const rowH = 20;
+  ctx.textBaseline = 'middle';
+
+  LEAD_SPEED_PRESETS.forEach((preset) => {
+    const { axisMil } = calcDiagLeadForPreset(preset, tFlight, distanceMeters);
+    const text = `${axisMil.toFixed(1)} mil/eixo`;
+    ctx.font = `700 13px ${RETICLE_MONO}`;
+    const textW = ctx.measureText(text).width;
+    const emojiSize = 19;
+    const gap = 6;
+    const chipW = emojiSize + gap + textW + 14;
+    const chipH = 19;
+    ctx.fillStyle = 'rgba(10,14,10,0.6)';
+    ctx.beginPath();
+    if (ctx.roundRect) { ctx.roundRect(legendX - 5, legendY - chipH / 2, chipW, chipH, 5); } else { ctx.rect(legendX - 5, legendY - chipH / 2, chipW, chipH); }
+    ctx.fill();
+
+    ctx.textAlign = 'left';
+    ctx.font = `${emojiSize}px ${RETICLE_MONO}`;
+    ctx.fillText(preset.emoji, legendX, legendY);
+
+    ctx.font = `700 13px ${RETICLE_MONO}`;
+    ctx.fillStyle = preset.color;
+    ctx.fillText(text, legendX + emojiSize + gap, legendY);
+
+    legendY += rowH;
+  });
+
+  ctx.restore();
+}
+
+// Painel de leitura do modo "Diagonal 45° (relógio)" — só aparece nesse
+// modo (ver reticleExpandState.leadMode). Reúne, pros três ritmos, o
+// mil/MOA POR EIXO (o que aplicar em cada perna, nos dois eixos — 45°
+// reparte igual) e o mil/MOA TOTAL (distância reta percorrida pelo alvo),
+// mais o tempo de voo compartilhado (é o mesmo tiro, então é o mesmo tempo
+// pras três velocidades) e a lista das quatro pernas com seu sentido.
+function renderDiagLeadReadout(distanceMeters) {
+  const box = document.getElementById('diagLeadReadout');
+  if (!box) return;
+
+  if (reticleExpandState.leadMode !== 'diagonal') {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  const data = lastBallisticData || {};
+  const tFlight = parseFloat(data.t_flight) || 0;
+
+  box.style.display = 'block';
+
+  if (!tFlight || !distanceMeters) {
+    box.innerHTML = `<div class="diag-lead-empty">⚠️ Calcule uma solução balística primeiro (⚡ CALCULAR SOLUÇÃO & RETÍCULO) pra ver os ajustes diagonais.</div>`;
+    return;
+  }
+
+  const rows = LEAD_SPEED_PRESETS.map(preset => {
+    const c = calcDiagLeadForPreset(preset, tFlight, distanceMeters);
+    return `
+      <tr>
+        <td>${preset.label}</td>
+        <td>${fmtMradMoa(c.axisMil)}</td>
+        <td>${fmtMradMoa(c.totalMil)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const legs = DIAG_LEAD_LEGS.map(leg => `
+    <div class="diag-leg-item"><span class="diag-leg-arrow">${leg.arrow}</span><span>${leg.clock} — ${leg.verb}</span></div>
+  `).join('');
+
+  box.innerHTML = `
+    <div class="diag-lead-title">◇ Deslocamento diagonal (45° — relógio) · tempo de voo do tiro atual: ${tFlight.toFixed(2)}s</div>
+    <div class="diag-lead-legs">${legs}</div>
+    <div class="diag-lead-table-scroll">
+      <table class="diag-lead-table">
+        <thead><tr><th>Ritmo</th><th>Ajuste por eixo</th><th>Ajuste total (reta)</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="diag-lead-note">Princípio: o ponto que você mantém sobre a mira já É o ponto de encontro — fica à frente do alvo, no sentido em que ele se desloca (por isso a marca de cada perna fica do mesmo lado pro qual o alvo anda: 1h30/10h30 pra cima, 4h30/7h30 pra baixo, cada uma no seu sentido lateral). Na hora do disparo, a posição atual do alvo aparece no sentido OPOSTO ao da perna, a partir desse ponto — alvo subindo rumo a 1h30 está, agora, a 7h30 do seu ponto de mira. "Por eixo" é o valor a somar em cada perna — lateral E vertical, mesmo número pras duas (45° reparte igual). As marcas do retículo já partem do ponto vermelho (queda + deriva do vento já compensadas), não do centro geométrico do vidro — por isso o vento desloca o losango inteiro junto com ele. Se faltar ângulo de sítio ou outro fator na aba Equipamento, o tempo de voo usado aqui é o mesmo já calculado em ⚡ CALCULAR SOLUÇÃO — os fatores informados já estão embutidos nele.</div>
+  `;
 }
 
 // Colchete de altura pro tipo de alvo selecionado, ao lado do marcador
@@ -8913,7 +9380,9 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
     const dialedDropCm = trajectoryHeightCmDialed(distanceMeters, dialedAngleRad, fps, bcVal, scopeH_m);
     const dialedMrad = distanceMeters <= 100 ? 0 : dialedDropCm / (distanceMeters * 0.1);
     const dialedY = cy + (dialedMrad * pxPerMrad);
-    const dialedX = targetX;
+    // CORRIGIDO (mesma razão do retículo grande — ver renderReticle): a torre
+    // simulada só dial ELEVAÇÃO, nunca deriva de vento. Fixo em cx.
+    const dialedX = cx;
 
     ctx.setLineDash([2, 2]);
     ctx.strokeStyle = "rgba(230,180,40,0.7)";
@@ -9039,7 +9508,12 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
         twist: parseFloat(document.getElementById('eqTwist').value) || 0,
         twistDir: document.getElementById('eqTwistDir').value,
         barrelLen: parseFloat(document.getElementById('eqBarrelLen').value) || 0,
-        scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value) || 0
+        scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value) || 0,
+        scopeFovPreset: document.getElementById('eqScopeFovPreset')?.value || '',
+        scopeZoomMin: parseFloat(document.getElementById('eqScopeZoomMin')?.value) || null,
+        scopeZoomMax: parseFloat(document.getElementById('eqScopeZoomMax')?.value) || null,
+        scopeFovMin: parseFloat(document.getElementById('eqScopeFovMin')?.value) || null,
+        scopeFovMax: parseFloat(document.getElementById('eqScopeFovMax')?.value) || null
       };
     }
 
@@ -9061,6 +9535,16 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       document.getElementById('eqTwistDir').value = load.twistDir || 'RIGHT';
       document.getElementById('eqBarrelLen').value = load.barrelLen ?? 20;
       document.getElementById('eqScopeHeight').value = load.scopeHeight ?? 3.8;
+      const fovPresetEl = document.getElementById('eqScopeFovPreset');
+      if (fovPresetEl) fovPresetEl.value = load.scopeFovPreset || '';
+      const zMinEl = document.getElementById('eqScopeZoomMin');
+      if (zMinEl) zMinEl.value = load.scopeZoomMin ?? '';
+      const zMaxEl = document.getElementById('eqScopeZoomMax');
+      if (zMaxEl) zMaxEl.value = load.scopeZoomMax ?? '';
+      const fMinEl = document.getElementById('eqScopeFovMin');
+      if (fMinEl) fMinEl.value = load.scopeFovMin ?? '';
+      const fMaxEl = document.getElementById('eqScopeFovMax');
+      if (fMaxEl) fMaxEl.value = load.scopeFovMax ?? '';
 
       // Espelha a torre na aba Balística sem disparar novo salvamento (evita loop)
       const balTurretEl = document.getElementById('balTurret');
@@ -9803,6 +10287,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
         restoreGunProfileOnLoad();
         runBallistics();
       });
+      fetchScopeFovCatalog(); // catálogo de lunetas — independente, não bloqueia o startup
 
       checkSharedPointFromURL();
       updateCompassCalibrationUI();
