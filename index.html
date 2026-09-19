@@ -1770,6 +1770,7 @@ body.nvg-red-mode .leaflet-tile-container img {
             <option value="leupold_mark5hd_5-25x56">Leupold Mark 5HD 5-25x56</option>
             <option value="sig_tango6_5-30x56">Sig Sauer Tango6 5-30x56</option>
             <option value="leupold_vxfreedom_3-9x40">Leupold VX-Freedom 3-9x40</option>
+            <option value="leupold_mark4_6_5-20x50">Leupold Mark 4 LR/T 6.5-20x50</option>
           </select>
         </div>
         <div class="form-group">
@@ -1788,6 +1789,26 @@ body.nvg-red-mode .leaflet-tile-container img {
           <label for="eqScopeFovMax">Campo de Visão a 100m no Zoom Máximo (m)</label>
           <input type="number" id="eqScopeFovMax" step="0.1" placeholder="Opcional — Ex: 1.4" onchange="onScopeFovFieldsChanged()">
         </div>
+      </div>
+
+      <div id="scopeFovConstantReadout" style="font-size:12px; margin-top:12px; padding:9px 11px; background: rgba(58,105,150,0.08); border: 1px solid rgba(58,105,150,0.25); border-radius:6px; color: var(--muted); line-height:1.4;"></div>
+
+      <div style="border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+          Não achou sua luneta na lista? Preencha o Zoom Mínimo/Máximo e o Campo de Visão acima (dado real da ficha técnica) e cadastre abaixo — ela entra no catálogo compartilhado e passa a aparecer no dropdown pra qualquer operador, não só pra você.
+        </div>
+        <div class="form-grid-4">
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="eqScopeCustomName">Nome da Luneta</label>
+            <input type="text" id="eqScopeCustomName" maxlength="80" placeholder="Ex: Leupold Mark 4 6.5-20x50">
+          </div>
+          <div class="form-group">
+            <label for="eqScopeCustomObjective">Objetiva (mm) — opcional</label>
+            <input type="number" id="eqScopeCustomObjective" step="1" placeholder="Ex: 50">
+          </div>
+        </div>
+        <button onclick="submitCustomScope()" style="width: 100%; margin-top: 10px; background: var(--surface); color: var(--action); border: 1px solid var(--action); padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;">➕ CADASTRAR LUNETA NO CATÁLOGO COMPARTILHADO</button>
+        <div id="scopeCustomSubmitStatus" style="font-size:12px; margin-top:8px; min-height:14px;"></div>
       </div>
     </div>
 
@@ -8059,6 +8080,7 @@ let SCOPE_FOV_CATALOG = {
   'leupold_mark5hd_5-25x56':  { name: 'Leupold Mark 5HD 5-25x56',    zoomMin: 5, zoomMax: 25, fovMinM: 6.8,  fovMaxM: 1.4 },
   'sig_tango6_5-30x56':       { name: 'Sig Sauer Tango6 5-30x56',    zoomMin: 5, zoomMax: 30, fovMinM: 6.3,  fovMaxM: 1.1 },
   'leupold_vxfreedom_3-9x40': { name: 'Leupold VX-Freedom 3-9x40',   zoomMin: 3, zoomMax: 9,  fovMinM: 11.0, fovMaxM: 4.5 },
+  'leupold_mark4_6_5-20x50':  { name: 'Leupold Mark 4 LR/T 6.5-20x50', zoomMin: 6.5, zoomMax: 20, fovMinM: 4.8, fovMaxM: 1.8 },
 };
 
 async function fetchScopeFovCatalog() {
@@ -8105,6 +8127,60 @@ function applyScopeFovPreset() {
   onScopeFovFieldsChanged();
 }
 
+// Cadastro de luneta personalizada — igual em espírito ao "Fuzil Personalizado"
+// da aba Equipamento, mas este vai pro SERVIDOR (tabela custom_scopes no
+// SQLite via POST /api/scopes/custom), não só pro perfil local: qualquer
+// operador que cadastrar uma luneta aqui faz ela aparecer no dropdown de
+// TODO MUNDO daí em diante (GET /api/scopes já devolve o catálogo semente +
+// as personalizadas, mesclados — ver fetchScopeFovCatalog). Exige as mesmas
+// 4 medidas (zoom min/max + campo de visão min/max) já usadas no cálculo
+// dinâmico do retículo — sem isso a luneta cadastrada não teria como
+// alimentar o pxPerMrad de ninguém.
+async function submitCustomScope() {
+  const statusEl = document.getElementById('scopeCustomSubmitStatus');
+  const setStatus = (msg, ok) => {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.style.color = ok ? 'var(--sem-good)' : 'var(--sem-hostile)';
+  };
+
+  const name = document.getElementById('eqScopeCustomName')?.value.trim();
+  const zoomMin = parseFloat(document.getElementById('eqScopeZoomMin')?.value);
+  const zoomMax = parseFloat(document.getElementById('eqScopeZoomMax')?.value);
+  const fovMinM = parseFloat(document.getElementById('eqScopeFovMin')?.value);
+  const fovMaxM = parseFloat(document.getElementById('eqScopeFovMax')?.value);
+  const objRaw = document.getElementById('eqScopeCustomObjective')?.value;
+  const objectiveMm = objRaw ? parseFloat(objRaw) : null;
+
+  if (!name) return setStatus('⚠️ Informe o nome da luneta.', false);
+  if (!(zoomMin > 0) || !(zoomMax > zoomMin)) return setStatus('⚠️ Preencha Zoom Mínimo e Máximo (o máximo precisa ser maior que o mínimo).', false);
+  if (!(fovMinM > 0) || !(fovMaxM > 0)) return setStatus('⚠️ Preencha o Campo de Visão (m) no zoom mínimo e no máximo — obrigatório pra cadastrar no catálogo compartilhado.', false);
+
+  setStatus('Enviando...', true);
+  try {
+    const response = await fetch('https://api.geosniper.com.br/api/scopes/custom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
+      body: JSON.stringify({ name, zoomMin, zoomMax, fovMinM, fovMaxM, objectiveMm })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setStatus(`⚠️ ${data.error || 'Não foi possível cadastrar a luneta.'}`, false);
+      return;
+    }
+    setStatus(`✅ "${name}" cadastrada! Já disponível no dropdown pra toda a equipe.`, true);
+    await fetchScopeFovCatalog();
+    const selectEl = document.getElementById('eqScopeFovPreset');
+    if (selectEl && data.key) selectEl.value = data.key;
+    const nameEl = document.getElementById('eqScopeCustomName');
+    const objEl = document.getElementById('eqScopeCustomObjective');
+    if (nameEl) nameEl.value = '';
+    if (objEl) objEl.value = '';
+  } catch (err) {
+    setStatus('⚠️ Falha de conexão com o servidor — tente novamente.', false);
+  }
+}
+
 // Prioridade: dado real da luneta do operador (zoom + campo de visão
 // preenchidos, direto da ficha técnica ou via preset acima) > valor padrão
 // genérico (SCOPE_FOV_K_DEFAULT), usado só quando falta informação.
@@ -8122,6 +8198,31 @@ function getScopeFovConstant() {
   return SCOPE_FOV_K_DEFAULT;
 }
 
+// Mostra, em texto simples e sempre visível (não só na primeira vez), qual
+// constante o retículo está usando NESTE MOMENTO pra calcular o campo de
+// visão — se veio dos dados reais da luneta do operador (preenchidos ou
+// escolhidos no preset) ou se caiu no valor médio padrão (SCOPE_FOV_K_DEFAULT)
+// por falta de informação. Sem isso, a prioridade "dado real > padrão" descrita
+// em getScopeFovConstant() ficava invisível — o operador não tinha como saber
+// qual dos dois estava valendo pro cálculo do retículo.
+function updateScopeFovConstantReadout() {
+  const el = document.getElementById('scopeFovConstantReadout');
+  if (!el) return;
+
+  const zMin = parseFloat(document.getElementById('eqScopeZoomMin')?.value);
+  const zMax = parseFloat(document.getElementById('eqScopeZoomMax')?.value);
+  const fMin = parseFloat(document.getElementById('eqScopeFovMin')?.value);
+  const fMax = parseFloat(document.getElementById('eqScopeFovMax')?.value);
+  const hasRealData = (zMin > 0 && fMin > 0) || (zMax > 0 && fMax > 0);
+  const K = getScopeFovConstant();
+
+  if (hasRealData) {
+    el.innerHTML = `📐 Constante em uso agora: <b style="color:var(--sem-good);">K = ${K.toFixed(0)}</b> (MRAD·zoom) — calculada a partir dos dados reais da luneta informados acima.`;
+  } else {
+    el.innerHTML = `📐 Constante em uso agora: <b style="color:var(--sem-caution);">K = ${K.toFixed(0)} (padrão genérico)</b> — nenhuma luneta específica informada. O retículo usa essa média (baseada em lunetas reais pesquisadas, margem de erro ~±15%) até você preencher os campos acima ou escolher um modelo no menu.`;
+  }
+}
+
 // pxPerMrad deixa de ser fixo (RETICLE_PX_PER_MRAD segue existindo só como
 // fallback de segurança): o raio do vidro em pixels não muda, mas quanto de
 // MRAD cabe nele muda com o zoom — em zoom alto, cada MRAD ocupa mais
@@ -8137,6 +8238,7 @@ function computeDynamicPxPerMrad(zoomLevel, radiusPx) {
 
 function onScopeFovFieldsChanged() {
   saveGunProfile();
+  updateScopeFovConstantReadout();
   if (typeof redrawReticleWithDial === 'function') redrawReticleWithDial();
   if (document.getElementById('reticleExpandModal')?.style.display === 'block') {
     renderReticleExpandView();
@@ -9549,6 +9651,11 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       // Espelha a torre na aba Balística sem disparar novo salvamento (evita loop)
       const balTurretEl = document.getElementById('balTurret');
       if (balTurretEl) balTurretEl.value = load.turret || '1/4_MOA';
+
+      // Campos setados direto (sem onchange) — atualiza o readout aqui também,
+      // senão ele fica mostrando o estado de ANTES do perfil carregado até o
+      // operador mexer em algum campo manualmente.
+      if (typeof updateScopeFovConstantReadout === 'function') updateScopeFovConstantReadout();
     }
 
     function refreshLoadProfileSelect(weaponKey, selectLoadId) {
@@ -10288,6 +10395,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
         runBallistics();
       });
       fetchScopeFovCatalog(); // catálogo de lunetas — independente, não bloqueia o startup
+      if (typeof updateScopeFovConstantReadout === 'function') updateScopeFovConstantReadout(); // mostra o padrão na hora, mesmo sem perfil salvo ainda
 
       checkSharedPointFromURL();
       updateCompassCalibrationUI();
