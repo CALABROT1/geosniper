@@ -1766,7 +1766,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="equip-card" style="border-left: 4px solid var(--action);">
       <div class="card-title" style="color:var(--action);">🔭 CAMPO DE VISÃO DA LUNETA (ZOOM)</div>
       <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
-        O campo de visão em MRAD que cabe dentro do retículo encolhe conforme o zoom aumenta — é por isso que uma marcação de compensação pode aparecer na tela em zoom baixo e sumir no mesmo tiro em zoom alto. Informe abaixo o campo de visão real da sua luneta (a ficha técnica do fabricante costuma trazer "campo de visão a 100m/100 jardas", no zoom mínimo e no máximo) para o retículo representar isso com precisão. Se deixar em branco, o app usa um valor médio de referência (baseado em lunetas reais pesquisadas) — funcional, mas menos preciso que o dado real da sua luneta.
+        O retículo (pontos/traços) é fixo — não muda de escala quando você troca o zoom, igual numa luneta de verdade. O que muda de verdade com o zoom é quanto do mundo real cabe dentro do campo de visão da luneta: em zoom alto você enxerga uma fatia mais estreita, então um hold que caberia tranquilo em zoom baixo pode ficar fora do que dá pra ver de verdade em zoom alto. Informe abaixo o campo de visão real da sua luneta (a ficha técnica do fabricante costuma trazer "campo de visão a 100m/100 jardas", no zoom mínimo e no máximo) para o app avisar com precisão quando isso acontecer. Se deixar em branco, o app usa um valor médio de referência (baseado em lunetas reais pesquisadas) — funcional, mas menos preciso que o dado real da sua luneta.
       </div>
       <div class="form-grid-4">
         <div class="form-group" style="grid-column: span 2;">
@@ -8108,7 +8108,7 @@ let SCOPE_FOV_CATALOG = {
   'nightforce_atacr_5-25x56': { name: 'Nightforce ATACR 5-25x56 F1', zoomMin: 5, zoomMax: 25, fovMinM: 6.2,  fovMaxM: 1.6 },
   'leupold_mark5hd_5-25x56':  { name: 'Leupold Mark 5HD 5-25x56',    zoomMin: 5, zoomMax: 25, fovMinM: 6.8,  fovMaxM: 1.4 },
   'sig_tango6_5-30x56':       { name: 'Sig Sauer Tango6 5-30x56',    zoomMin: 5, zoomMax: 30, fovMinM: 6.3,  fovMaxM: 1.1 },
-  'leupold_vxfreedom_3-9x40': { name: 'Leupold VX-Freedom 3-9x40',   zoomMin: 3, zoomMax: 9,  fovMinM: 11.0, fovMaxM: 4.5 },
+  'leupold_vxfreedom_3-9x40': { name: 'Leupold VX-Freedom 3-9x40',   zoomMin: 3, zoomMax: 9,  fovMinM: 10.1, fovMaxM: 4.1 },
   'leupold_mark4_6_5-20x50':  { name: 'Leupold Mark 4 LR/T 6.5-20x50', zoomMin: 6.5, zoomMax: 20, fovMinM: 4.8, fovMaxM: 1.8, reticleStyle: 'mildot' },
 };
 
@@ -8256,12 +8256,14 @@ function getScopeFovConstant() {
 }
 
 // Mostra, em texto simples e sempre visível (não só na primeira vez), qual
-// constante o retículo está usando NESTE MOMENTO pra calcular o campo de
-// visão — se veio dos dados reais da luneta do operador (preenchidos ou
-// escolhidos no preset) ou se caiu no valor médio padrão (SCOPE_FOV_K_DEFAULT)
-// por falta de informação. Sem isso, a prioridade "dado real > padrão" descrita
-// em getScopeFovConstant() ficava invisível — o operador não tinha como saber
-// qual dos dois estava valendo pro cálculo do retículo.
+// constante o app está usando NESTE MOMENTO pra decidir se um hold ainda
+// cabe no campo de visão real da luneta nesse zoom (NÃO afeta o desenho do
+// retículo, que é fixo — ver getVisibleMradRadius) — se veio dos dados reais
+// da luneta do operador (preenchidos ou escolhidos no preset) ou se caiu no
+// valor médio padrão (SCOPE_FOV_K_DEFAULT) por falta de informação. Sem
+// isso, a prioridade "dado real > padrão" descrita em getScopeFovConstant()
+// ficava invisível — o operador não tinha como saber qual dos dois estava
+// valendo pro aviso de campo de visão.
 function updateScopeFovConstantReadout() {
   const el = document.getElementById('scopeFovConstantReadout');
   if (!el) return;
@@ -8274,9 +8276,9 @@ function updateScopeFovConstantReadout() {
   const K = getScopeFovConstant();
 
   if (hasRealData) {
-    el.innerHTML = `📐 Constante em uso agora: <b style="color:var(--sem-good);">K = ${K.toFixed(0)}</b> (MRAD·zoom) — calculada a partir dos dados reais da luneta informados acima.`;
+    el.innerHTML = `📐 Constante em uso agora: <b style="color:var(--sem-good);">K = ${K.toFixed(0)}</b> (MRAD·zoom) — calculada a partir dos dados reais da luneta informados acima. Usada só pra avisar quando um hold sai do campo de visão real da sua luneta nesse zoom (o desenho do retículo em si é fixo, não muda de escala).`;
   } else {
-    el.innerHTML = `📐 Constante em uso agora: <b style="color:var(--sem-caution);">K = ${K.toFixed(0)} (padrão genérico)</b> — nenhuma luneta específica informada. O retículo usa essa média (baseada em lunetas reais pesquisadas, margem de erro ~±15%) até você preencher os campos acima ou escolher um modelo no menu.`;
+    el.innerHTML = `📐 Constante em uso agora: <b style="color:var(--sem-caution);">K = ${K.toFixed(0)} (padrão genérico)</b> — nenhuma luneta específica informada. O aviso de campo de visão usa essa média (baseada em lunetas reais pesquisadas, margem de erro ~±15%) até você preencher os campos acima ou escolher um modelo no menu.`;
   }
 }
 
@@ -9349,7 +9351,7 @@ function renderReticleExpandView() {
   }
 
   renderDiagLeadReadout(dist);
-  renderReticleExpandTelemetry(dist, zoomLevel);
+  renderReticleExpandTelemetry(dist, zoomLevel, mradElevVal, mradWindVal);
 }
 
 // Marca, nos dois lados do ponto de mira JÁ compensado (queda + deriva do
@@ -9649,10 +9651,17 @@ function drawTargetHeightBracket(ctx, cx, cy, pxPerMrad, mradElev, mradWind, dis
   ctx.restore();
 }
 
-function renderReticleExpandTelemetry(dist, zoomLevel) {
+function renderReticleExpandTelemetry(dist, zoomLevel, mradElevVal = 0, mradWindVal = 0) {
   const box = document.getElementById('reticleExpandTelemetry');
   if (!box) return;
   const data = lastBallisticData || {};
+
+  // Mesmo aviso de "fora do campo visível real" que já existe no retículo da
+  // aba Balística (ver renderReticle/getVisibleMradRadius) — faltava aqui no
+  // Modo Campo, que é exatamente onde esse aviso mais importa (uso ao vivo).
+  const visibleMradRadiusExpand = getVisibleMradRadius(data.recommendedZoom || zoomLevel);
+  const targetMradRadiusExpand = Math.hypot(mradWindVal || 0, mradElevVal || 0);
+  const targetOutsideFovExpand = visibleMradRadiusExpand !== null && targetMradRadiusExpand > visibleMradRadiusExpand;
 
   const inclinationDeg = parseFloat(document.getElementById('eqInclination')?.value) || 0;
   const windKmh = parseFloat(document.getElementById('eqWindSpeed')?.value) || 0;
@@ -9679,7 +9688,11 @@ function renderReticleExpandTelemetry(dist, zoomLevel) {
     ['Subtensão do Alvo', `${targetMils.toFixed(2)} MIL a ${Math.round(dist)}m`],
   ];
 
-  box.innerHTML = items.map(([label, value]) => `
+  const warningHtml = targetOutsideFovExpand
+    ? `<div style="grid-column: 1 / -1; background: rgba(193,72,61,0.18); border: 1px solid #c1483d; border-radius: 5px; padding: 7px 9px; font-size: 11.5px; font-weight: 800; color: #f0a99f;">⚠️ HOLD FORA DO CAMPO VISÍVEL REAL DA LUNETA NESSE ZOOM</div>`
+    : '';
+
+  box.innerHTML = warningHtml + items.map(([label, value]) => `
     <div class="t-item">
       <div class="t-label">${label}</div>
       <div class="t-value">${value}</div>
