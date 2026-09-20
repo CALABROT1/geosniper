@@ -8280,17 +8280,23 @@ function updateScopeFovConstantReadout() {
   }
 }
 
-// pxPerMrad deixa de ser fixo (RETICLE_PX_PER_MRAD segue existindo só como
-// fallback de segurança): o raio do vidro em pixels não muda, mas quanto de
-// MRAD cabe nele muda com o zoom — em zoom alto, cada MRAD ocupa mais
-// pixels (menos MRAD cabe no mesmo círculo); em zoom baixo, cada MRAD ocupa
-// menos pixels (mais MRAD cabe).
-function computeDynamicPxPerMrad(zoomLevel, radiusPx) {
+// CORRIGIDO: o retículo (pontos/traços gravados no vidro) é FÍSICO E FIXO —
+// não muda de escala quando o operador troca o zoom, exatamente como numa
+// luneta de verdade (na SFP, como a Leupold Mark 4 do operador, o gravado
+// fica no plano focal traseiro e não é ampliado pelo sistema de zoom; só a
+// imagem do alvo atrás dele muda de tamanho). Por isso pxPerMrad voltou a
+// ser SEMPRE RETICLE_PX_PER_MRAD nos desenhos (ver renderReticle) — nunca
+// mais calculado a partir do zoom.
+// O que continua variando de verdade com o zoom é o campo de visão real da
+// luneta (ficha técnica: campo em metros a 100m x zoom = K, quase constante
+// por luneta) — isso não redesenha nada, só serve pra avisar quando um hold
+// calculado ficaria fora do que a luneta mostra de verdade nesse zoom
+// específico (ver uso de targetOutsideFov logo abaixo, em renderReticle).
+function getVisibleMradRadius(zoomLevel) {
   const z = parseFloat(zoomLevel) || 15;
   const K = getScopeFovConstant();
-  const visibleMradRadius = K / (2 * z);
-  if (!visibleMradRadius || !isFinite(visibleMradRadius) || visibleMradRadius <= 0) return RETICLE_PX_PER_MRAD;
-  return radiusPx / visibleMradRadius;
+  const r = K / (2 * z);
+  return (r && isFinite(r) && r > 0) ? r : null;
 }
 
 function onScopeFovFieldsChanged() {
@@ -8946,8 +8952,18 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   ctx.beginPath(); ctx.moveTo(cx - taperAt, cy); ctx.lineTo(cx + taperAt, cy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, cy - taperAt); ctx.lineTo(cx, cy + taperAt); ctx.stroke();
 
-  // Escala Mil-Dot Fixo (1 MRAD no Canvas)
-  const pxPerMrad = opts.pxPerMrad || computeDynamicPxPerMrad(zoomLevel, radius);
+  // Escala Mil-Dot Fixo (1 MRAD no Canvas) — de verdade fixa agora: nunca
+  // mais varia com o zoom (ver comentário em getVisibleMradRadius acima).
+  const pxPerMrad = opts.pxPerMrad || RETICLE_PX_PER_MRAD;
+
+  // Campo de visão real (muda com o zoom) — NÃO redesenha o retículo, só
+  // avisa quando o hold calculado ficaria fora do que a luneta realmente
+  // mostra nesse zoom específico (ex: um hold de 8 MRAD pode estar
+  // tranquilamente visível a 8x e sumir do campo de visão real a 20x na
+  // mesma luneta).
+  const visibleMradRadius = getVisibleMradRadius(zoomLevel);
+  const targetMradRadius = Math.hypot(mradWind || 0, mradElev || 0);
+  const targetOutsideFov = visibleMradRadius !== null && targetMradRadius > visibleMradRadius;
 
   // false só nos dois retículos do modo Campo (EXPANDIR) — no retículo
   // original da aba Balística continua tudo como estava.
@@ -9097,7 +9113,12 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   // demais do aro/bezel, colidindo visualmente com o retículo.
   const telemetryId = opts.telemetryId !== undefined ? opts.telemetryId : 'reticleTelemetryReadout';
   const telemetryEl = telemetryId ? document.getElementById(telemetryId) : null;
-  if (telemetryEl) telemetryEl.textContent = `DIST ${Math.round(distanceMeters)}m  ·  ZOOM ${zoomLevel}.0x`;
+  if (telemetryEl) {
+    telemetryEl.textContent = targetOutsideFov
+      ? `DIST ${Math.round(distanceMeters)}m  ·  ZOOM ${zoomLevel}.0x  ·  ⚠️ hold fora do campo visível real nesse zoom`
+      : `DIST ${Math.round(distanceMeters)}m  ·  ZOOM ${zoomLevel}.0x`;
+    telemetryEl.style.color = targetOutsideFov ? '#c1483d' : '';
+  }
 
   // Distâncias reais por ponto, recalculadas com base nos cliques de torre
   // dialados pelo operador (simulação de "nova zeragem para nova distância").
@@ -9294,12 +9315,10 @@ function renderReticleExpandView() {
   renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: true });
   renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasLead', sizePx: 320, telemetryId: null, showDialedDistances: false });
 
-  // Mesma escala dinâmica (campo de visão real da luneta no zoom sugerido)
-  // que renderReticle acabou de usar nos dois canvases acima — sem isso, a
-  // faixa de altura do alvo e as marcações de lead ficariam desalinhadas da
-  // cruzeta/graduação assim que o campo de visão deixasse de usar o fixo
-  // RETICLE_PX_PER_MRAD.
-  const pxPerMradExpand = computeDynamicPxPerMrad(zoomLevel, (320 / 2) - 12);
+  // Mesma escala fixa (RETICLE_PX_PER_MRAD) que renderReticle acabou de usar
+  // nos dois canvases acima — precisa ser igual, senão a faixa de altura do
+  // alvo e as marcações de lead ficam desalinhadas da cruzeta/graduação.
+  const pxPerMradExpand = RETICLE_PX_PER_MRAD;
 
   // Faixa de altura do alvo selecionado (javali/veado/humano/placa), desenhada
   // sobre o retículo principal, ao lado do ponto de mira — é o efeito visual
