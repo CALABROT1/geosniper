@@ -1466,6 +1466,8 @@ body.nvg-red-mode .leaflet-tile-container img {
             <option value="vortex_ebr7c">Vortex EBR-7C (MRAD)</option>
             <option value="sb_gr2id">Schmidt &amp; Bender GR²ID</option>
             <option value="kahles_skmr4">Kahles SKMR4</option>
+                <option value="vortex_deadholdbdc">Vortex Dead-Hold BDC (MOA)</option>
+                <option value="vortex_vmr1moa">Vortex VMR-1 (MOA)</option>
           </optgroup>
         </select>
       </div>
@@ -1780,6 +1782,12 @@ body.nvg-red-mode .leaflet-tile-container img {
             <option value="sig_tango6_5-30x56">Sig Sauer Tango6 5-30x56</option>
             <option value="leupold_vxfreedom_3-9x40">Leupold VX-Freedom 3-9x40</option>
             <option value="leupold_mark4_6_5-20x50">Leupold Mark 4 LR/T 6.5-20x50</option>
+            <option value="kahles_k624i_6-24x56">Kahles K624i 6-24x56</option>
+            <option value="sb_pmii_5-25x56">Schmidt &amp; Bender PM II 5-25x56</option>
+            <option value="bushnell_xrs3_6-36x56">Bushnell Elite Tactical XRS3 6-36x56</option>
+            <option value="vortex_viperpst2_5-25x50">Vortex Viper PST Gen II 5-25x50</option>
+            <option value="vortex_viperhs_4-16x44">Vortex Viper HS 4-16x44</option>
+            <option value="vortex_dbktactical_4-12x40">Vortex Diamondback Tactical 4-12x40</option>
           </select>
         </div>
         <div class="form-group">
@@ -1832,6 +1840,8 @@ body.nvg-red-mode .leaflet-tile-container img {
                 <option value="vortex_ebr7c">Vortex EBR-7C (MRAD)</option>
                 <option value="sb_gr2id">Schmidt &amp; Bender GR²ID</option>
                 <option value="kahles_skmr4">Kahles SKMR4</option>
+                <option value="vortex_deadholdbdc">Vortex Dead-Hold BDC (MOA)</option>
+                <option value="vortex_vmr1moa">Vortex VMR-1 (MOA)</option>
               </optgroup>
             </select>
           </div>
@@ -8110,6 +8120,12 @@ let SCOPE_FOV_CATALOG = {
   'sig_tango6_5-30x56':       { name: 'Sig Sauer Tango6 5-30x56',    zoomMin: 5, zoomMax: 30, fovMinM: 6.3,  fovMaxM: 1.1 },
   'leupold_vxfreedom_3-9x40': { name: 'Leupold VX-Freedom 3-9x40',   zoomMin: 3, zoomMax: 9,  fovMinM: 10.1, fovMaxM: 4.1 },
   'leupold_mark4_6_5-20x50':  { name: 'Leupold Mark 4 LR/T 6.5-20x50', zoomMin: 6.5, zoomMax: 20, fovMinM: 4.8, fovMaxM: 1.8, reticleStyle: 'mildot' },
+  'kahles_k624i_6-24x56':     { name: 'Kahles K624i 6-24x56',        zoomMin: 6, zoomMax: 24, fovMinM: 6.2, fovMaxM: 1.6, reticleStyle: 'kahles_skmr4' },
+  'sb_pmii_5-25x56':          { name: 'Schmidt & Bender PM II 5-25x56', zoomMin: 5, zoomMax: 25, fovMinM: 5.3, fovMaxM: 1.5, reticleStyle: 'sb_gr2id' },
+  'bushnell_xrs3_6-36x56':    { name: 'Bushnell Elite Tactical XRS3 6-36x56', zoomMin: 6, zoomMax: 36, fovMinM: 5.5, fovMaxM: 0.9 },
+  'vortex_viperpst2_5-25x50': { name: 'Vortex Viper PST Gen II 5-25x50', zoomMin: 5, zoomMax: 25, fovMinM: 7.3, fovMaxM: 1.5, reticleStyle: 'vortex_ebr7c' },
+  'vortex_viperhs_4-16x44':   { name: 'Vortex Viper HS 4-16x44',     zoomMin: 4, zoomMax: 16, fovMinM: 8.4, fovMaxM: 2.3, reticleStyle: 'vortex_deadholdbdc' },
+  'vortex_dbktactical_4-12x40': { name: 'Vortex Diamondback Tactical 4-12x40', zoomMin: 4, zoomMax: 12, fovMinM: 7.2, fovMaxM: 2.4, reticleStyle: 'vortex_vmr1moa' },
 };
 
 async function fetchScopeFovCatalog() {
@@ -8665,6 +8681,93 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
       }
     }
     ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_deadholdbdc') {
+    // Vortex Dead-Hold BDC (MOA): subtensoes reais do manual oficial Vortex
+    // (eurooptic.com/content/pdf/vortex-deadhold-bdc-reticle-manual.pdf) —
+    // 3 pontos de queda (1.5 / 4.5 / 7.5 MOA) + poste grosso vertical a
+    // partir de 11 MOA; vento com pontinho fino a 3.44 MOA (~1 mil) e poste
+    // grosso a partir de 6.88 MOA (~2 mil). Convertido pra MRAD-equivalente
+    // (÷3.4377) pra usar a mesma escala pxPerMrad fixa do resto do app —
+    // igual foi feito pro moa_hash genérico.
+    const MOA_PER_MRAD = 3.4377;
+    ctx.fillStyle = '#12141a';
+    ctx.strokeStyle = '#12141a';
+
+    [1.5, 4.5, 7.5].forEach(moa => {
+      const vy = cy + (moa / MOA_PER_MRAD) * pxPerMrad;
+      if (!withinGlass(cx, vy)) return;
+      ctx.beginPath(); ctx.arc(cx, vy, 2.6, 0, Math.PI * 2); ctx.fill();
+    });
+
+    const postStartY = cy + (11 / MOA_PER_MRAD) * pxPerMrad;
+    if (postStartY < cy + radius - 8) {
+      ctx.lineWidth = 3.4;
+      ctx.beginPath(); ctx.moveTo(cx, postStartY); ctx.lineTo(cx, cy + radius - 8); ctx.stroke();
+    }
+
+    const windDotMrad = 3.44 / MOA_PER_MRAD, windPostMrad = 6.88 / MOA_PER_MRAD;
+    [1, -1].forEach(sign => {
+      const dx = cx + sign * windDotMrad * pxPerMrad;
+      if (withinGlass(dx, cy)) { ctx.beginPath(); ctx.arc(dx, cy, 2.2, 0, Math.PI * 2); ctx.fill(); }
+      const postStartX = cx + sign * windPostMrad * pxPerMrad;
+      const edgeX = cx + sign * (radius - 8);
+      if (withinGlass(postStartX, cy)) {
+        ctx.lineWidth = 3.4;
+        ctx.beginPath(); ctx.moveTo(postStartX, cy); ctx.lineTo(edgeX, cy); ctx.stroke();
+      }
+    });
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_vmr1moa') {
+    // Vortex VMR-1 MOA (Diamondback Tactical, SFP): subtensoes reais,
+    // confirmadas em 2 fontes oficiais Vortex — o manual generico do
+    // reticulo (VMR-1 MOA Reticle Manual, M-00160) e a ficha de subtensao
+    // especifica do 4-12x40 (DBK-10025) — medidas pixel a pixel e batendo
+    // em tudo (18 / 30 / 1.7 / 1.5 / 0.7 MOA). Tracos a cada 2 MOA,
+    // alternando curto (0.7 MOA de largura, multiplos de 2) e longo (1.5
+    // MOA de largura, multiplos de 4). Poste grosso (1.7 MOA de espessura)
+    // comeca em 18 MOA pra cima/lados (vento) e em 30 MOA pra baixo (queda
+    // — bem mais longo, padrao "arvore de Natal" assimetrica). Convertido
+    // pra MRAD-equivalente (/3.4377) igual foi feito pro Dead-Hold BDC.
+    const MOA_PER_MRAD = 3.4377;
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+    const moaToPx = moa => (moa / MOA_PER_MRAD) * pxPerMrad;
+
+    const drawArm = (dx, dy, lastTickMoa, postStartMoa) => {
+      for (let m = 2; m <= lastTickMoa; m += 2) {
+        const isLong = (m % 4 === 0);
+        const halfLenPx = moaToPx(isLong ? 1.5 : 0.7) / 2;
+        const distPx = moaToPx(m);
+        const px = cx + dx * distPx, py = cy + dy * distPx;
+        if (!withinGlass(px, py)) continue;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        if (dx !== 0) { ctx.moveTo(px, py - halfLenPx); ctx.lineTo(px, py + halfLenPx); }
+        else { ctx.moveTo(px - halfLenPx, py); ctx.lineTo(px + halfLenPx, py); }
+        ctx.stroke();
+      }
+      const postStartPx = moaToPx(postStartMoa);
+      const edgePx = radius - 8;
+      if (postStartPx < edgePx) {
+        const sx = cx + dx * postStartPx, sy = cy + dy * postStartPx;
+        const ex = cx + dx * edgePx, ey = cy + dy * edgePx;
+        ctx.lineWidth = moaToPx(1.7);
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      }
+    };
+
+    drawArm(0, -1, 16, 18);  // cima
+    drawArm(1, 0, 16, 18);   // direita (vento)
+    drawArm(-1, 0, 16, 18);  // esquerda (vento)
+    drawArm(0, 1, 28, 30);   // baixo (queda — poste comeca mais longe)
+
     ctx.restore();
     return;
   }
