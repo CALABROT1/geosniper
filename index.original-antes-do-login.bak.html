@@ -1119,7 +1119,7 @@ body.nvg-red-mode .leaflet-tile-container img {
 .cd2-risk-badge.cd2-critical { background: rgba(229,72,77,0.2); color: #e5484d; border: 1px solid #e5484d; }
 
   </style>
-<style>html.access-loading body{visibility:hidden}</style><script src="https://api.geosniper.com.br/acesso-client.js"></script><script src="https://api.geosniper.com.br/location-client.js"></script></head>
+</head>
 <body>
 <!-- GATE DE ACESSO POR UNIDADE — bloqueia o app até validar um código de unidade -->
 <div id="unitGateOverlay">
@@ -5132,7 +5132,57 @@ function updateUnitIndicatorBadge() {
   badge.classList.remove('hidden');
 }
 
-async function validateAndEnterUnit(){ location.href="https://api.geosniper.com.br/login.html?next="+encodeURIComponent(location.href); }
+async function validateAndEnterUnit() {
+  const input = document.getElementById('unitGateInput');
+  const btn = document.getElementById('unitGateSubmitBtn');
+  const err = document.getElementById('unitGateError');
+  const code = (input && input.value || '').trim().toUpperCase();
+  if (err) err.textContent = '';
+  if (!code) {
+    if (err) err.textContent = 'Digite o código de acesso.';
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = 'VERIFICANDO...'; }
+  try {
+    // Primeiro tenta como código individual de operador — se existir e
+    // estiver ativo, já vem com a unidade e as abas liberadas pra ele.
+    const opRes = await fetch(`${UNIT_API_BASE}/api/operators/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const opData = await opRes.json().catch(() => ({}));
+    if (opRes.ok && opData.valid) {
+      setUnit(opData.unitCode, opData.unitName || opData.unitCode);
+      setOperator(code, opData.name, opData.permissions);
+      hideUnitGate();
+      startApp();
+      return;
+    }
+
+    // Não é um código de operador — tenta como código de unidade
+    // (modo compartilhado/legado, libera todas as abas pra quem usa).
+    const res = await fetch(`${UNIT_API_BASE}/api/units/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ unitCode: code })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.valid) {
+      if (err) err.textContent = 'Código inválido. Verifique e tente novamente.';
+      if (btn) { btn.disabled = false; btn.textContent = 'ENTRAR'; }
+      return;
+    }
+    setUnit(code, data.name || code);
+    clearOperator();
+    hideUnitGate();
+    startApp();
+  } catch (e) {
+    console.error('[COP] Falha ao validar acesso:', e);
+    if (err) err.textContent = 'Sem conexão com o servidor. Tente novamente.';
+    if (btn) { btn.disabled = false; btn.textContent = 'ENTRAR'; }
+  }
+}
 
 function confirmSwitchUnit() {
   const overlay = document.getElementById('unitSwitchConfirm');
@@ -5144,11 +5194,18 @@ function cancelSwitchUnit() {
   if (overlay) overlay.classList.add('hidden');
 }
 
-function doSwitchUnit(){ window.exitAccess(); }
+function doSwitchUnit() {
+  clearUnit();
+  if (typeof tacticalSocket !== 'undefined' && tacticalSocket && typeof tacticalSocket.disconnect === 'function') {
+    tacticalSocket.disconnect();
+  }
+  cancelSwitchUnit();
+  showUnitGate();
+}
 
 function initTacticalSocket() {
   if (typeof io !== 'function') { console.warn('[COP] Socket.IO indisponível.'); return; }
-  tacticalSocket = io('https://api.geosniper.com.br', { withCredentials: true });
+  tacticalSocket = io('https://api.geosniper.com.br', { auth: { unitCode: getUnitCode() } });
 
   tacticalSocket.on('connect_error', (err) => {
     console.warn('[COP] Erro de conexão do socket tático:', err && err.message);
@@ -6385,7 +6442,7 @@ function focusTacticalMarker(id) {
 
 function deleteTacticalMarker(id) {
   if (!confirm('Excluir este ponto tático?')) return;
-  fetch(`https://api.geosniper.com.br/api/admin/markers/${id}`, { method: 'DELETE', credentials: 'include' })
+  fetch(`https://api.geosniper.com.br/api/admin/markers/${id}`, { method: 'DELETE', headers: { 'x-unit-code': getUnitCode() } })
     .then(res => res.json())
     .then(() => {
       delete tacticalMarkers[id];
@@ -7226,8 +7283,7 @@ function saveTacticalPinEdit() {
 
   fetch(`https://api.geosniper.com.br/api/admin/markers/${editId}`, {
     method: 'PUT',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
     body: JSON.stringify({
       label, observation, localidade,
       lat: pin.lat, lng: pin.lng,
@@ -7239,8 +7295,7 @@ function saveTacticalPinEdit() {
     if (photoToUpload) {
       fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
         body: JSON.stringify({ imageBase64: photoToUpload, markerId: editId })
       }).then(() => { pin.photoUrl = photoToUpload; refreshTacticalMarkersUI(); })
         .catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
@@ -7288,8 +7343,7 @@ function saveTacticalPin() {
       if (response && response.success && photoToUpload) {
         fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
           method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
           body: JSON.stringify({ imageBase64: photoToUpload, markerId: id })
         }).catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
       } else if (photoToUpload) {
@@ -8076,7 +8130,7 @@ let SCOPE_FOV_CATALOG = {
 
 async function fetchScopeFovCatalog() {
   try {
-    const response = await fetch('https://api.geosniper.com.br/api/scopes', { credentials: 'include' });
+    const response = await fetch('https://api.geosniper.com.br/api/scopes');
     if (!response.ok) return;
     const remote = await response.json();
     if (!remote || !Object.keys(remote).length) return;
@@ -8177,8 +8231,7 @@ async function submitCustomScope() {
   try {
     const response = await fetch('https://api.geosniper.com.br/api/scopes/custom', {
       method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
       body: JSON.stringify({ name, zoomMin, zoomMax, fovMinM, fovMaxM, objectiveMm, reticleStyle })
     });
     const data = await response.json().catch(() => ({}));
@@ -9917,7 +9970,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
 
     async function fetchWeaponsCatalog() {
       try {
-        const response = await fetch('https://api.geosniper.com.br/api/weapons', { credentials: 'include' });
+        const response = await fetch('https://api.geosniper.com.br/api/weapons');
         if (!response.ok) return;
         weaponsCatalog = await response.json();
         
@@ -10710,8 +10763,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       try {
         const res = await fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
           method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
           body: JSON.stringify({
             imageBase64: imageBase64,
             targetId: `target_${Math.round(currentTargetForPhoto.lat * 10000)}_${Math.round(currentTargetForPhoto.lng * 10000)}`
@@ -10827,7 +10879,27 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
     // Agora, toda vez que o app abre, revalida o código de operador salvo em
     // segundo plano (sem travar a tela) e atualiza as abas liberadas na hora
     // se algo mudou — silencioso, não desloga ninguém em caso de erro de rede.
-    async function refreshOperatorPermissionsFromServer(){ await window.prepareAccess(); }
+    async function refreshOperatorPermissionsFromServer() {
+      const opCode = getOperatorCode();
+      if (!opCode) return; // login por código de unidade (legado) já libera tudo via ALL_TABS
+      try {
+        const res = await fetch(`${UNIT_API_BASE}/api/operators/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: opCode })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.valid) {
+          const before = JSON.stringify(getPermissions());
+          setOperator(opCode, data.name, data.permissions);
+          if (JSON.stringify(data.permissions) !== before) {
+            applyTabPermissions();
+          }
+        }
+      } catch (e) {
+        // sem conexão — mantém as permissões já salvas, tenta de novo na próxima abertura
+      }
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       // #distPanel já existe no HTML estático (não depende do gate/startApp
@@ -10837,7 +10909,12 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       // O app só inicializa (mapas, socket tático, catálogo de armas etc.) depois
       // de confirmar um código de unidade válido — evitando misturar dados entre
       // equipes diferentes. Sem código salvo, mostra o gate de acesso primeiro.
-      window.prepareAccess().then(ok => { if(ok){ hideUnitGate(); startApp(); } });
+      if (getUnitCode()) {
+        hideUnitGate();
+        startApp();
+      } else {
+        showUnitGate();
+      }
     });
 
     // Atualiza o badge fixo de precisão do GPS (canto inferior esquerdo, visível
@@ -10903,8 +10980,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       navigator.geolocation.watchPosition(onPosition, onError, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
     }
 
-    function startGpsWatch(onPosition,onError){ window.auditLocationStart(startGpsWatchOriginal,onPosition,onError); }
-    function startGpsWatchOriginal(onPosition, onError) {
+    function startGpsWatch(onPosition, onError) {
       const options = { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 };
 
       if (isNativeApp() && window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) {
@@ -11119,7 +11195,6 @@ function drawTrajectoryChart(table) {
   try {
     const response = await fetch('https://api.geosniper.com.br/api/calculate-trajectory-table', {
       method: 'POST',
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         maxDist: 1000,
@@ -11227,7 +11302,6 @@ async function runVelocityTruing() {
   try {
     const response = await fetch('https://api.geosniper.com.br/api/calibrate-truing', {
       method: 'POST',
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ truingDist, actualDropCm, currentFps, bc, inclinationDeg, scopeHeightCm })
     });
@@ -11258,6 +11332,6 @@ async function runVelocityTruing() {
   }
 }
 </script>
-<a href="https://api.geosniper.com.br/senha.html" style="position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#18251e;color:#ffe28c;padding:8px">Minha senha</a></body>
+</body>
 </html>
 
