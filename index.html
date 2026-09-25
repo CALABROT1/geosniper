@@ -627,16 +627,23 @@
     }
 
     .form-group input, .form-group select {
-      width: 100%; 
-      padding: 10px 12px; 
-      background: var(--bg); 
-      border: 1px solid var(--line); 
-      color: var(--ink); 
-      border-radius: 8px; 
-      font-size: 14px; 
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 8px;
+      font-size: 14px;
       font-weight: 600;
       transition: all 0.2s ease;
     }
+
+    /* Lista aberta do <select> (ex.: Preset de Fuzil/Arma): sem isso, o
+       WebView do Android costuma ignorar o font-size do elemento fechado e
+       renderizar as opções no tamanho padrão do sistema — bem maior que o
+       resto da UI. 15px é o meio-termo (não tão grande quanto o padrão do
+       Android, nem pequeno demais pra tocar). */
+    select option { font-size: 15px; }
 
     .form-group input:focus, .form-group select:focus {
       outline: none;
@@ -8474,7 +8481,12 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
       const halfW = Math.min(pxPerMrad * 0.42 * i, radius - 20);
       ctx.lineWidth = 1.4;
       ctx.beginPath(); ctx.moveTo(cx - halfW, by); ctx.lineTo(cx + halfW, by); ctx.stroke();
-      if (style === 'horus') {
+      // Número do índice da barra: nas duas primeiras (i=1,2) o leque ainda
+      // está estreito perto do centro, exatamente onde caem a distância/zoom
+      // por ponto (lado esquerdo) e a escada de referência -200m/-300m (lado
+      // direito) — nessas duas linhas o número só sobrepõe texto sem
+      // acrescentar nada que a própria barra já não mostre pela posição.
+      if (style === 'horus' && i > 2) {
         ctx.fillStyle = '#5b6472';
         ctx.font = `700 10px ${RETICLE_MONO}`;
         if (withinGlass(cx - halfW, by)) ctx.fillText(`${i}`, cx - halfW - 10, by + 3);
@@ -9108,21 +9120,25 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
       // ficar menor que uma legenda secundária.
       ctx.fillStyle = "#294b6b";
       ctx.font = `700 12px ${RETICLE_MONO}`;
-      ctx.fillText(`-${d}m`, cx + 9, refY + 4);
+      const refLabel = `-${d}m`;
+      ctx.fillText(refLabel, cx + 9, refY + 4);
 
-      // No espaço que sobrou do lado esquerdo (só nos retículos do modo
-      // Campo — no original da aba Balística essa coluna não existe), mostra
-      // o MOA de elevação necessário pra CADA distância de referência, até
-      // o total da distância do tiro atual (vinda da aba Medir ou digitada
-      // na Balística) — não faz sentido mostrar MOA de uma distância maior
-      // que o alvo real.
-      if (!showDialedDistances && d <= distanceMeters) {
+      // MOA de compensação pra essa distância, na MESMA linha do "-Xm" (não
+      // mais só na coluna esquerda do retículo de Deslocamento) — agora
+      // aparece sempre, nos três retículos (Balística, Campo principal e
+      // Campo/Deslocamento), calculado ao vivo do motor balístico (fps, BC,
+      // altura de luneta) pra cada combinação de equipamento/munição
+      // escolhida, não um valor fixo. Respeita a distância do alvo
+      // selecionado, mas nunca corta a indicação antes de 600m — abaixo
+      // disso o operador ainda quer ver a referência de MOA até 600m.
+      const moaCutoff = Math.max(600, distanceMeters);
+      if (d <= moaCutoff) {
         const moaAtDist = dMrad * 3.4377;
-        ctx.textAlign = 'right';
+        const refLabelW = ctx.measureText(refLabel).width;
         ctx.fillStyle = '#4a7a3a';
-        ctx.font = `700 11px ${RETICLE_MONO}`;
-        ctx.fillText(`${moaAtDist.toFixed(1)} MOA`, cx - 9, refY + 4);
-        ctx.textAlign = 'left';
+        ctx.font = `600 10px ${RETICLE_MONO}`;
+        ctx.fillText(`${moaAtDist.toFixed(1)}moa`, cx + 9 + refLabelW + 5, refY + 4);
+        ctx.font = `700 12px ${RETICLE_MONO}`;
       }
     }
   });
@@ -9188,10 +9204,16 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
     ctx.fillStyle = "#12141a";
     ctx.fill();
 
-    ctx.textAlign = "left";
+    // Rótulo ABAIXO do ponto (não mais ao lado, na mesma linha) — do jeito que
+    // estava, ao girar a torre simulada o texto "🟡 simulado" frequentemente
+    // cruzava a mesma altura da escada de distâncias de referência (-Xm, lado
+    // direito) ou da coluna de distância dialada (lado esquerdo), tampando o
+    // número bem na hora em que o operador mais precisa lê-lo.
+    ctx.textAlign = "center";
     ctx.fillStyle = "#a67c1e";
-    ctx.font = `700 13px ${RETICLE_MONO}`;
-    ctx.fillText(`🟡 simulado`, dialedX + 11, dialedY + 4);
+    ctx.font = `700 11px ${RETICLE_MONO}`;
+    ctx.fillText(`🟡 simulado`, dialedX, dialedY + 17);
+    ctx.textAlign = "left";
   }
 
   // Telemetria (Dist/Zoom) agora fica fora do vidro, logo abaixo do badge de
