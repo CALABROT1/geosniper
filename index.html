@@ -28,6 +28,10 @@
        "Exportar Tabela"), com células de link clicável pro GeoSniper e pro
        mapa externo. Não mexe em nada do Leaflet/Socket.IO acima. -->
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Sessão por conta (e-mail/senha) — mesmo mecanismo do admin.html. Define
+       window.prepareAccess()/window.exitAccess() e chama setUnit()/setOperator()
+       (já definidas mais abaixo) com a unidade e as abas reais do usuário logado. -->
+  <script src="https://api.geosniper.com.br/acesso-client.js"></script>
 
   <style>
     /* ===== SISTEMA DE COR — instrumento gunmetal/latão (fase 2 da auditoria) =====
@@ -1121,30 +1125,30 @@ body.nvg-red-mode .leaflet-tile-container img {
   </style>
 </head>
 <body>
-<!-- GATE DE ACESSO POR UNIDADE — bloqueia o app até validar um código de unidade -->
+<!-- GATE DE SESSÃO — cobre a tela até window.prepareAccess() confirmar o login
+     (e-mail/senha, cookie de sessão). Sem sessão válida, prepareAccess() já
+     redireciona pro login.html; este overlay é só o estado de carregamento
+     enquanto isso é resolvido, evitando mostrar o mapa antes da checagem. -->
 <div id="unitGateOverlay">
   <div class="unit-gate-card">
     <div class="brand">GeoSniper COP</div>
-    <h2>Acesso</h2>
-    <p>Digite seu código de acesso (individual ou de unidade) para liberar o aplicativo.</p>
-    <input type="text" id="unitGateInput" placeholder="CÓDIGO DE ACESSO" maxlength="20" autocapitalize="characters" autocomplete="off" onkeydown="if(event.key==='Enter') validateAndEnterUnit();">
-    <button id="unitGateSubmitBtn" onclick="validateAndEnterUnit()">ENTRAR</button>
-    <div class="unit-gate-error" id="unitGateError"></div>
+    <h2>Verificando sessão…</h2>
+    <p>Aguarde um instante.</p>
   </div>
 </div>
 
-<!-- Indicador fixo da unidade ativa + acesso para trocar de unidade -->
-<div id="unitIndicatorBadge" class="hidden" onclick="confirmSwitchUnit()">
+<!-- Indicador fixo da unidade/operador ativo + acesso para sair da conta -->
+<div id="unitIndicatorBadge" class="hidden" onclick="confirmLogout()">
   🛡️ <b id="unitIndicatorName">—</b>
 </div>
 
 <div id="unitSwitchConfirm" class="hidden" style="position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box;">
   <div class="unit-gate-card" style="max-width:300px;">
-    <h2 style="font-size:16px;">Trocar de Unidade?</h2>
-    <p>Você vai sair da unidade atual e precisará digitar um novo código de acesso.</p>
+    <h2 style="font-size:16px;">Sair da conta?</h2>
+    <p>Você vai encerrar sua sessão e precisará entrar de novo com e-mail e senha.</p>
     <div style="display:flex; gap:8px;">
       <button onclick="cancelSwitchUnit()" style="flex:1; background:var(--surface-2); border:1px solid var(--line);">CANCELAR</button>
-      <button onclick="doSwitchUnit()" style="flex:1; background:var(--sem-hostile);">TROCAR</button>
+      <button onclick="doLogout()" style="flex:1; background:var(--sem-hostile);">SAIR</button>
     </div>
   </div>
 </div>
@@ -5116,10 +5120,6 @@ function showUnitGate() {
   if (overlay) overlay.classList.remove('hidden');
   const badge = document.getElementById('unitIndicatorBadge');
   if (badge) badge.classList.add('hidden');
-  const input = document.getElementById('unitGateInput');
-  if (input) { input.value = ''; setTimeout(() => input.focus(), 50); }
-  const err = document.getElementById('unitGateError');
-  if (err) err.textContent = '';
 }
 
 function hideUnitGate() {
@@ -5139,59 +5139,11 @@ function updateUnitIndicatorBadge() {
   badge.classList.remove('hidden');
 }
 
-async function validateAndEnterUnit() {
-  const input = document.getElementById('unitGateInput');
-  const btn = document.getElementById('unitGateSubmitBtn');
-  const err = document.getElementById('unitGateError');
-  const code = (input && input.value || '').trim().toUpperCase();
-  if (err) err.textContent = '';
-  if (!code) {
-    if (err) err.textContent = 'Digite o código de acesso.';
-    return;
-  }
-  if (btn) { btn.disabled = true; btn.textContent = 'VERIFICANDO...'; }
-  try {
-    // Primeiro tenta como código individual de operador — se existir e
-    // estiver ativo, já vem com a unidade e as abas liberadas pra ele.
-    const opRes = await fetch(`${UNIT_API_BASE}/api/operators/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
-    const opData = await opRes.json().catch(() => ({}));
-    if (opRes.ok && opData.valid) {
-      setUnit(opData.unitCode, opData.unitName || opData.unitCode);
-      setOperator(code, opData.name, opData.permissions);
-      hideUnitGate();
-      startApp();
-      return;
-    }
+// O código de unidade/operador (validateAndEnterUnit, removida) não existe
+// mais — a conta do servidor (e-mail/senha) é a única forma de entrar, via
+// window.prepareAccess() no carregamento da página.
 
-    // Não é um código de operador — tenta como código de unidade
-    // (modo compartilhado/legado, libera todas as abas pra quem usa).
-    const res = await fetch(`${UNIT_API_BASE}/api/units/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ unitCode: code })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.valid) {
-      if (err) err.textContent = 'Código inválido. Verifique e tente novamente.';
-      if (btn) { btn.disabled = false; btn.textContent = 'ENTRAR'; }
-      return;
-    }
-    setUnit(code, data.name || code);
-    clearOperator();
-    hideUnitGate();
-    startApp();
-  } catch (e) {
-    console.error('[COP] Falha ao validar acesso:', e);
-    if (err) err.textContent = 'Sem conexão com o servidor. Tente novamente.';
-    if (btn) { btn.disabled = false; btn.textContent = 'ENTRAR'; }
-  }
-}
-
-function confirmSwitchUnit() {
+function confirmLogout() {
   const overlay = document.getElementById('unitSwitchConfirm');
   if (overlay) overlay.classList.remove('hidden');
 }
@@ -5201,25 +5153,30 @@ function cancelSwitchUnit() {
   if (overlay) overlay.classList.add('hidden');
 }
 
-function doSwitchUnit() {
-  clearUnit();
+function doLogout() {
   if (typeof tacticalSocket !== 'undefined' && tacticalSocket && typeof tacticalSocket.disconnect === 'function') {
     tacticalSocket.disconnect();
   }
   cancelSwitchUnit();
-  showUnitGate();
+  // exitAccess() (acesso-client.js) encerra a sessão no servidor e já
+  // redireciona pro login.html — não precisa limpar localStorage aqui.
+  window.exitAccess();
 }
 
 function initTacticalSocket() {
   if (typeof io !== 'function') { console.warn('[COP] Socket.IO indisponível.'); return; }
-  tacticalSocket = io('https://api.geosniper.com.br', { auth: { unitCode: getUnitCode() } });
+  // credentials: o handshake do socket precisa do mesmo cookie de sessão que
+  // os fetch()s (withCredentials envia o cookie cross-origin, igual
+  // credentials:'include') — sem isso, identify() no servidor rejeita a
+  // conexão mesmo com sessão válida no navegador.
+  tacticalSocket = io('https://api.geosniper.com.br', { withCredentials: true, auth: { unitCode: getUnitCode() } });
 
   tacticalSocket.on('connect_error', (err) => {
     console.warn('[COP] Erro de conexão do socket tático:', err && err.message);
-    if (err && err.message === 'unit_code_invalido') {
-      // O código salvo não é mais válido nesse servidor (ex.: unidade removida) — volta pro gate.
-      clearUnit();
-      showUnitGate();
+    if (err && (err.message === 'unit_code_invalido' || err.message === 'Unidade não autorizada.')) {
+      // A sessão não bate mais com a unidade esperada (ex.: trocou de conta) — recarrega
+      // a página, que passa de novo por window.prepareAccess() do zero.
+      location.reload();
     }
   });
 
@@ -10892,38 +10849,10 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       let savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
       if (!allowedTabs.includes(savedTab)) savedTab = allowedTabs[0] || 'tabBalistica';
       openTab(null, savedTab);
-      refreshOperatorPermissionsFromServer();
-    }
-
-    // Corrige um problema real: quando não muda de unidade nem reinstala o
-    // app, o login (unit_code/operator_code) fica salvo indefinidamente no
-    // aparelho e o app nunca revalida com o servidor — se um admin liberar
-    // uma aba nova pro operador (ou o Android restaurar um backup antigo do
-    // app com uma permissão desatualizada), o app continuava escondendo essa
-    // aba pra sempre, e a única saída era "Trocar de Unidade" manualmente.
-    // Agora, toda vez que o app abre, revalida o código de operador salvo em
-    // segundo plano (sem travar a tela) e atualiza as abas liberadas na hora
-    // se algo mudou — silencioso, não desloga ninguém em caso de erro de rede.
-    async function refreshOperatorPermissionsFromServer() {
-      const opCode = getOperatorCode();
-      if (!opCode) return; // login por código de unidade (legado) já libera tudo via ALL_TABS
-      try {
-        const res = await fetch(`${UNIT_API_BASE}/api/operators/validate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: opCode })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.valid) {
-          const before = JSON.stringify(getPermissions());
-          setOperator(opCode, data.name, data.permissions);
-          if (JSON.stringify(data.permissions) !== before) {
-            applyTabPermissions();
-          }
-        }
-      } catch (e) {
-        // sem conexão — mantém as permissões já salvas, tenta de novo na próxima abertura
-      }
+      // Revalidação periódica das permissões: já é feita pelo próprio
+      // acesso-client.js (setInterval de 30s dentro de window.prepareAccess),
+      // que recarrega a página se as abas do usuário mudarem no servidor —
+      // não precisa de um refresh específico aqui.
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -10932,14 +10861,15 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       setupDistPanelDrag();
 
       // O app só inicializa (mapas, socket tático, catálogo de armas etc.) depois
-      // de confirmar um código de unidade válido — evitando misturar dados entre
-      // equipes diferentes. Sem código salvo, mostra o gate de acesso primeiro.
-      if (getUnitCode()) {
-        hideUnitGate();
-        startApp();
-      } else {
-        showUnitGate();
-      }
+      // de confirmar a sessão da conta (e-mail/senha) no servidor. Sem sessão
+      // válida, window.prepareAccess() (acesso-client.js) já redireciona pro
+      // login.html sozinho — o overlay de carregamento fica visível até lá.
+      window.prepareAccess().then((ok) => {
+        if (ok) {
+          hideUnitGate();
+          startApp();
+        }
+      });
     });
 
     // Atualiza o badge fixo de precisão do GPS (canto inferior esquerdo, visível
