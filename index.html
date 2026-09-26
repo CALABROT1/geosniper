@@ -841,9 +841,9 @@
     .reticle-expand-telemetry .t-label { font-size: 8.5px; color: #63754a; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; }
     .reticle-expand-telemetry .t-value { font-size: 13px; color: #d7e6ba; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
 
-    /* Painel de leitura do modo "Diagonal 45° (relógio)" do segundo
-       retículo — só aparece nesse modo (ver reticleExpandState.leadMode).
-       Mesma paleta escura oliva do resto do Modo Campo. */
+    /* Painel de leitura do deslocamento (Horizontal + Vertical + Diagonal,
+       sempre os três — não há mais troca de modo por pill). Mesma paleta
+       escura oliva do resto do Modo Campo. */
     .diag-lead-readout {
       margin: 4px 14px 8px; background: #10160c; border: 1px solid #2e3a20; border-radius: 6px;
       padding: 10px 12px; font-family: var(--font-mono, monospace);
@@ -2291,12 +2291,9 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="reticle-pill-group-label">Tipo de Alvo (referência)</div>
   <div id="reticleExpandTargetPills" class="reticle-pill-row"></div>
 
-  <div class="reticle-pill-group-label">Modo de Lead (retículo de deslocamento)</div>
-  <div id="reticleLeadModePills" class="reticle-pill-row"></div>
-
   <div class="reticle-expand-canvases">
     <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-      <div class="reticle-expand-sub-label">Retículo Principal</div>
+      <div class="reticle-expand-sub-label">Principal · ↔ H + ↕ V</div>
       <canvas id="reticleExpandCanvasMain" width="320" height="320" style="background:#fff; border-radius:50%; border:4px solid #4b5a3a; box-shadow: 0 4px 16px rgba(0,0,0,0.6);"></canvas>
       <div class="reticle-zoom-row">
         <button type="button" class="reticle-zoom-btn" onclick="adjustReticleExpandZoom('main', -0.25)">－</button>
@@ -2305,7 +2302,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
     <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-      <div class="reticle-expand-sub-label" id="reticleLeadSubLabel">Deslocamento Lateral (Lead)</div>
+      <div class="reticle-expand-sub-label">Deslocamento Diagonal (relógio)</div>
       <canvas id="reticleExpandCanvasLead" width="320" height="320" style="background:#fff; border-radius:50%; border:4px solid #4b5a3a; box-shadow: 0 4px 16px rgba(0,0,0,0.6);"></canvas>
       <div class="reticle-zoom-row">
         <button type="button" class="reticle-zoom-btn" onclick="adjustReticleExpandZoom('lead', -0.25)">－</button>
@@ -9205,14 +9202,33 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
     ctx.fill();
 
     // Rótulo ABAIXO do ponto (não mais ao lado, na mesma linha) — do jeito que
-    // estava, ao girar a torre simulada o texto "🟡 simulado" frequentemente
-    // cruzava a mesma altura da escada de distâncias de referência (-Xm, lado
-    // direito) ou da coluna de distância dialada (lado esquerdo), tampando o
-    // número bem na hora em que o operador mais precisa lê-lo.
+    // estava, ao girar a torre simulada o texto frequentemente cruzava a
+    // mesma altura da escada de distâncias de referência (-Xm, lado direito)
+    // ou da coluna de distância dialada (lado esquerdo), tampando o número
+    // bem na hora em que o operador mais precisa lê-lo.
     ctx.textAlign = "center";
-    ctx.fillStyle = "#a67c1e";
-    ctx.font = `700 11px ${RETICLE_MONO}`;
-    ctx.fillText(`🟡 simulado`, dialedX, dialedY + 17);
+    if (opts.zeroEvolutionLabel) {
+      // "Evolução da zeragem" (só no retículo Principal do Modo Campo, via
+      // opts) — em vez do rótulo genérico, mostra o que esse ajuste da torre
+      // simulada significa de verdade: a distância onde ESSE ângulo dialado
+      // zera (mesma busca por bisseção já usada pra achar a distância de
+      // cada MIL — solveDistanceForMilRow — só que pro próprio ponto
+      // central, mradOffset=0) e, logo abaixo, o total já dialado em MOA.
+      // Os dois recalculam a cada clique, puxados do mesmo motor balístico
+      // da solução atual.
+      const newZeroDist = solveDistanceForMilRow(0, dialedAngleRad, fps, bcVal, scopeH_m);
+      const moaMoved = mradToMoa(dialedAngleRad * 1000);
+      const moaSign = moaMoved > 0 ? '+' : '';
+      ctx.fillStyle = "#a67c1e";
+      ctx.font = `800 12px ${RETICLE_MONO}`;
+      ctx.fillText(`≈${Math.round(newZeroDist)}m`, dialedX, dialedY + 17);
+      ctx.font = `700 10px ${RETICLE_MONO}`;
+      ctx.fillText(`${moaSign}${moaMoved.toFixed(2)} MOA`, dialedX, dialedY + 30);
+    } else {
+      ctx.fillStyle = "#a67c1e";
+      ctx.font = `700 11px ${RETICLE_MONO}`;
+      ctx.fillText(`🟡 simulado`, dialedX, dialedY + 17);
+    }
     ctx.textAlign = "left";
   }
 
@@ -9269,10 +9285,16 @@ const RETICLE_TARGET_TYPES = [
 
 // Ritmos de deslocamento lateral humano usados pro cálculo de lead no segundo
 // retículo — velocidades aproximadas em m/s.
+// Cor do "Correndo" trocada de vermelho (#c1483d) pra roxo (#8b5cf6) — o
+// vermelho se confundia com o marcador do alvo e as linhas de referência
+// (ambos na mesma família de vermelho), ficando difícil de distinguir o que
+// era "ritmo Correndo" do que era "posição real do alvo". Roxo não colide
+// com nenhuma outra cor já usada no retículo (vermelho do alvo, azul da
+// escada, verde do Devagar/MOA, âmbar do Normal/simulado).
 const LEAD_SPEED_PRESETS = [
   { id: 'devagar',  label: '🚶 Devagar',  emoji: '🚶',   mps: 1.4, color: '#3ba55d' },
   { id: 'normal',   label: '🚶‍♂️ Normal',  emoji: '🚶‍♂️', mps: 1.8, color: '#e6b428' },
-  { id: 'correndo', label: '🏃 Correndo', emoji: '🏃',   mps: 3.5, color: '#c1483d' },
+  { id: 'correndo', label: '🏃 Correndo', emoji: '🏃',   mps: 3.5, color: '#8b5cf6' },
 ];
 
 // Pernas de deslocamento diagonal (relógio de 12h como referência, igual o
@@ -9310,7 +9332,7 @@ function calcDiagLeadForPreset(preset, tFlight, distanceMeters) {
   return { totalMil, totalMoa: mradToMoa(totalMil), axisMil, axisMoa: mradToMoa(axisMil) };
 }
 
-let reticleExpandState = { style: 'mildot', targetTypeId: 'humano', zoomMain: 1, zoomLead: 1, leadMode: 'horizontal' };
+let reticleExpandState = { style: 'mildot', targetTypeId: 'humano', zoomMain: 1, zoomLead: 1 };
 
 function openReticleExpandModal() {
   if (!lastReticleRenderArgs) {
@@ -9323,7 +9345,6 @@ function openReticleExpandModal() {
 
   renderReticleExpandStylePills();
   renderReticleExpandTargetPills();
-  renderReticleLeadModePills();
   document.getElementById('reticleExpandModal').style.display = 'block';
   renderReticleExpandView();
   applyReticleExpandZoomTransforms();
@@ -9361,32 +9382,17 @@ function selectReticleExpandTarget(targetId) {
   renderReticleExpandView();
 }
 
-// Modo do retículo de deslocamento (segundo canvas, "EXPANDIR"): Horizontal
-// é o lead lateral original (sempre existiu); Diagonal 45° é a extensão
-// pedida — quatro pernas em relógio, sempre a 45°, alternando subida/descida
-// (ver DIAG_LEAD_LEGS). Os dois nunca aparecem juntos — troca por pill, como
-// o estilo de retículo e o tipo de alvo logo acima.
-const RETICLE_LEAD_MODES = [
-  { id: 'horizontal', label: '↔ Horizontal' },
-  { id: 'diagonal',   label: '◇ Diagonal 45° (relógio)' },
-];
-
-function renderReticleLeadModePills() {
-  const box = document.getElementById('reticleLeadModePills');
-  if (box) {
-    box.innerHTML = RETICLE_LEAD_MODES.map(m => `
-      <button type="button" class="reticle-pill ${m.id === reticleExpandState.leadMode ? 'active' : ''}" onclick="selectReticleLeadMode('${m.id}')">${m.label}</button>
-    `).join('');
-  }
-  const label = document.getElementById('reticleLeadSubLabel');
-  if (label) label.textContent = reticleExpandState.leadMode === 'diagonal' ? 'Deslocamento Diagonal (relógio)' : 'Deslocamento Lateral (Lead)';
-}
-
-function selectReticleLeadMode(modeId) {
-  reticleExpandState.leadMode = modeId;
-  renderReticleLeadModePills();
-  renderReticleExpandView();
-}
+// Os dois retículos do Modo Campo agora têm papel FIXO cada um (sem mais pill
+// de troca de modo — os três tipos de deslocamento cabem nos dois retículos
+// ao mesmo tempo, sem precisar escolher):
+//  · Retículo Principal (esquerda): Horizontal + Vertical (12h → centro)
+//    juntos — são os dois eixos "retos" do deslocamento, aos quais dá pra
+//    reservar boa parte do vidro sem conflito, porque um usa o fio horizontal
+//    e o outro o fio vertical (ver drawLateralLeadMarkers/drawVerticalLeadMarkers).
+//  · Retículo de Deslocamento (direita): só o Diagonal 45° (relógio) — as
+//    quatro pernas ocupam o vidro inteiro sozinhas, então dividem a tela com
+//    os outros dois ficaria apertado e confuso (ver drawDiagonalLeadMarkers).
+// DIAG_LEAD_LEGS/LEAD_SPEED_PRESETS continuam os mesmos pros três.
 
 // Zoom independente por retículo — não redesenha em escala diferente (o
 // desenho continua o mesmo pxPerMrad dos dois), só amplia visualmente via
@@ -9415,48 +9421,63 @@ function renderReticleExpandView() {
   const [mradElevVal, mradWindVal, dist, zoomLevel] = lastReticleRenderArgs;
   const style = reticleExpandState.style;
 
-  // Retículo Principal (esquerda): volta a mostrar a coluna de distância
-  // real dialada + zoom estimado (igual o retículo original da aba
-  // Balística) — só o retículo de Deslocamento (direita) usa a coluna de
-  // MOA por referência, já que ali o espaço à esquerda é ocupado pelas
-  // marcações de lead/diagonal.
-  renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: true });
+  // showDialedDistances:false nos dois — a coluna de "distância real por MIL"
+  // saiu dos dois retículos do Modo Campo (virou redundante com o retículo
+  // original da aba Balística, e ocupava justamente o espaço onde agora
+  // entram as marcações de deslocamento). zeroEvolutionLabel:true só no
+  // Principal — é lá que o rótulo do ponto amarelo vira a leitura de
+  // "evolução da zeragem" (distância nova + MOA já dialado), ver renderReticle.
+  renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: false, zeroEvolutionLabel: true });
   renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasLead', sizePx: 320, telemetryId: null, showDialedDistances: false });
 
   // Mesma escala fixa (RETICLE_PX_PER_MRAD) que renderReticle acabou de usar
   // nos dois canvases acima — precisa ser igual, senão a faixa de altura do
   // alvo e as marcações de lead ficam desalinhadas da cruzeta/graduação.
   const pxPerMradExpand = RETICLE_PX_PER_MRAD;
+  const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
+  const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
+  const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
 
   // Faixa de altura do alvo selecionado (javali/veado/humano/placa), desenhada
   // sobre o retículo principal, ao lado do ponto de mira — é o efeito visual
   // direto e imediato de trocar o tipo de alvo nos seletores (pill), que antes
   // só aparecia em texto discreto na telemetria e passava despercebido.
+  //
+  // Retículo PRINCIPAL (esquerda) — Horizontal + Vertical sempre juntos, sem
+  // mais pill de troca de modo: um usa o fio horizontal do retículo (alvo se
+  // deslocando de lado), o outro o fio vertical (alvo se deslocando na linha
+  // de visada, 12h → centro) — como partem de fios perpendiculares, não se
+  // confundem entre si. A legenda de velocidade (chips 🚶/🚶‍♂️/🏃) é desenhada
+  // UMA vez só, depois dos dois, no lugar que a antiga coluna de distância
+  // dialada deixou livre — ela vale pros dois (o valor em mil é o mesmo,
+  // só muda o fio onde ele é aplicado).
   const mainCanvas = document.getElementById('reticleExpandCanvasMain');
   if (mainCanvas) {
     const ctx = mainCanvas.getContext('2d');
     const size = 320;
-    const cx = size / 2, cy = size / 2;
+    const cx = size / 2, cy = size / 2, radius = (size / 2) - 12;
     drawTargetHeightBracket(ctx, cx, cy, pxPerMradExpand, mradElevVal, mradWindVal, dist);
+    drawLateralLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
+    drawVerticalLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
+    drawLeadSpeedLegendPanel(ctx, cx, cy, radius, dist);
   }
 
-  // Marcações de lead por cima do retículo base do segundo canvas — usa o
-  // mesmo contexto/escala que renderReticle acabou de configurar nele. Dois
-  // modos possíveis (pill acima do canvas): horizontal (só lateral, como
-  // sempre foi) ou diagonal 45° (as quatro pernas em relógio).
+  // Retículo de DESLOCAMENTO (direita) — só o Diagonal 45° (relógio) agora;
+  // as quatro pernas usam o vidro inteiro, então não divide mais espaço com
+  // a legenda de velocidade (removida daqui, já aparece no Principal) nem
+  // com outro modo. No lugar da legenda, o canto superior direito mostra a
+  // mesma leitura de "nova zeragem" do Principal, sempre que a torre
+  // simulada estiver dialada.
   const leadCanvas = document.getElementById('reticleExpandCanvasLead');
   if (leadCanvas) {
     const ctx = leadCanvas.getContext('2d');
     const size = 320;
     const cx = size / 2, cy = size / 2, radius = (size / 2) - 12;
-    if (reticleExpandState.leadMode === 'diagonal') {
-      drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
-    } else {
-      drawLateralLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
-    }
+    drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
+    drawZeroEvolutionCorner(ctx, cx, cy, radius, fps, bcVal, scopeH_m);
   }
 
-  renderDiagLeadReadout(dist);
+  renderLeadReadout(dist);
   renderReticleExpandTelemetry(dist, zoomLevel, mradElevVal, mradWindVal);
 }
 
@@ -9481,40 +9502,177 @@ function drawLateralLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters, 
   if (!tFlight || !distanceMeters) return;
 
   // Ponto de mira já compensado (mesmo "alvo vermelho" que renderReticle
-  // desenha neste canvas) — o lead lateral se soma A PARTIR dele.
+  // desenha neste canvas) — a marca de cada ritmo se soma A PARTIR dele no
+  // eixo do vento, mas a ALTURA de referência é o fio horizontal de verdade
+  // (cy), não mais anchorY direto — ver comentário abaixo.
   const anchorX = cx + ((mradWind || 0) * pxPerMrad);
-  const anchorY = cy + ((mradElev || 0) * pxPerMrad);
+  const targetY = cy + ((mradElev || 0) * pxPerMrad);
 
   ctx.save();
-  // Ponto de partida bem dentro do círculo (86px acima do centro, num
-  // retículo de raio ~148 isso ainda deixa ~120px de largura livre de cada
-  // lado — sobra de sobra pra três linhas curtas), evitando entrar na área
-  // que o border-radius do canvas corta.
-  const legendX = cx - Math.min(95, radius - 40);
-  let legendY = cy - Math.min(58, radius - 60);
-  const rowH = 20;
-  ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
+
+  // Linha de referência tracejada na altura real do alvo (mesma altura do
+  // marcador vermelho) — a marca de cada ritmo nasce no fio HORIZONTAL de
+  // verdade (onde a luneta realmente tem a subtensão gravada, na altura cy)
+  // e desce/sobe até essa linha; o ponto onde as duas se cruzam é o hold
+  // final. Antes a marca já nascia direto na altura do alvo, sem deixar
+  // claro que o valor lido no fio physical precisa ser "transportado" até
+  // lá — essa interceptação em plano cartesiano deixa a leitura mais fiel a
+  // como se usa a subtensão de uma luneta de verdade.
+  ctx.setLineDash([3, 3]);
+  ctx.strokeStyle = 'rgba(193,72,61,0.5)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx - radius + 12, targetY);
+  ctx.lineTo(cx + radius - 12, targetY);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
   LEAD_SPEED_PRESETS.forEach((preset) => {
     const leadM = preset.mps * tFlight;
     const leadMil = (leadM * 1000) / distanceMeters;
     const px = leadMil * pxPerMrad;
 
-    // Traços mais grossos e mais longos que antes — precisavam ficar mais
-    // visíveis no vidro. Partem de anchorX/anchorY (ponto já compensado),
-    // não de cx/cy — por isso o vento desloca as duas marcas juntas.
+    // Passo 1 — marca no fio HORIZONTAL de verdade (altura cy), no eixo do
+    // vento (anchorX) — traços grossos, bem visíveis no vidro. Traço VERTICAL
+    // (perpendicular ao fio horizontal) — é essa orientação, junto com a
+    // linha tracejada [2,3] que desce/sobe até a altura do alvo, que
+    // diferencia visualmente essas marcas das do modo Vertical (que usam
+    // traço horizontal + tracejado [1,2] no fio vertical), mesmo com os dois
+    // desenhados juntos no mesmo vidro.
     [1, -1].forEach(sign => {
       const x = anchorX + sign * px;
-      if (Math.hypot(x - cx, anchorY - cy) > radius - 16) return;
+      if (Math.abs(x - cx) > radius - 16) return;
       ctx.beginPath();
-      ctx.moveTo(x, anchorY - 11);
-      ctx.lineTo(x, anchorY + 11);
+      ctx.moveTo(x, cy - 11);
+      ctx.lineTo(x, cy + 11);
       ctx.strokeStyle = preset.color;
       ctx.lineWidth = 4;
       ctx.lineCap = 'round';
       ctx.stroke();
+
+      if (Math.hypot(x - cx, targetY - cy) > radius - 16) return;
+
+      // Passo 2 — desce/sobe até interceptar a altura real do alvo.
+      ctx.setLineDash([2, 3]);
+      ctx.strokeStyle = preset.color + 'aa';
+      ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x, targetY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Ponto de interceptação — o hold final, colocado sobre o alvo.
+      ctx.beginPath();
+      ctx.arc(x, targetY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = preset.color;
+      ctx.fill();
+      ctx.lineWidth = 1.3;
+      ctx.strokeStyle = '#0a0d08';
+      ctx.stroke();
     });
+  });
+
+  ctx.restore();
+}
+
+// Modo Vertical (12h → centro): mesma lógica do lateral, espelhada no eixo
+// vertical — pra um alvo se deslocando de cima pra baixo (ou o oposto) NA
+// LINHA DE VISADA, em vez de lateralmente. A marca de cada ritmo fica no fio
+// VERTICAL de verdade (posição lateral cx, onde a luneta realmente tem a
+// subtensão gravada), na altura real do alvo ± o lead; uma linha horizontal
+// tracejada a conecta até a posição real de vento (mesma X do marcador
+// vermelho) — só desenhada quando há vento, porque sem vento o marcador já
+// está exatamente sobre o fio vertical (uma segunda linha ali seria
+// redundante). O ponto de interceptação é o hold final.
+function drawVerticalLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters, mradElev, mradWind) {
+  const data = lastBallisticData || {};
+  const tFlight = parseFloat(data.t_flight) || 0;
+  if (!tFlight || !distanceMeters) return;
+
+  const windAnchorX = cx + ((mradWind || 0) * pxPerMrad);
+  const targetY = cy + ((mradElev || 0) * pxPerMrad);
+
+  ctx.save();
+  ctx.lineJoin = 'round';
+
+  if (Math.abs(mradWind || 0) > 0.001) {
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(193,72,61,0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(windAnchorX, cy - radius + 12);
+    ctx.lineTo(windAnchorX, cy + radius - 12);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  LEAD_SPEED_PRESETS.forEach((preset) => {
+    const leadM = preset.mps * tFlight;
+    const leadMil = (leadM * 1000) / distanceMeters;
+    const px = leadMil * pxPerMrad;
+
+    // Passo 1 — marca no fio VERTICAL de verdade (posição lateral cx), na
+    // altura real do alvo ± a compensação de deslocamento. Traço HORIZONTAL
+    // (perpendicular ao do modo lateral) + tracejado [1,2] mais miúdo na
+    // linha de interceptação — a combinação orientação+traço deixa essas
+    // marcas claramente diferentes das do modo Horizontal mesmo desenhadas
+    // juntas no mesmo vidro.
+    [1, -1].forEach(sign => {
+      const y = targetY + sign * px;
+      if (Math.abs(y - cy) > radius - 16) return;
+      ctx.beginPath();
+      ctx.moveTo(cx - 11, y);
+      ctx.lineTo(cx + 11, y);
+      ctx.strokeStyle = preset.color;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      if (Math.hypot(windAnchorX - cx, y - cy) > radius - 16) return;
+
+      // Passo 2 — vai até interceptar a posição real de vento.
+      ctx.setLineDash([1, 2]);
+      ctx.strokeStyle = preset.color + 'aa';
+      ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(cx, y); ctx.lineTo(windAnchorX, y); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Ponto de interceptação — o hold final, colocado sobre o alvo. Sem
+      // preenchimento sólido (só contorno) pra diferenciar do disco cheio
+      // do modo Horizontal, mesmo com a mesma cor de ritmo.
+      ctx.beginPath();
+      ctx.arc(windAnchorX, y, 4, 0, Math.PI * 2);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = preset.color;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(windAnchorX, y, 1.4, 0, Math.PI * 2);
+      ctx.fillStyle = preset.color;
+      ctx.fill();
+    });
+  });
+
+  ctx.restore();
+}
+
+// Legenda de velocidade (chips 🚶 Devagar / 🚶‍♂️ Normal / 🏃 Correndo), UMA
+// vez só, pro retículo Principal — vale igual pros dois modos desenhados
+// nele (Horizontal e Vertical usam a MESMA fórmula de lead em mil, só muda o
+// fio onde ela é aplicada). Fica no canto que a antiga coluna de distância
+// dialada deixou livre.
+function drawLeadSpeedLegendPanel(ctx, cx, cy, radius, distanceMeters) {
+  const data = lastBallisticData || {};
+  const tFlight = parseFloat(data.t_flight) || 0;
+  if (!tFlight || !distanceMeters) return;
+
+  ctx.save();
+  const legendX = cx - Math.min(95, radius - 40);
+  let legendY = cy - Math.min(58, radius - 60);
+  const rowH = 20;
+  ctx.textBaseline = 'middle';
+
+  LEAD_SPEED_PRESETS.forEach((preset) => {
+    const leadM = preset.mps * tFlight;
+    const leadMil = (leadM * 1000) / distanceMeters;
 
     // Chapa escura translúcida atrás da linha inteira, em vez de contorno
     // preto em cada letra — o contorno ficava ruim em cima do emoji
@@ -9549,77 +9707,147 @@ function drawLateralLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters, 
   ctx.restore();
 }
 
-// Marca, nas quatro diagonais A PARTIR DO PONTO DE MIRA JÁ COMPENSADO (queda
-// + deriva do vento — o mesmo ponto vermelho que renderReticle desenha neste
-// canvas; ver a mesma correção em drawLateralLeadMarkers), quantos MILs
-// adiantar a mira EM CADA EIXO pra cada ritmo de deslocamento — mesma física
-// de drawLateralLeadMarkers, só decomposta nos dois eixos
-// (calcDiagLeadForPreset). Como as quatro pernas são sempre 45°, a distância
-// do ponto de mira até cada marca é IGUAL nas quatro direções, pra um mesmo
-// ritmo — só muda o sinal de cada eixo. Desenha, pra cada ritmo, um "losango"
-// tracejado ligando as quatro pernas, do mais lento (mais interno) ao mais
-// rápido (mais externo).
-//
-// PRINCÍPIO (o mesmo que vale pro lead lateral, só que nas quatro direções):
-// o ponto de mira É o ponto de encontro — fica À FRENTE do alvo, no sentido
-// em que ele se desloca (por isso a marca da perna "1h30 subindo" fica pra
-// cima-e-direita a partir do ponto de mira: é aonde o alvo vai chegar). Na
-// hora do disparo, a posição ATUAL do alvo aparece no sentido OPOSTO ao da
-// perna a partir desse mesmo ponto — alvo subindo rumo a 1h30 está, agora,
-// visualmente a 7h30 do ponto de mira.
+// Leitura de "evolução da zeragem" no canto superior direito do retículo de
+// Deslocamento (Diagonal) — mesmo dado que aparece junto ao ponto amarelo no
+// retículo Principal (ver zeroEvolutionLabel em renderReticle), só que fixo
+// no canto em vez de acompanhar o ponto, porque aqui o ponto fica ocupado
+// pelas pernas diagonais. Só aparece com a torre simulada dialada.
+function drawZeroEvolutionCorner(ctx, cx, cy, radius, fps, bcVal, scopeH_m) {
+  if (typeof reticleDialedClicks === 'undefined' || reticleDialedClicks === 0) return;
+
+  const dialedAngleRad = currentDialedAngleRad();
+  const newZeroDist = solveDistanceForMilRow(0, dialedAngleRad, fps, bcVal, scopeH_m);
+  const moaMoved = mradToMoa(dialedAngleRad * 1000);
+  const moaSign = moaMoved > 0 ? '+' : '';
+
+  ctx.save();
+  const x = cx + radius - 10;
+  let y = cy - radius + 22;
+
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = `800 12px ${RETICLE_MONO}`;
+  const line1 = `🟡 ≈${Math.round(newZeroDist)}m`;
+  ctx.strokeText(line1, x, y);
+  ctx.fillStyle = '#a67c1e';
+  ctx.fillText(line1, x, y);
+
+  y += 14;
+  ctx.font = `700 10px ${RETICLE_MONO}`;
+  const line2 = `${moaSign}${moaMoved.toFixed(2)} MOA`;
+  ctx.strokeText(line2, x, y);
+  ctx.fillStyle = '#a67c1e';
+  ctx.fillText(line2, x, y);
+
+  ctx.restore();
+}
+
+// Construção em 3 passos, por ritmo/cor — mesma interceptação em plano
+// cartesiano do lead Horizontal/Vertical, só que combinando os dois eixos:
+//   1) marca no FIO HORIZONTAL do retículo — a lead lateral pura, na
+//      distância real do tiro (mesmo axisMil de calcDiagLeadForPreset).
+//   2) dessa marca desce/sobe uma linha tracejada, perpendicular à
+//      horizontal, até INTERCEPTAR a linha tracejada que sai do marcador
+//      vermelho (a altura real do alvo, já compensada pra queda) — o
+//      cruzamento é o ponto (x,y) combinando lead lateral + elevação real.
+//   3) desse cruzamento, o componente vertical do deslocamento a 45° (mesma
+//      magnitude do passo 1, pra cima E pra baixo) chega nos dois vértices
+//      finais daquele lado — os 4 vértices juntos (2 lados × 2 direções) são
+//      as quatro pernas do relógio (1h30/4h30/7h30/10h30). O contorno
+//      tracejado do losango + os rótulos de hora usam só o ritmo mais
+//      externo (🏃 Correndo), o mais visível.
 function drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters, mradElev, mradWind) {
   const data = lastBallisticData || {};
   const tFlight = parseFloat(data.t_flight) || 0;
   if (!tFlight || !distanceMeters) return;
 
-  // Ponto de mira já compensado (mesmo "alvo vermelho" que renderReticle
-  // desenha neste canvas) — as quatro pernas partem DELE, não do centro
-  // geométrico do vidro, por isso o vento desloca o losango inteiro junto.
-  const anchorX = cx + ((mradWind || 0) * pxPerMrad);
-  const anchorY = cy + ((mradElev || 0) * pxPerMrad);
+  const windAnchorX = cx + ((mradWind || 0) * pxPerMrad);
+  const targetY = cy + ((mradElev || 0) * pxPerMrad);
 
   ctx.save();
   ctx.lineJoin = 'round';
 
+  // Linha de referência tracejada na altura real do alvo — mesmo papel da
+  // horizontal: cada perna nasce no fio horizontal de verdade e "desce" até
+  // essa linha antes de abrir o componente vertical a 45°.
+  ctx.setLineDash([3, 3]);
+  ctx.strokeStyle = 'rgba(193,72,61,0.5)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx - radius + 12, targetY);
+  ctx.lineTo(cx + radius - 12, targetY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  let outerPts = null; // vértices finais do ritmo mais externo (Correndo), pro contorno + rótulos
+
   LEAD_SPEED_PRESETS.forEach((preset) => {
     const { axisMil } = calcDiagLeadForPreset(preset, tFlight, distanceMeters);
     const axisPx = axisMil * pxPerMrad;
+    const pts = [];
 
-    const pts = DIAG_LEAD_LEGS.map(leg => ({ leg, x: anchorX + leg.dirX * axisPx, y: anchorY + leg.dirY * axisPx }));
-    if (pts.some(p => Math.hypot(p.x - cx, p.y - cy) > radius - 16)) return; // alguma perna sai do vidro — não desenha o losango incompleto
+    [1, -1].forEach(dirX => {
+      const mx = windAnchorX + dirX * axisPx;
+      if (Math.abs(mx - cx) > radius - 16) return;
 
+      // Passo 1 — marca no fio horizontal de verdade.
+      ctx.beginPath();
+      ctx.arc(mx, cy, 2.6, 0, Math.PI * 2);
+      ctx.fillStyle = preset.color;
+      ctx.fill();
+
+      // Passo 2 — desce/sobe até interceptar a altura real do alvo.
+      if (Math.hypot(mx - cx, targetY - cy) <= radius - 16) {
+        ctx.setLineDash([2, 3]);
+        ctx.strokeStyle = preset.color + 'aa';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath(); ctx.moveTo(mx, cy); ctx.lineTo(mx, targetY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(mx, targetY, 3, 0, Math.PI * 2); ctx.fillStyle = preset.color; ctx.fill();
+      }
+
+      // Passo 3 — componente vertical a 45°, pra cima e pra baixo, a partir
+      // do cruzamento — chega nos dois vértices finais desse lado.
+      [1, -1].forEach(dirY => {
+        const vy = targetY + dirY * axisPx;
+        if (Math.hypot(mx - cx, vy - cy) > radius - 16) return;
+        ctx.setLineDash([2, 3]);
+        ctx.strokeStyle = preset.color + '77';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(mx, targetY); ctx.lineTo(mx, vy); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath(); ctx.arc(mx, vy, 3.2, 0, Math.PI * 2); ctx.fillStyle = preset.color; ctx.fill();
+        pts.push({ x: mx, y: vy, dirX, dirY });
+      });
+    });
+
+    if (preset.id === 'correndo' && pts.length === 4) outerPts = pts;
+  });
+
+  // Contorno do losango (Correndo, o mais externo) + rótulos de hora/seta —
+  // halo branco atrás do texto, mesmo recurso de drawTargetHeightBracket,
+  // pra ficar legível em cima do vidro claro e das linhas tracejadas.
+  if (outerPts) {
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = preset.color;
+    ctx.strokeStyle = LEAD_SPEED_PRESETS[LEAD_SPEED_PRESETS.length - 1].color;
     ctx.lineWidth = 1.6;
     ctx.beginPath();
-    pts.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+    const order = DIAG_LEAD_LEGS.map(leg => outerPts.find(p => p.dirX === leg.dirX && p.dirY === leg.dirY));
+    order.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
     ctx.closePath();
     ctx.stroke();
     ctx.setLineDash([]);
 
-    pts.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
-      ctx.fillStyle = preset.color;
-      ctx.fill();
-    });
-  });
-
-  // Rótulos das quatro direções (seta + hora do relógio), uma vez cada, na
-  // perna mais externa (🏃 Correndo — a mais visível) que ainda couber no
-  // vidro — halo branco atrás do texto, mesmo recurso de drawTargetHeightBracket,
-  // pra ficar legível em cima do vidro claro e das linhas tracejadas.
-  const outer = LEAD_SPEED_PRESETS[LEAD_SPEED_PRESETS.length - 1];
-  const outerCalc = calcDiagLeadForPreset(outer, tFlight, distanceMeters);
-  const outerPx = outerCalc.axisMil * pxPerMrad;
-  const outerPts = DIAG_LEAD_LEGS.map(leg => ({ leg, x: anchorX + leg.dirX * outerPx, y: anchorY + leg.dirY * outerPx }));
-  if (outerPts.every(p => Math.hypot(p.x - cx, p.y - cy) <= radius - 16)) {
     ctx.font = `700 12px ${RETICLE_MONO}`;
     ctx.lineWidth = 3;
     ctx.textBaseline = 'middle';
-    outerPts.forEach(({ leg, x, y }) => {
-      const labelX = x + leg.dirX * 10;
-      const labelY = y + leg.dirY * 10;
+    DIAG_LEAD_LEGS.forEach((leg, i) => {
+      const p = order[i];
+      const labelX = p.x + leg.dirX * 10;
+      const labelY = p.y + leg.dirY * 10;
       ctx.textAlign = leg.dirX > 0 ? 'left' : 'right';
       const text = `${leg.arrow} ${leg.clock}`;
       ctx.strokeStyle = 'rgba(255,255,255,0.85)';
@@ -9629,57 +9857,18 @@ function drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters,
     });
   }
 
-  // Legenda compacta (mesma posição/estilo do lead horizontal) — mil por
-  // EIXO de cada ritmo (o que efetivamente dá pra "ler e aplicar": adiante
-  // a mira em X mil pra cada lado que o alvo se move, nos dois eixos).
-  const legendX = cx - Math.min(95, radius - 40);
-  let legendY = cy - Math.min(58, radius - 60);
-  const rowH = 20;
-  ctx.textBaseline = 'middle';
-
-  LEAD_SPEED_PRESETS.forEach((preset) => {
-    const { axisMil } = calcDiagLeadForPreset(preset, tFlight, distanceMeters);
-    const text = `${axisMil.toFixed(1)} mil/eixo`;
-    ctx.font = `700 13px ${RETICLE_MONO}`;
-    const textW = ctx.measureText(text).width;
-    const emojiSize = 19;
-    const gap = 6;
-    const chipW = emojiSize + gap + textW + 14;
-    const chipH = 19;
-    ctx.fillStyle = 'rgba(10,14,10,0.6)';
-    ctx.beginPath();
-    if (ctx.roundRect) { ctx.roundRect(legendX - 5, legendY - chipH / 2, chipW, chipH, 5); } else { ctx.rect(legendX - 5, legendY - chipH / 2, chipW, chipH); }
-    ctx.fill();
-
-    ctx.textAlign = 'left';
-    ctx.font = `${emojiSize}px ${RETICLE_MONO}`;
-    ctx.fillText(preset.emoji, legendX, legendY);
-
-    ctx.font = `700 13px ${RETICLE_MONO}`;
-    ctx.fillStyle = preset.color;
-    ctx.fillText(text, legendX + emojiSize + gap, legendY);
-
-    legendY += rowH;
-  });
-
   ctx.restore();
 }
 
-// Painel de leitura do modo "Diagonal 45° (relógio)" — só aparece nesse
-// modo (ver reticleExpandState.leadMode). Reúne, pros três ritmos, o
-// mil/MOA POR EIXO (o que aplicar em cada perna, nos dois eixos — 45°
-// reparte igual) e o mil/MOA TOTAL (distância reta percorrida pelo alvo),
-// mais o tempo de voo compartilhado (é o mesmo tiro, então é o mesmo tempo
-// pras três velocidades) e a lista das quatro pernas com seu sentido.
-function renderDiagLeadReadout(distanceMeters) {
+// Painel de leitura do deslocamento — agora sempre com os três eixos juntos
+// (Horizontal + Vertical + Diagonal), já que os dois retículos do Modo Campo
+// não trocam mais de modo por pill: o Principal mostra Horizontal/Vertical
+// ao vivo, o de Deslocamento mostra Diagonal ao vivo, e este painel reúne a
+// tabela de referência dos três, pro operador conferir os números exatos
+// sem precisar ficar lendo em cima do vidro.
+function renderLeadReadout(distanceMeters) {
   const box = document.getElementById('diagLeadReadout');
   if (!box) return;
-
-  if (reticleExpandState.leadMode !== 'diagonal') {
-    box.style.display = 'none';
-    box.innerHTML = '';
-    return;
-  }
 
   const data = lastBallisticData || {};
   const tFlight = parseFloat(data.t_flight) || 0;
@@ -9687,11 +9876,17 @@ function renderDiagLeadReadout(distanceMeters) {
   box.style.display = 'block';
 
   if (!tFlight || !distanceMeters) {
-    box.innerHTML = `<div class="diag-lead-empty">⚠️ Calcule uma solução balística primeiro (⚡ CALCULAR SOLUÇÃO & RETÍCULO) pra ver os ajustes diagonais.</div>`;
+    box.innerHTML = `<div class="diag-lead-empty">⚠️ Calcule uma solução balística primeiro (⚡ CALCULAR SOLUÇÃO & RETÍCULO) pra ver os ajustes de deslocamento.</div>`;
     return;
   }
 
-  const rows = LEAD_SPEED_PRESETS.map(preset => {
+  const linearRows = LEAD_SPEED_PRESETS.map(preset => {
+    const leadM = preset.mps * tFlight;
+    const leadMil = (leadM * 1000) / distanceMeters;
+    return `<tr><td>${preset.label}</td><td>${fmtMradMoa(leadMil)}</td></tr>`;
+  }).join('');
+
+  const diagRows = LEAD_SPEED_PRESETS.map(preset => {
     const c = calcDiagLeadForPreset(preset, tFlight, distanceMeters);
     return `
       <tr>
@@ -9707,15 +9902,24 @@ function renderDiagLeadReadout(distanceMeters) {
   `).join('');
 
   box.innerHTML = `
-    <div class="diag-lead-title">◇ Deslocamento diagonal (45° — relógio) · tempo de voo do tiro atual: ${tFlight.toFixed(2)}s</div>
+    <div class="diag-lead-title">↔↕ Deslocamento Horizontal / Vertical (Retículo Principal) · tempo de voo do tiro atual: ${tFlight.toFixed(2)}s</div>
+    <div class="diag-lead-table-scroll">
+      <table class="diag-lead-table">
+        <thead><tr><th>Ritmo</th><th>Compensação (mesmo valor nos dois fios)</th></tr></thead>
+        <tbody>${linearRows}</tbody>
+      </table>
+    </div>
+    <div class="diag-lead-note">A marca de cada ritmo nasce no fio de verdade (horizontal pro lateral, vertical pro 12h → centro) e desce/sobe até interceptar a compensação já feita no outro eixo (queda real no Horizontal, vento real no Vertical) — o cruzamento é o hold final, colocado sobre o alvo.</div>
+
+    <div class="diag-lead-title" style="margin-top:14px;">◇ Deslocamento Diagonal — relógio (Retículo de Deslocamento)</div>
     <div class="diag-lead-legs">${legs}</div>
     <div class="diag-lead-table-scroll">
       <table class="diag-lead-table">
         <thead><tr><th>Ritmo</th><th>Ajuste por eixo</th><th>Ajuste total (reta)</th></tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody>${diagRows}</tbody>
       </table>
     </div>
-    <div class="diag-lead-note">Princípio: o ponto que você mantém sobre a mira já É o ponto de encontro — fica à frente do alvo, no sentido em que ele se desloca (por isso a marca de cada perna fica do mesmo lado pro qual o alvo anda: 1h30/10h30 pra cima, 4h30/7h30 pra baixo, cada uma no seu sentido lateral). Na hora do disparo, a posição atual do alvo aparece no sentido OPOSTO ao da perna, a partir desse ponto — alvo subindo rumo a 1h30 está, agora, a 7h30 do seu ponto de mira. "Por eixo" é o valor a somar em cada perna — lateral E vertical, mesmo número pras duas (45° reparte igual). As marcas do retículo já partem do ponto vermelho (queda + deriva do vento já compensadas), não do centro geométrico do vidro — por isso o vento desloca o losango inteiro junto com ele. Se faltar ângulo de sítio ou outro fator na aba Equipamento, o tempo de voo usado aqui é o mesmo já calculado em ⚡ CALCULAR SOLUÇÃO — os fatores informados já estão embutidos nele.</div>
+    <div class="diag-lead-note">Mesma interceptação do Horizontal, com um terceiro passo: do cruzamento, o componente vertical a 45° abre pra cima E pra baixo — os quatro vértices (dois lados × duas direções) formam as pernas do relógio (1h30/4h30/7h30/10h30). "Por eixo" é o valor de cada passo — lateral e vertical, mesmo número (45° reparte igual). Se faltar ângulo de sítio ou outro fator na aba Equipamento, o tempo de voo usado aqui é o mesmo já calculado em ⚡ CALCULAR SOLUÇÃO — os fatores informados já estão embutidos nele.</div>
   `;
 }
 
