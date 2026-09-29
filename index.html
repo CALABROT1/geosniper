@@ -2121,7 +2121,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       <span class="badge-status" id="cenaSimProfileBadge">PERFIL ATIVO: PADRÃO</span>
     </div>
     <div style="font-weight:900; font-size:20px; letter-spacing:0.3px; color:var(--ink); margin-bottom:6px;">CENA DE DISPARO</div>
-    <div style="font-size:14px; color:var(--muted); line-height:1.55; margin-bottom:16px;"><b style="color:var(--ink);">Trajetória</b>, <b style="color:var(--ink);">vento</b> e <b style="color:var(--ink);">risco a terceiros</b> na linha de tiro. Os campos partem da Balística/Equipamento, mas são independentes. "Resetar" puxa os valores atuais.</div>
+    <div style="font-size:14px; color:var(--muted); line-height:1.55; margin-bottom:16px;">Visualização didática de <b style="color:var(--ink);">trajetória</b>, <b style="color:var(--ink);">deriva de vento</b> e <b style="color:var(--ink);">risco a terceiros</b> na linha de tiro — usando a mesma física de queda e o mesmo motor de balística do GeoSniper. Os campos abaixo começam com os valores da Balística/Equipamento, mas são independentes: editar aqui não altera nada nessas abas. Use "Resetar" pra puxar os valores atuais de novo.</div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px;">
       <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
@@ -2197,13 +2197,13 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
-    <button onclick="resetSimFields()" style="margin-top:14px; width:100%; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; font-size:14px; cursor:pointer;">↺ Resetar (puxar da Balística)</button>
+    <button onclick="resetSimFields()" style="margin-top:14px; width:100%; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; font-size:14px; cursor:pointer;">↺ Resetar (puxar da Balística/Equipamento)</button>
 
     <div id="cenaAdjustSummary" style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:10px;"></div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px dashed var(--line); border-radius:8px; padding:14px; text-align:center; color:var(--muted); font-size:14px;">
-    🎥 Câmeras lentas: aba <b style="color:var(--ink);">📈 Perfis</b> (usam estes campos).
+    🎥 As câmeras lentas ficam na aba <b style="color:var(--ink);">📈 Perfis</b>, dentro do card "Perfil compensado" — usam estes mesmos campos.
   </div>
 
 
@@ -2212,7 +2212,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       <div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor de interceptação (visão superior)</div>
       <button class="cd2-shuffle-btn" type="button" onclick="cd2ShuffleScenario()">🎲 Novo cenário de alvos</button>
     </div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.45;">Cruza trajetória (balística + vento) e deslocamento de cada alvo móvel de treinamento (esteira/trilho), checkpoint a checkpoint.</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.45;">Cruza a trajetória real (balística + vento), o deslocamento de cada alvo de treinamento móvel (esteira/trilho — nunca pessoas) e o sincronismo entre os dois, checkpoint por checkpoint, usando os mesmos campos de zeragem/distância/vento acima.</div>
   </div>
 
   <div id="cd2AlertBanner" class="cd2-alert-banner"></div>
@@ -2224,32 +2224,32 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button class="cd2-anim-btn" id="cd2AnimBtn" type="button" onclick="cd2ToggleAnim()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2AnimResetBtn" type="button" onclick="cd2ResetAnim()">↺ Reiniciar</button>
     </div>
-    <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto pra animar: projétil e alvos móveis em tempo real.</div>
+    <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.</div>
     <div class="cd2-legend" id="cd2CorridorLegend"></div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">🧭 Sistema de compensação de deslocamento</div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel acima. A <b style="color:var(--ink);">bolinha vermelha</b> é o <b style="color:var(--ink);">ponto de encontro</b> projétil–alvo; a linha <b style="color:#e8c948;">amarela</b> é a visada até lá. A marcação da régua onde o alvo repousa é a compensação.</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
     <div class="cd2-target-select" id="cd2TargetSelect"></div>
     <svg id="cd2CompSvg" viewBox="0 0 760 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
     <div class="cd2-anim-row">
       <button class="cd2-anim-btn" id="cd2CompAnimBtn" type="button" onclick="cd2ToggleAnimB()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2CompAnimResetBtn" type="button" onclick="cd2ResetAnimB()">↺ Reiniciar</button>
     </div>
-    <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione um alvo móvel acima.</div>
+    <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione um alvo móvel acima pra calcular a compensação.</div>
     <div id="cd2CompReadout"></div>
     <div class="cd2-legend" id="cd2CompLegend"></div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">Como o risco é calculado</div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.55;">Cada checkpoint (100m, depois a cada 50m) tem um alvo móvel lateral: 🎯 lento (1,4 m/s) ou 🎯 rápido (3,8 m/s). Quanto mais perto ele passa do projétil na chegada, maior o risco (acima de 65% = crítico).</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.55;">Mesma física de queda e deriva de vento das outras abas. Cada checkpoint (100m e depois a cada 50m até a distância do alvo) tem um alvo de treinamento móvel se deslocando lateralmente numa das duas velocidades do trilho — 🎯 lento (1,4 m/s) ou 🎯 rápido (3,8 m/s) — a partir do instante do disparo. Quanto mais perto o alvo passa do caminho real do projétil no instante em que ele chega, maior o risco (acima de 65% é sinalizado como crítico).</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="font-weight:700; color:var(--ink); margin-bottom:2px; font-size:14px;">Cenário editável por checkpoint</div>
-    <div style="font-size:12px; color:var(--muted);">Ajuste modo e deslocamento de cada alvo · desmarque "Ativo" pra removê-lo</div>
+    <div style="font-size:12px; color:var(--muted);">Ajuste modo e deslocamento inicial de cada alvo móvel · desmarque "Ativo" pra tirar um alvo dos diagramas</div>
     <div class="cd2-table-scroll">
       <table>
         <thead>
@@ -2276,13 +2276,13 @@ body.nvg-red-mode .leaflet-tile-container img {
       <div style="font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; font-size:14px;">📈 Perfis de Trajetória</div>
       <span class="badge-status" id="cenaPerfilProfileBadge">PERFIL ATIVO: PADRÃO</span>
     </div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.4;">Usa os campos da aba Simulação — mude lá pra ver o efeito aqui.</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.4;">Usa os mesmos campos da aba Simulação (zeragem, distância, vento) — mude ali pra ver o efeito aqui.</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
       <div style="font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div>
-      <button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir</button>
+      <button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
     </div>
     <svg id="trajectoryProfileSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
     <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
@@ -2296,7 +2296,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
     <div id="cenaCamRawReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Toque num checkpoint pra pausar ali. Play retoma; Reiniciar volta ao início.</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -2310,14 +2310,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:12px auto 0; background:var(--bg); border-radius:6px;"></canvas>
     <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
 
-    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ Projétil fora do quadro da câmera traseira.</div>
+    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
 
     <div style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaCameraPlay()" id="cenaCamPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
     <div id="cenaCamReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Toque num checkpoint pra pausar ali. Play retoma; Reiniciar volta ao início.</div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
 
     <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:18px; margin-bottom:4px;">Estático (sem animação)</div>
     <svg id="compensatedProfileStaticSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
@@ -3392,7 +3392,7 @@ function renderTrajectoryProfileDiagram() {
   const expandBtn = document.getElementById('trajectoryProfileExpandBtn');
   if (expandBtn) {
     expandBtn.style.display = canZoom ? 'flex' : 'none';
-    expandBtn.textContent = cenaRawProfileExpanded ? '⤡ Recolher' : '⤢ Expandir';
+    expandBtn.textContent = cenaRawProfileExpanded ? '⤡ Recolher' : '⤢ Expandir (ver cena toda)';
     expandBtn.setAttribute('aria-pressed', cenaRawProfileExpanded ? 'true' : 'false');
   }
 
@@ -4356,7 +4356,7 @@ function cd2ResetAnim() {
     if (bulletMover) bulletMover.setAttribute('opacity', '0');
   }
   const el = document.getElementById('cd2AnimReadout');
-  if (el) el.innerHTML = 'Pronto pra animar: projétil e alvos móveis em tempo real.';
+  if (el) el.innerHTML = 'Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.';
 }
 
 function cd2StopAnimForRerender() {
@@ -4600,7 +4600,7 @@ function cd2Render() {
   cd2RefreshComp();
   cd2SetControlsDisabled(false);
   const el = document.getElementById('cd2AnimReadout');
-  if (el) el.innerHTML = 'Pronto pra animar: projétil e alvos móveis em tempo real.';
+  if (el) el.innerHTML = 'Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.';
 }
 
 
