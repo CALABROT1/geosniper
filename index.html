@@ -92,6 +92,27 @@
     }
     .tab-content.active { display: block; }
 
+    /* ===== Página inicial (atalhos só das abas liberadas ao operador) ===== */
+    #tabInicio { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .home-wrap { max-width: 760px; margin: 0 auto; padding: 18px 14px 28px; box-sizing: border-box; }
+    .home-hero { text-align: center; padding: 6px 6px 14px; }
+    .home-hero-title { font-weight: 900; font-size: 24px; letter-spacing: 1px; color: var(--ink); }
+    .home-hero-title span { color: var(--accent); }
+    .home-hero-tag { margin: 8px auto 0; font-size: 14px; color: var(--muted); line-height: 1.5; max-width: 460px; }
+    .home-who { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted);
+      background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; }
+    .home-who b { color: var(--ink); font-weight: 700; }
+    .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .home-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 12px; cursor: pointer; text-align: left;
+      color: inherit; font: inherit; -webkit-tap-highlight-color: transparent; }
+    .home-card:hover, .home-card:active, .home-card:focus-visible { background: var(--surface-2); border-color: var(--accent); outline: none; }
+    .home-card-icon { font-size: 24px; line-height: 1; margin-bottom: 8px; }
+    .home-card-title { font-weight: 800; font-size: 14px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+    .home-card-desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .home-empty { border: 1px dashed var(--line); border-radius: 10px; padding: 20px 16px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .home-empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+    .home-foot { margin-top: 18px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+
     #tabBalistica {
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch;
@@ -609,6 +630,52 @@
     }
     .tactical-draw-dock-colors .tdd-color-label { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-right: 2px; }
     .tdd-swatch { width: 22px; height: 22px; }
+    /* ===== Diagramas em janela (abrir/minimizar/fechar) ===== */
+    .diag-open-btn { background: var(--surface-2); color: var(--accent); border: 1px solid var(--line); border-radius: 8px;
+      padding: 6px 11px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .diag-open-btn:hover { border-color: var(--accent); }
+    .diag-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .diag-placeholder { margin: 10px; padding: 14px; border: 1px dashed var(--accent); border-radius: 8px; color: var(--muted);
+      font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .diag-placeholder button { background: var(--action); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-weight: 800; font-size: 13px; cursor: pointer; }
+    /* Paleta da janela: mesmo tema, com mais contraste (texto/linhas mais claros, fundo mais escuro) */
+    #diagWindow { position: fixed; z-index: 9998; display: none; flex-direction: column; box-sizing: border-box;
+      inset: 0; background: #0b0d08; color: #fff; border: 1px solid #6a6f55;
+      --bg: #0b0d08; --surface: #171a11; --surface-2: #20241a; --line: #5a5f48; --muted: #d8d5bb; --ink: #ffffff;
+      --accent: #f2c96a; --action: #5aa2e6; --sem-hostile: #ff6b6b; }
+    #diagWindow.open { display: flex; }
+    @media (min-width: 700px) { #diagWindow { inset: 12px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); } }
+    #diagWindow.diag-rot { inset: auto; top: 0; left: 100vw; width: 100vh; height: 100vw; transform-origin: top left; transform: rotate(90deg); border-radius: 0; }
+    #diagWindow.min { inset: auto !important; left: 10px !important; bottom: 66px !important; top: auto !important; width: auto !important; height: auto !important;
+      transform: none !important; border-radius: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+    #diagWindow.min .diag-win-body { display: none; }
+    .diag-win-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #171a11; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+    #diagWindow.min .diag-win-head { border-bottom: none; background: transparent; }
+    .diag-win-title { flex: 1; font-weight: 800; font-size: 14px; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .diag-win-btn { background: #262b1e; color: #fff; border: 1px solid var(--line); border-radius: 8px; min-width: 38px; height: 34px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .diag-win-btn.close { background: #7a2b26; border-color: #a5433c; }
+    .diag-win-body { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px; }
+    .diag-win-body .diag-card { margin: 0 0 10px; }
+    .diag-win-body .diag-open-btn { display: none; }
+    #diagWindow .cd2-legend { font-size: 13px; gap: 8px 14px; }
+    #diagWindow .cd2-chip { font-size: 13px; padding: 7px 12px; color: var(--ink); }
+    #diagWindow .cd2-chip.cd2-active { border-color: #ff6b6b; background: rgba(255,107,107,0.18); }
+    #diagWindow .cd2-anim-readout { font-size: 13px; color: var(--muted); }
+
+    /* Tabela de cenário no celular: um cartão por checkpoint (sem colunas espremidas/empilhadas) */
+    @media (max-width: 640px) {
+      .cd2-table-scroll table { min-width: 0; display: block; }
+      .cd2-table-scroll thead { display: none; }
+      .cd2-table-scroll tbody { display: grid; gap: 10px; }
+      .cd2-table-scroll tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; background: var(--surface-2);
+        border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+      .cd2-table-scroll tbody td { display: flex; flex-direction: column; gap: 4px; border: none; padding: 0; font-size: 15px; min-width: 0; }
+      .cd2-table-scroll tbody td::before { content: attr(data-label); font-family: var(--font-body, inherit); font-size: 11px; font-weight: 700;
+        color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+      .cd2-table-scroll select, .cd2-table-scroll input[type=number] { min-width: 0; width: 100%; box-sizing: border-box; font-size: 15px; padding: 7px 8px; }
+      .cd2-table-scroll input[type=checkbox] { width: 24px; height: 24px; }
+    }
+
     .tactical-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .tactical-table thead th {
       position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 8px;
@@ -1147,8 +1214,8 @@ body.nvg-red-mode .leaflet-tile-container img {
 .cd2-target-select { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 10px 10px; }
 .cd2-chip {
   background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
-  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
-  padding: 7px 12px; border-radius: 20px; cursor: pointer; font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  padding: 5px 9px; border-radius: 16px; cursor: pointer; font-variant-numeric: tabular-nums;
 }
 .cd2-chip:hover { border-color: var(--accent); color: var(--ink); }
 .cd2-chip.cd2-active { background: rgba(193,72,61,0.16); border-color: var(--sem-hostile); color: var(--ink); }
@@ -1261,21 +1328,34 @@ body.nvg-red-mode .leaflet-tile-container img {
 
 <div class="tabs">
   <div class="brand-title">GEOSNIPER <span style="color: var(--accent); font-size: 12px;">by Calabrot</span></div>
-  <button class="tab-btn active" data-tab="tabBalistica" onclick="openTab(event, 'tabBalistica')">Balística</button>
+  <button class="tab-btn active" data-tab="tabInicio" onclick="openTab(event, 'tabInicio')">🏠 Início</button>
+  <button class="tab-btn" data-tab="tabBalistica" onclick="openTab(event, 'tabBalistica')">Balística</button>
   <button class="tab-btn" data-tab="tabEquipamento" onclick="openTab(event, 'tabEquipamento')">⚙️ Equip.</button>
   <button class="tab-btn" data-tab="tabMedir" onclick="openTab(event, 'tabMedir')">Medir</button>
   <button class="tab-btn" data-tab="tabRaios" onclick="openTab(event, 'tabRaios')">Raios</button>
+  <button class="tab-btn" data-tab="tabCenaSimulacao" onclick="openTab(event, 'tabCenaSimulacao')">🎯 Simulação</button>
+  <button class="tab-btn" data-tab="tabCenaPerfis" onclick="openTab(event, 'tabCenaPerfis')">📈 Perfis</button>
   <button class="tab-btn" data-tab="tabRelevo" onclick="openTab(event, 'tabRelevo')">Pontos</button>
   <button class="tab-btn" data-tab="tabEstrategia" onclick="openTab(event, 'tabEstrategia')">Estratégia</button>
   <button class="tab-btn" data-tab="tabNormal" onclick="openTab(event, 'tabNormal')">Marker</button>
-  <button class="tab-btn" data-tab="tabCenaSimulacao" onclick="openTab(event, 'tabCenaSimulacao')">🎯 Simulação</button>
-  <button class="tab-btn" data-tab="tabCenaPerfis" onclick="openTab(event, 'tabCenaPerfis')">📈 Perfis</button>
   <button onclick="toggleNVGMode()" id="nvgBtn" style="background:var(--sem-hostile-dim); color:#fff; border:none; padding:6px 10px; font-weight:800; font-size:12px; cursor:pointer; border-radius:4px; margin:8px 6px; white-space:nowrap; flex-shrink:0; line-height:1.2;">
   🚨 NVG RED</button>
 
 </div>
 
 <div id="gpsAccuracyBadge" class="gps-badge" title="Precisão do GPS informada pelo navegador — raio de incerteza da sua posição">📡 Buscando GPS…</div>
+
+<div id="tabInicio" class="tab-content active">
+  <div class="home-wrap">
+    <div class="home-hero">
+      <div class="home-hero-title">GEOSNIPER <span>by Calabrot</span></div>
+      <div class="home-hero-tag">Cálculo e referência para tiro de precisão: zeragem, retículo e marcação tática em campo.</div>
+    </div>
+    <div class="home-who" id="homeWho"></div>
+    <div class="home-grid" id="homeGrid"></div>
+    <div class="home-foot">GeoSniper é uma ferramenta de cálculo. Não vende armas, munição ou acessórios.</div>
+  </div>
+</div>
 
 <div id="tabRaios" class="tab-content"><div id="mapRaios" class="map" style="width:100%; height: calc(100vh - 120px); min-height: 400px;"></div></div>
 <div id="tabNormal" class="tab-content">
@@ -1549,7 +1629,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 </div>
 
-<div id="tabBalistica" class="tab-content active">
+<div id="tabBalistica" class="tab-content">
   <div class="ballistics-grid">
 
     <!-- CARD 1: CONFIGURAÇÕES & BOTÕES DE AÇÃO -->
@@ -2218,8 +2298,9 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div id="cd2AlertBanner" class="cd2-alert-banner"></div>
   <div id="cd2StatRow" class="cd2-stat-row"></div>
 
-  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <svg id="cd2CorridorSvg" viewBox="0 0 760 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
+  <div class="diag-card" data-diag-key="corredor" data-diag-title="Corredor de interceptação" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor (visão superior)</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('corredor')" title="Abrir em janela">⤢ Janela</button></div>
+    <div class="diag-scroll"><svg id="cd2CorridorSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div class="cd2-anim-row">
       <button class="cd2-anim-btn" id="cd2AnimBtn" type="button" onclick="cd2ToggleAnim()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2AnimResetBtn" type="button" onclick="cd2ResetAnim()">↺ Reiniciar</button>
@@ -2228,11 +2309,11 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="cd2-legend" id="cd2CorridorLegend"></div>
   </div>
 
-  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">🧭 Sistema de compensação de deslocamento</div>
+  <div class="diag-card" data-diag-key="compensacao" data-diag-title="Compensação de deslocamento" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Sistema de compensação de deslocamento</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensacao')" title="Abrir em janela">⤢ Janela</button></div>
     <div style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
     <div class="cd2-target-select" id="cd2TargetSelect"></div>
-    <svg id="cd2CompSvg" viewBox="0 0 760 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
+    <div class="diag-scroll"><svg id="cd2CompSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div class="cd2-anim-row">
       <button class="cd2-anim-btn" id="cd2CompAnimBtn" type="button" onclick="cd2ToggleAnimB()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2CompAnimResetBtn" type="button" onclick="cd2ResetAnimB()">↺ Reiniciar</button>
@@ -2279,16 +2360,16 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div style="font-size:13px; color:var(--muted); line-height:1.4;">Usa os mesmos campos da aba Simulação (zeragem, distância, vento) — mude ali pra ver o efeito aqui.</div>
   </div>
 
-  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+  <div class="diag-card" data-diag-key="trajetoria" data-diag-title="Perfil de trajetória" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
       <div style="font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div>
-      <button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
+      <button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria')" title="Abrir em janela">⤢ Janela</button><button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
     </div>
-    <svg id="trajectoryProfileSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
+    <div class="diag-scroll"><svg id="trajectoryProfileSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
 
     <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:16px; margin-bottom:4px;">Com câmera lenta (animada)</div>
-    <canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
+    <div class="diag-scroll"><canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpRaw" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
 
     <div style="display:flex; gap:8px; margin-top:10px;">
@@ -2299,12 +2380,12 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
   </div>
 
-  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">🧭 Perfil compensado</div>
+  <div class="diag-card" data-diag-key="compensado" data-diag-title="Perfil compensado" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Perfil compensado</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensado')" title="Abrir em janela">⤢ Janela</button></div>
     <div id="compensatedReadout" style="font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
 
     <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:4px;">Com câmera lenta (animada)</div>
-    <canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
+    <div class="diag-scroll"><canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpLateral" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
 
     <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:12px auto 0; background:var(--bg); border-radius:6px;"></canvas>
@@ -2320,9 +2401,19 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
 
     <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:18px; margin-bottom:4px;">Estático (sem animação)</div>
-    <svg id="compensatedProfileStaticSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
+    <div class="diag-scroll"><svg id="compensatedProfileStaticSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
   </div>
+</div>
+
+<div id="diagWindow" role="dialog" aria-label="Diagrama em janela">
+  <div class="diag-win-head">
+    <div class="diag-win-title" id="diagWinTitle">Diagrama</div>
+    <button type="button" class="diag-win-btn" id="diagWinRotBtn" onclick="toggleDiagRotate()" title="Girar a janela (use com o celular deitado)">↻</button>
+    <button type="button" class="diag-win-btn" id="diagWinMinBtn" onclick="toggleDiagMinimize()" title="Minimizar / restaurar">▁</button>
+    <button type="button" class="diag-win-btn close" onclick="closeDiagWindow()" title="Fechar">✕</button>
+  </div>
+  <div class="diag-win-body" id="diagWinBody"></div>
 </div>
 
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
@@ -2968,8 +3059,8 @@ function openTab(evt, tabName) {
   // operador atual não tem permissão de ver — redireciona pra primeira liberada.
   if (typeof getPermissions === 'function') {
     const allowedTabs = getPermissions();
-    if (allowedTabs.length && !allowedTabs.includes(tabName)) {
-      tabName = allowedTabs[0] || 'tabBalistica';
+    if (tabName !== HOME_TAB && !allowedTabs.includes(tabName)) {
+      tabName = allowedTabs[0] || HOME_TAB;
     }
   }
 
@@ -3116,7 +3207,9 @@ const UNIT_API_BASE = 'https://api.geosniper.com.br';
 // Abas reais do app (mesmos ids de data-tab / openTab) — espelha a lista do
 // server.js. Usada como "libera tudo" quando não há permissão granular
 // (código de unidade legado, ou operador cadastrado sem restrição).
-const ALL_TABS = ['tabBalistica', 'tabEquipamento', 'tabMedir', 'tabRaios', 'tabRelevo', 'tabEstrategia', 'tabNormal', 'tabCenaSimulacao', 'tabCenaPerfis'];
+// Início é só um índice: sempre visível pra qualquer operador logado, fora da lista de permissões.
+const HOME_TAB = 'tabInicio';
+const ALL_TABS = ['tabBalistica', 'tabEquipamento', 'tabMedir', 'tabRaios', 'tabCenaSimulacao', 'tabCenaPerfis', 'tabRelevo', 'tabEstrategia', 'tabNormal'];
 
 function getUnitCode() {
   return localStorage.getItem('geosniper_unit_code') || '';
@@ -3185,11 +3278,52 @@ function applyTabPermissions() {
   const allowed = getPermissions();
   document.querySelectorAll('.tab-btn').forEach(btn => {
     const tab = btn.getAttribute('data-tab');
-    btn.style.display = allowed.includes(tab) ? '' : 'none';
+    btn.style.display = (tab === HOME_TAB || allowed.includes(tab)) ? '' : 'none';
   });
   const savedTab = localStorage.getItem('geosniper_active_tab');
-  if (savedTab && !allowed.includes(savedTab)) {
-    localStorage.setItem('geosniper_active_tab', allowed[0] || 'tabBalistica');
+  if (savedTab && savedTab !== HOME_TAB && !allowed.includes(savedTab)) {
+    localStorage.setItem('geosniper_active_tab', allowed[0] || HOME_TAB);
+  }
+  renderHome();
+}
+
+// Página inicial: um cartão por aba LIBERADA ao operador (mesma lista que esconde
+// os botões do menu). Aba sem acesso não aparece nem com link nem com descrição.
+const HOME_CARDS = [
+  { tab: 'tabBalistica',     icon: '🎯', title: 'Balística',    desc: 'Zeragem, cliques e card de tiro.' },
+  { tab: 'tabEquipamento',   icon: '⚙️', title: 'Equipamento',  desc: 'Arma, munição, BC e atmosfera.' },
+  { tab: 'tabMedir',         icon: '📏', title: 'Medir',        desc: 'Distância no mapa e alvo com ajuste.' },
+  { tab: 'tabRaios',         icon: '📡', title: 'Raios',        desc: 'Anéis de distância na sua posição.' },
+  { tab: 'tabCenaSimulacao', icon: '🎯', title: 'Simulação',    desc: 'Trajetória, vento e risco.' },
+  { tab: 'tabCenaPerfis',    icon: '📈', title: 'Perfis',       desc: 'Perfis de trajetória animados.' },
+  { tab: 'tabRelevo',        icon: '📍', title: 'Pontos',       desc: 'Pontos táticos e tabela exportável.' },
+  { tab: 'tabEstrategia',    icon: '🗺️', title: 'Estratégia',   desc: 'Peças táticas e desenho no mapa.' },
+  { tab: 'tabNormal',        icon: '🧭', title: 'Marker',       desc: 'Marcação simples com bússola.' }
+];
+
+function renderHome() {
+  const grid = document.getElementById('homeGrid');
+  if (!grid) return;
+  const allowed = getPermissions();
+  const cards = HOME_CARDS.filter(c => allowed.includes(c.tab));
+  grid.innerHTML = cards.length
+    ? cards.map(c => `<button type="button" class="home-card" data-home-tab="${c.tab}">
+        <div class="home-card-icon">${c.icon}</div>
+        <div class="home-card-title">${c.title}</div>
+        <div class="home-card-desc">${c.desc}</div>
+      </button>`).join('')
+    : '<div class="home-empty" style="grid-column:1/-1;"><b>Nenhuma aba liberada</b>Peça ao administrador da sua unidade para liberar o acesso.</div>';
+  grid.querySelectorAll('[data-home-tab]').forEach(btn => {
+    btn.addEventListener('click', () => openTab(null, btn.getAttribute('data-home-tab')));
+  });
+  const who = document.getElementById('homeWho');
+  if (who) {
+    const op = getOperatorName(), unit = getUnitName();
+    who.style.display = (op || unit) ? '' : 'none';
+    who.innerHTML = `<span>Operador: <b></b></span><span>Unidade: <b></b></span>`;
+    const bs = who.querySelectorAll('b');
+    bs[0].textContent = op || '-';
+    bs[1].textContent = unit || '-';
   }
 }
 
@@ -3330,6 +3464,59 @@ function windDriftCm(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
 // versão reduzida.
 // ============================================================
 
+
+// ===== Janelas dos diagramas =====
+// O card do diagrama (SVG/canvas + pills + botões + legenda) é MOVIDO pra janela
+// (não clonado), então ids, animações e pills continuam funcionando; ao fechar
+// volta pro lugar de origem. Nenhum cálculo balístico é tocado aqui.
+const DIAG_WIN = { card: null, placeholder: null, rot: null, min: false };
+function diagIsPortraitPhone() { return window.innerWidth < 700 && window.innerHeight > window.innerWidth; }
+function diagApplyLayout() {
+  const w = document.getElementById('diagWindow');
+  if (!w) return;
+  const portrait = diagIsPortraitPhone();
+  const wantRot = DIAG_WIN.rot === null ? portrait : DIAG_WIN.rot;
+  w.classList.toggle('diag-rot', !!(wantRot && portrait && !DIAG_WIN.min));
+  const rb = document.getElementById('diagWinRotBtn');
+  if (rb) rb.style.display = portrait ? '' : 'none';
+  w.classList.toggle('min', DIAG_WIN.min);
+  const mb = document.getElementById('diagWinMinBtn');
+  if (mb) mb.textContent = DIAG_WIN.min ? '▣' : '▁';
+}
+function openDiagWindow(key) {
+  const card = document.querySelector('.diag-card[data-diag-key="' + key + '"]');
+  const w = document.getElementById('diagWindow'), body = document.getElementById('diagWinBody');
+  if (!card || !w || !body) return;
+  if (DIAG_WIN.card === card) { DIAG_WIN.min = false; diagApplyLayout(); return; }
+  if (DIAG_WIN.card) closeDiagWindow();
+  const ph = document.createElement('div');
+  ph.className = 'diag-placeholder';
+  ph.innerHTML = '<span>Aberto em janela: ' + (card.dataset.diagTitle || '') + '</span><button type="button" onclick="closeDiagWindow()">Trazer de volta</button>';
+  card.parentNode.insertBefore(ph, card);
+  body.appendChild(card);
+  DIAG_WIN.card = card; DIAG_WIN.placeholder = ph; DIAG_WIN.min = false; DIAG_WIN.rot = null;
+  document.getElementById('diagWinTitle').textContent = card.dataset.diagTitle || 'Diagrama';
+  w.classList.add('open');
+  body.scrollTop = 0;
+  diagApplyLayout();
+}
+function closeDiagWindow() {
+  const w = document.getElementById('diagWindow');
+  if (DIAG_WIN.card && DIAG_WIN.placeholder && DIAG_WIN.placeholder.parentNode) {
+    DIAG_WIN.placeholder.parentNode.insertBefore(DIAG_WIN.card, DIAG_WIN.placeholder);
+    DIAG_WIN.placeholder.remove();
+  }
+  DIAG_WIN.card = null; DIAG_WIN.placeholder = null; DIAG_WIN.min = false;
+  if (w) { w.classList.remove('open', 'min', 'diag-rot'); }
+}
+function toggleDiagMinimize() { DIAG_WIN.min = !DIAG_WIN.min; diagApplyLayout(); }
+function toggleDiagRotate() {
+  const cur = DIAG_WIN.rot === null ? diagIsPortraitPhone() : DIAG_WIN.rot;
+  DIAG_WIN.rot = !cur; diagApplyLayout();
+}
+window.addEventListener('resize', () => { if (DIAG_WIN.card) diagApplyLayout(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && DIAG_WIN.card && !DIAG_WIN.min) closeDiagWindow(); });
+
 function renderCenaDisparoVisuals() {
   renderAdjustSummary();
   renderTrajectoryProfileDiagram();
@@ -3404,7 +3591,7 @@ function renderTrajectoryProfileDiagram() {
   const hRange = Math.max(0.8, peakH * 1.15);
   const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
 
-  const W = 760, H = 260, ML = 54, MR = 20, MT = 20, MB = 30;
+  const W = 640, H = 260, ML = 54, MR = 16, MT = 20, MB = 30;
   const plotW = W - ML - MR, plotH = H - MT - MB;
   const scaleX = plotW / displayEndM;
   const scaleY2 = plotH / hRange;
@@ -3426,7 +3613,7 @@ function renderTrajectoryProfileDiagram() {
   // 311m mas a grade só marca de 50 em 50) quanto na vista expandida (cena
   // até 660m com grade de 100 em 100).
   const lastGridD = Math.floor(displayEndM / gridStep) * gridStep;
-  if (displayEndM - lastGridD >= 10) {
+  if (displayEndM - lastGridD >= Math.max(10, displayEndM * 0.13)) {
     s += `<line x1="${X(displayEndM)}" y1="${MT}" x2="${X(displayEndM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>`;
     s += `<text x="${X(displayEndM)}" y="${H-9}" fill="var(--accent)" font-size="14.5" font-weight="600" text-anchor="end">${displayEndM.toFixed(0)}m</text>`;
   }
@@ -3639,7 +3826,7 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   const hRange = Math.max(0.8, peakH * 1.15);
   const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
 
-  const W = 760, H = 260, ML = 54, MR = 20, MT = 20, MB = 30;
+  const W = 640, H = 260, ML = 54, MR = 16, MT = 20, MB = 30;
   const plotW = W - ML - MR, plotH = H - MT - MB;
   const scaleX = plotW / sceneEndM;
   const scaleY2 = plotH / hRange;
@@ -3653,7 +3840,7 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
     s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="15" font-weight="600" text-anchor="middle">${d}m</text>`;
   }
   const lastGridD = Math.floor(sceneEndM / gridStep) * gridStep;
-  if (sceneEndM - lastGridD >= 10) {
+  if (sceneEndM - lastGridD >= Math.max(10, sceneEndM * 0.13)) {
     s += `<line x1="${X(sceneEndM)}" y1="${MT}" x2="${X(sceneEndM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>`;
     s += `<text x="${X(sceneEndM)}" y="${H-9}" fill="var(--accent)" font-size="13" font-weight="600" text-anchor="end">${sceneEndM.toFixed(0)}m</text>`;
   }
@@ -3840,7 +4027,7 @@ function cd2RiskColor(tier) {
 // o ícone pros alvos não-selecionados no sistema de compensação.
 function cd2TargetIconSvg(ringColor, scale) {
   const sc = scale || 1;
-  return `<g transform="scale(${sc})">
+  return `<g transform="scale(${sc})"><g transform="translate(0,13.5)">
     <line x1="0" y1="-2" x2="0" y2="-9" stroke="var(--muted)" stroke-width="1.6"/>
     <circle cx="0" cy="-13.5" r="6.2" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.3"/>
     <circle cx="0" cy="-13.5" r="4.1" fill="none" stroke="${ringColor}" stroke-width="2.1"/>
@@ -3848,7 +4035,7 @@ function cd2TargetIconSvg(ringColor, scale) {
     <rect x="-6.5" y="-2" width="13" height="6.5" rx="1.6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.1"/>
     <circle cx="-4" cy="5.5" r="2.1" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.2"/>
     <circle cx="4" cy="5.5" r="2.1" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.2"/>
-  </g>`;
+  </g></g>`;
 }
 
 // ---- geometria da cena — compartilhada pelos dois diagramas, pra ficarem
@@ -3857,7 +4044,7 @@ function cd2ComputeSceneGeometry(targetDistM, windClock, windSpeed, fps, bcVal) 
   const sceneEndM = Math.max(targetDistM + 20, Math.round(targetDistM * 1.15 / 5) * 5);
   const latRangeMax = 4.6;
   const driftAtM = d => windDriftCm(d, windClock, windSpeed, fps, bcVal) / 100;
-  const W = 760, H = 460, ML = 60, MR = 20, MT = 30, MB = 40;
+  const W = 640, H = 460, ML = 60, MR = 16, MT = 30, MB = 40;
   const plotW = W - ML - MR, plotH = H - MT - MB;
   const scaleX = plotW / sceneEndM;
   const scaleY = plotH / (latRangeMax * 2);
@@ -3891,7 +4078,7 @@ function cd2DrawBaseScene(geo, targetDistM) {
 
   if (targetDistM < sceneEndM) {
     s += `<rect x="${X(targetDistM)}" y="${MT}" width="${X(sceneEndM)-X(targetDistM)}" height="${plotH}" fill="var(--accent)" opacity="0.09"/>`;
-    s += `<text x="${(X(targetDistM)+X(sceneEndM))/2}" y="${MT+14}" fill="var(--accent)" font-size="10" text-anchor="middle">sem anteparo</text>`;
+    s += `<text x="${(X(targetDistM)+X(sceneEndM))/2}" y="${MT+14}" fill="var(--accent)" font-size="12.5" text-anchor="middle">sem anteparo</text>`;
   }
 
   s += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(sceneEndM)}" y2="${Y(0)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
@@ -3904,12 +4091,12 @@ function cd2DrawBaseScene(geo, targetDistM) {
   s += `<path d="${path}" fill="none" stroke="var(--action)" stroke-width="2.2"/>`;
 
   s += `<circle cx="${X(0)}" cy="${Y(0)}" r="6" fill="var(--ink)"/>`;
-  s += `<text x="${X(0)}" y="${Y(0)-12}" fill="var(--ink)" font-size="10.5" text-anchor="middle">ATIRADOR</text>`;
+  s += `<text x="${X(0)}" y="${Y(0)-12}" fill="var(--ink)" font-size="13" text-anchor="middle">ATIRADOR</text>`;
 
   const targetLat = driftAtM(targetDistM);
   s += `<circle cx="${X(targetDistM)}" cy="${Y(targetLat)}" r="7" fill="none" stroke="var(--sem-hostile)" stroke-width="2"/>`;
   s += `<circle cx="${X(targetDistM)}" cy="${Y(targetLat)}" r="2.4" fill="var(--sem-hostile)"/>`;
-  s += `<text x="${X(targetDistM)}" y="${Y(targetLat)-12}" fill="var(--sem-hostile)" font-size="10.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
+  s += `<text x="${X(targetDistM)}" y="${Y(targetLat)-12}" fill="var(--sem-hostile)" font-size="13" text-anchor="middle">ALVO ${targetDistM}m</text>`;
 
   return s;
 }
@@ -3938,12 +4125,12 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
     s += cd2TargetIconSvg(color, 1);
     s += `</g>`;
 
-    const labelY0 = upperHalf ? yArrive + 22 : yArrive - 26;
+    const labelY0 = upperHalf ? yArrive + 32 : yArrive - 17;
     const dy = upperHalf ? 10 : -10;
     const halo = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="3" stroke-linejoin="round"';
-    s += `<text x="${xC}" y="${labelY0}" fill="var(--muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.speed.toFixed(1).replace('.', ',')} m/s</text>`;
-    s += `<text x="${xC}" y="${labelY0+dy}" fill="var(--muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.d}m</text>`;
-    s += `<text x="${xC}" y="${labelY0+dy*2}" fill="${color}" font-size="9" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${Math.round(row.risk)}%</text>`;
+    s += `<text x="${xC}" y="${labelY0}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.speed.toFixed(1).replace('.', ',')} m/s</text>`;
+    s += `<text x="${xC}" y="${labelY0+dy}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.d}m</text>`;
+    s += `<text x="${xC}" y="${labelY0+dy*2}" fill="${color}" font-size="12.5" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${Math.round(row.risk)}%</text>`;
   });
 
   s += `<g id="cd2BulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
@@ -4114,7 +4301,7 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     }
   }
   s += `</g>`;
-  s += `<text x="${xR}" y="${MT-10}" fill="var(--sem-hostile)" font-size="10.5" font-weight="700" text-anchor="middle">retículo (MRAD)</text>`;
+  s += `<text x="${xR}" y="${MT-10}" fill="var(--sem-hostile)" font-size="13" font-weight="700" text-anchor="middle">retículo (MRAD)</text>`;
 
   // etiqueta do alvo selecionado — desenhada por ÚLTIMO, pra nunca ficar
   // escondida atrás do trilho/marcações/zero. Empurrada pro lado CONTRÁRIO
@@ -4123,13 +4310,13 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
   if (selRow) {
     const yStartSel = Y(selRow.p.offset);
     const awayFromZero = (selRow.p.offset >= zeroLat) ? 1 : -1;
-    const labelY0 = yStartSel + awayFromZero * 24;
-    const dy = awayFromZero * 12;
+    const labelY0 = yStartSel + (awayFromZero > 0 ? 44 : -26);
+    const dy = awayFromZero * 14;
     const halo = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="3.5" stroke-linejoin="round"';
     const labelX = xR - 15;
     const selColor = cd2RiskColor(cd2RiskTier(selRow.risk));
-    s += `<text x="${labelX}" y="${labelY0}" fill="${selColor}" font-size="9.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${selRow.d}m · ${Math.round(selRow.risk)}%</text>`;
-    s += `<text x="${labelX}" y="${labelY0+dy}" fill="var(--sem-hostile)" font-size="10.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${comp.mrad>=0?'+':''}${cd2Fmt(comp.mrad,2)} MRAD</text>`;
+    s += `<text x="${labelX}" y="${labelY0}" fill="${selColor}" font-size="12.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${selRow.d}m · ${Math.round(selRow.risk)}%</text>`;
+    s += `<text x="${labelX}" y="${labelY0+dy}" fill="var(--sem-hostile)" font-size="13" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${comp.mrad>=0?'+':''}${cd2Fmt(comp.mrad,2)} MRAD</text>`;
   }
 
   // Ajuste final em cliques — só com a torre, sem precisar de holdover —
@@ -4153,9 +4340,9 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     const boxRightX = ML + plotW - 6;
     const halo2 = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="2.2" stroke-linejoin="round"';
     const halo3 = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="1.8" stroke-linejoin="round"';
-    s += `<text x="${boxRightX}" y="${MT+20}" fill="var(--ink)" font-size="7.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo2}>⬆ ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</text>`;
-    s += `<text x="${boxRightX}" y="${MT+29}" fill="var(--ink)" font-size="7.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo2}>↔ ${latClicks} cliques (${cd2Fmt(Math.abs(latInTurretUnit), 2)} ${turretInfo.unit})${latDirShort}</text>`;
-    s += `<text x="${boxRightX}" y="${MT+38}" fill="var(--muted)" font-size="6.5" text-anchor="end" font-family="var(--font-mono)" ${halo3}>alvo ${selRow.d}m · só na torre, sem holdover</text>`;
+    s += `<text x="${boxRightX}" y="${MT+20}" fill="var(--ink)" font-size="11" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo2}>⬆ ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</text>`;
+    s += `<text x="${boxRightX}" y="${MT+29}" fill="var(--ink)" font-size="11" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo2}>↔ ${latClicks} cliques (${cd2Fmt(Math.abs(latInTurretUnit), 2)} ${turretInfo.unit})${latDirShort}</text>`;
+    s += `<text x="${boxRightX}" y="${MT+38}" fill="var(--muted)" font-size="10" text-anchor="end" font-family="var(--font-mono)" ${halo3}>alvo ${selRow.d}m · só na torre, sem holdover</text>`;
   }
 
   s += `<g id="cd2CompBulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
@@ -4537,18 +4724,18 @@ function cd2RenderTable(rows) {
     const rowStyle = enabled ? '' : ' style="opacity:0.45;"';
     return `
       <tr${rowStyle}>
-        <td><input type="checkbox" ${enabled ? 'checked' : ''} data-d="${row.d}" class="cd2-ctl-enabled" title="Desligar esse alvo — some dos diagramas e das estatísticas de risco"></td>
-        <td>${row.d}m</td>
-        <td>
+        <td data-label="Ativo"><input type="checkbox" ${enabled ? 'checked' : ''} data-d="${row.d}" class="cd2-ctl-enabled" title="Desligar esse alvo — some dos diagramas e das estatísticas de risco"></td>
+        <td data-label="Checkpoint">${row.d}m</td>
+        <td data-label="Modo">
           <select data-d="${row.d}" data-field="mode" class="cd2-ctl-mode">
             <option value="lento" ${row.p.mode==='lento'?'selected':''}>🎯 Lento</option>
             <option value="rapido" ${row.p.mode==='rapido'?'selected':''}>🎯 Rápido</option>
           </select>
         </td>
-        <td><input type="number" step="0.1" min="-4.5" max="4.5" value="${row.p.offset}" data-d="${row.d}" data-field="offset" class="cd2-ctl-offset"> m</td>
-        <td>${cd2Fmt(row.distToLine,1)} m</td>
-        <td>${cd2Fmt(row.tFlight,2)} s</td>
-        <td><span class="cd2-risk-badge cd2-${tier}">${Math.round(row.risk)}%</span></td>
+        <td data-label="Deslocamento inicial"><input type="number" step="0.1" min="-4.5" max="4.5" value="${row.p.offset}" data-d="${row.d}" data-field="offset" class="cd2-ctl-offset"> m</td>
+        <td data-label="Dist. até linha de tiro">${cd2Fmt(row.distToLine,1)} m</td>
+        <td data-label="T. de voo">${cd2Fmt(row.tFlight,2)} s</td>
+        <td data-label="Risco"><span class="cd2-risk-badge cd2-${tier}">${Math.round(row.risk)}%</span></td>
       </tr>
     `;
   }).join('');
@@ -4763,7 +4950,7 @@ function drawCenaLateral(d) {
   // equivalente (renderCompensatedProfileDiagram): a câmera anda até
   // c.sceneEndM, que costuma cair além da última marca "redonda".
   const lastGridDd = Math.floor(c.sceneEndM / gridStepCanvas) * gridStepCanvas;
-  if (c.sceneEndM - lastGridDd >= 10) {
+  if (c.sceneEndM - lastGridDd >= Math.max(10, c.sceneEndM * 0.13)) {
     ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.55; ctx.strokeStyle = accent;
     ctx.beginPath(); ctx.moveTo(X(c.sceneEndM), MT); ctx.lineTo(X(c.sceneEndM), MT + plotH); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
@@ -5154,7 +5341,7 @@ function drawCenaRawLateral(d) {
     ctx.fillStyle = axisLabelColor; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 9);
   }
   const lastGridDd = Math.floor(c.displayEndM / gridStepCanvas) * gridStepCanvas;
-  if (c.displayEndM - lastGridDd >= 10) {
+  if (c.displayEndM - lastGridDd >= Math.max(10, c.displayEndM * 0.13)) {
     ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.55; ctx.strokeStyle = accent;
     ctx.beginPath(); ctx.moveTo(X(c.displayEndM), MT); ctx.lineTo(X(c.displayEndM), MT + plotH); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
@@ -11695,8 +11882,8 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
 
       applyTabPermissions();
       const allowedTabs = getPermissions();
-      let savedTab = localStorage.getItem('geosniper_active_tab') || 'tabBalistica';
-      if (!allowedTabs.includes(savedTab)) savedTab = allowedTabs[0] || 'tabBalistica';
+      let savedTab = localStorage.getItem('geosniper_active_tab') || HOME_TAB;
+      if (savedTab !== HOME_TAB && !allowedTabs.includes(savedTab)) savedTab = HOME_TAB;
       openTab(null, savedTab);
       // Revalidação periódica das permissões: já é feita pelo próprio
       // acesso-client.js (setInterval de 30s dentro de window.prepareAccess),
