@@ -147,6 +147,14 @@
        repouso" do canvas (offsetWidth, que o transform:scale não altera)
        como referência pra calcular onde os botões devem ficar. */
     .dist-panel-reticle-wrap { position: relative; flex-shrink: 0; }
+    /* Mesmo mecanismo acima (wrap position:relative + canvas com
+       transform-origin 50% 100%), agora pro retículo PRINCIPAL da aba
+       Balística (id="reticleCanvas") — os botões －/＋ saem de embaixo do
+       retículo e vão pros dois lados do círculo, crescendo junto com ele
+       (ver positionMainReticleZoomButtons/adjustMainReticleZoom). O valor
+       atual do zoom (🔍 X.XXx) continua embaixo, só sem os botões. */
+    .main-reticle-wrap { position: relative; display: inline-block; max-width: 100%; }
+    .main-reticle-canvas { transition: transform 0.2s ease; transform-origin: 50% 100%; }
     /* Botões －/＋ do retículo — círculo prateado (mesmo acabamento metálico
        dos docks) grudado nos lados do retículo, mais pra baixo (perto da
        borda inferior do círculo) pra não ficar embaixo do texto de guiagem.
@@ -156,7 +164,7 @@
        borda do círculo crescendo e nunca fica coberto por ela. */
     .dist-panel-reticle-zoom-btn {
       position: absolute; top: 88%; transform: translate(-50%, -50%);
-      width: 32px; height: 32px; border-radius: 50%; font-size: 21px;
+      width: 32px; height: 32px; border-radius: 6px; font-size: 21px;
       font-weight: 800; border: none; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
       transition: left 0.2s ease, top 0.2s ease;
@@ -171,17 +179,29 @@
     /* Botões redondos "limpar"/"registrar" ao lado do retículo — também em
        "em", pra crescer junto com o balão quando ele é ampliado. */
     .dist-panel-round-btn {
-      color: #fff; border: none; border-radius: 50%; width: 2.3em; height: 2.3em;
+      color: #fff; border: none; border-radius: 6px; width: 2.3em; height: 2.3em;
       font-size: 1em; cursor: pointer; flex-shrink: 0;
     }
     .dist-panel-round-btn.btn-clear { background: var(--line); }
     .dist-panel-round-btn.btn-register { background: var(--action); }
+    /* Badges de MOA (posição ❶ distância/elevação, ❷ vento) no balão Medir —
+       mesmo raio de canto dos botões quadrados acima, pra ficar visualmente
+       no mesmo sistema; aqui funcionam como leitura (não são clicáveis). */
+    .dist-panel-square-btn {
+      color: #12141a; border: none; border-radius: 6px; width: 2.3em; height: 2.3em;
+      font-size: 1em; cursor: default; flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center;
+    }
+    .dist-panel-square-btn.btn-moa { background: var(--sem-caution); }
+    .dist-panel-square-btn.btn-windmoa { background: var(--sem-hostile); color: #fff; }
+
+
 
     /* Botões de "girar torre" do balão compacto (zeragem simulada) — mesmo
        princípio em "em" dos botões redondos ao lado do retículo, mas no tom
        dourado do marcador simulado (🟡), pra deixar visualmente ligados. */
     .dist-panel-turret-btn {
-      color: #12141a; border: none; border-radius: 50%; width: 2.47em; height: 2.47em;
+      color: #12141a; border: none; border-radius: 6px; width: 2.47em; height: 2.47em;
       font-size: 1.1em; font-weight: 800; cursor: pointer; flex-shrink: 0;
       background: linear-gradient(150deg, #f0c860 0%, #e6b428 55%, #b8871a 100%);
       display: flex; align-items: center; justify-content: center;
@@ -225,6 +245,41 @@
       background-image: linear-gradient(rgba(15,23,42,0.92), rgba(15,23,42,0.92)), linear-gradient(150deg, #9aa3ad 0%, #e8edf2 22%, #6b7280 48%, #d4dae0 72%, #838b94 100%);
       background-origin: border-box; background-clip: padding-box, border-box;
     }
+    /* Textura metal escovado, verde militar escuro — usada nos balões de
+       informação da aba Medir. Precisa vir DEPOIS de .metallic-dock-border
+       (que já define background-image nesses balões, pra desenhar a borda
+       prateada) e repetir a mesma estrutura de 2 camadas (preenchimento em
+       padding-box + gradiente prateado em border-box), só trocando o
+       preenchimento por três camadas: listras finas horizontais (efeito
+       "escovado") por cima de um gradiente diagonal verde militar. */
+    .dist-panel-military-bg {
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 3px),
+        linear-gradient(135deg, #232b1b 0%, #2f3a26 22%, #1a2013 50%, #2b3620 78%, #232b1b 100%),
+        linear-gradient(150deg, #9aa3ad 0%, #e8edf2 22%, #6b7280 48%, #d4dae0 72%, #838b94 100%);
+      background-origin: padding-box, padding-box, border-box;
+      background-clip: padding-box, padding-box, border-box;
+    }
+    /* Botões "🎯 Principal"/"◇ Diagonal" do balão da aba Medir — abrem as
+       janelas flutuantes com os retículos expandidos (ver
+       toggleMedirFloatReticle). Usam .metallic-dock-border + .dist-panel-
+       military-bg, o MESMO acabamento (borda metálica + fundo verde militar
+       escovado) do balão em si, pra ficarem visualmente "parte" dele em vez
+       de um botão solto — só que num tom só (sem a segunda camada de fundo
+       chapado), já que aqui o fundo real vem das duas classes acima. */
+    .dist-panel-float-trigger-btn {
+      flex: 1 1 0; min-width: 0; min-height: 34px; display: flex; align-items: center;
+      justify-content: center; gap: 4px; padding: 7px 5px; border-radius: 8px; cursor: pointer;
+      color: #d7e6ba; font-weight: 800; font-size: 10.5px; text-transform: uppercase;
+      letter-spacing: 0.3px; line-height: 1.2; text-align: center;
+    }
+    .dist-panel-float-trigger-btn:active { filter: brightness(1.15); }
+    /* Canvas dos retículos expandidos dentro das janelas flutuantes da aba
+       Medir — mesmo princípio de escala visual (CSS transform, sem redesenhar
+       em pxPerMrad diferente) do modal "⛶ EXPANDIR"; max-width evita estourar
+       a largura em telas estreitas quando a janela flutuante ainda não foi
+       redimensionada pelo operador. */
+    .medir-float-canvas { transition: transform 0.2s ease; transform-origin: 50% 100%; max-width: 92vw; }
     /* Docks de bússola (Marker e Estratégia) — botão ▾ minimiza pra uma
        pastilha compacta, escondendo o miolo (rosa + calibração + CALIBRAR)
        e deixando só o botão pra reabrir. */
@@ -1428,8 +1483,70 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div id="locSearchMedirList" class="location-search-list"></div>
   </div>
   <button type="button" onclick="openTacticalCameraFromEquip()" title="Mire no ponto marcado no mapa e capture o ângulo de sítio e o azimute com foto de comprovação (retículo GEOSNIPER AÇÃO)." class="metallic-dock-border" style="position:absolute; top:155px; right:10px; z-index:950; color:#fff; font-weight:700; padding:8px 12px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📷 Visada</button>
-  <div id="distPanel" class="dist-info-panel metallic-dock-border">Clique em qualquer ponto no mapa para medir</div>
+  <div id="distPanel" class="dist-info-panel dist-panel-military-bg metallic-dock-border">Clique em qualquer ponto no mapa para medir</div>
   <div id="distPanelRestoreBtn" onclick="restoreDistPanel()" title="Mostrar o balão de informação do ponto" class="metallic-dock-border" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:1000; color:#fff; font-weight:700; padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📍 Ver Ponto Marcado ▲</div>
+
+  <!-- Janelas flutuantes com os retículos expandidos do Modo Campo (Principal
+       e Deslocamento Diagonal), abertas pelos botões "🎯 Principal"/"◇
+       Diagonal" dentro do balão de informação — arrastam/redimensionam/
+       minimizam como qualquer .floating-panel (ver makeFloatingPanel), e
+       começam escondidas (display:none) até o operador abrir uma. Ficam como
+       irmãs do #distPanel (não dentro dele), porque o conteúdo do balão é
+       trocado inteiro a cada medição/ponto recebido — se estivessem dentro,
+       seriam apagadas junto. Ver toggleMedirFloatReticle/renderMedirFloatReticles. -->
+  <div class="floating-panel" id="medirFloatReticleMain" data-floating-panel style="display:none; left:8px; top:56px; width:290px; height:430px;">
+    <div class="floating-panel-header" data-panel-drag-handle>
+      <span>🎯 Principal</span>
+      <div style="display:flex; gap:4px;">
+        <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar">▾</button>
+        <button type="button" class="dock-toggle-btn" onclick="closeMedirFloatReticle('main')" aria-label="Fechar">✕</button>
+      </div>
+    </div>
+    <div class="floating-panel-body">
+      <div id="medirFloatTelemetryMain" class="mono" style="font-size:10.5px; color:#c9d4b8; text-align:center; margin-bottom:6px;">DIST --m · ZOOM --x</div>
+      <canvas id="medirExpandCanvasMain" class="medir-float-canvas" width="320" height="320" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; margin:0 auto; box-shadow:0 2px 8px rgba(0,0,0,0.5);"></canvas>
+      <div class="reticle-zoom-row" style="margin:8px auto 0; justify-content:center; width:fit-content;">
+        <button type="button" class="reticle-zoom-btn" onclick="adjustMedirFloatZoom('main', -0.25)">－</button>
+        <span id="medirFloatZoomMainLabel" class="reticle-zoom-label">🔍 1.00x</span>
+        <button type="button" class="reticle-zoom-btn" onclick="adjustMedirFloatZoom('main', 0.25)">＋</button>
+      </div>
+    </div>
+    <div class="floating-panel-resize-handle edge-n" data-resize="n"></div>
+    <div class="floating-panel-resize-handle edge-s" data-resize="s"></div>
+    <div class="floating-panel-resize-handle edge-e" data-resize="e"></div>
+    <div class="floating-panel-resize-handle edge-w" data-resize="w"></div>
+    <div class="floating-panel-resize-handle corner-ne" data-resize="ne"></div>
+    <div class="floating-panel-resize-handle corner-nw" data-resize="nw"></div>
+    <div class="floating-panel-resize-handle corner-se" data-resize="se"></div>
+    <div class="floating-panel-resize-handle corner-sw" data-resize="sw"></div>
+  </div>
+
+  <div class="floating-panel" id="medirFloatReticleLead" data-floating-panel style="display:none; left:26px; top:78px; width:290px; height:430px;">
+    <div class="floating-panel-header" data-panel-drag-handle>
+      <span>◇ Deslocamento Diagonal</span>
+      <div style="display:flex; gap:4px;">
+        <button type="button" class="dock-toggle-btn" data-panel-toggle aria-label="Minimizar">▾</button>
+        <button type="button" class="dock-toggle-btn" onclick="closeMedirFloatReticle('lead')" aria-label="Fechar">✕</button>
+      </div>
+    </div>
+    <div class="floating-panel-body">
+      <div id="medirFloatTelemetryLead" class="mono" style="font-size:10.5px; color:#c9d4b8; text-align:center; margin-bottom:6px;">DIST --m · ZOOM --x</div>
+      <canvas id="medirExpandCanvasLead" class="medir-float-canvas" width="320" height="320" style="background:#fff; border-radius:50%; border:3px solid var(--line); display:block; margin:0 auto; box-shadow:0 2px 8px rgba(0,0,0,0.5);"></canvas>
+      <div class="reticle-zoom-row" style="margin:8px auto 0; justify-content:center; width:fit-content;">
+        <button type="button" class="reticle-zoom-btn" onclick="adjustMedirFloatZoom('lead', -0.25)">－</button>
+        <span id="medirFloatZoomLeadLabel" class="reticle-zoom-label">🔍 1.00x</span>
+        <button type="button" class="reticle-zoom-btn" onclick="adjustMedirFloatZoom('lead', 0.25)">＋</button>
+      </div>
+    </div>
+    <div class="floating-panel-resize-handle edge-n" data-resize="n"></div>
+    <div class="floating-panel-resize-handle edge-s" data-resize="s"></div>
+    <div class="floating-panel-resize-handle edge-e" data-resize="e"></div>
+    <div class="floating-panel-resize-handle edge-w" data-resize="w"></div>
+    <div class="floating-panel-resize-handle corner-ne" data-resize="ne"></div>
+    <div class="floating-panel-resize-handle corner-nw" data-resize="nw"></div>
+    <div class="floating-panel-resize-handle corner-se" data-resize="se"></div>
+    <div class="floating-panel-resize-handle corner-sw" data-resize="sw"></div>
+  </div>
 </div>
 
 <div id="tabBalistica" class="tab-content active">
@@ -1510,7 +1627,22 @@ body.nvg-red-mode .leaflet-tile-container img {
         <div>
           <button type="button" class="btn-military-sm" onclick="openReticleExpandModal()" title="Abrir retículo em tela cheia, com telemetria completa e modo alto contraste">⛶ EXPANDIR</button>
         </div>
-        <canvas id="reticleCanvas" width="320" height="320" style="background:#fff; border-radius:50%; border:4px solid var(--line); box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto; max-width: 100%;"></canvas>
+        <!-- Zoom visual do retículo principal — mesmo mecanismo (CSS
+             transform:scale só no canvas) já usado nos dois retículos do
+             Modo Campo, ver adjustMainReticleZoom(). Botões －/＋ presos nos
+             lados do círculo (mesmo padrão do mini retículo do balão Medir —
+             ver .dist-panel-reticle-wrap/positionDistPanelReticleZoomButtons),
+             em vez de ficarem numa fileira embaixo; o valor atual (🔍 X.XXx)
+             continua abaixo do retículo. -->
+        <div class="main-reticle-wrap">
+          <canvas id="reticleCanvas" class="main-reticle-canvas" width="320" height="320" style="background:#fff; border-radius:50%; border:4px solid var(--line); box-shadow: 0 4px 12px rgba(0,0,0,0.5); display:block; margin: 0 auto; max-width: 100%;"></canvas>
+          <button type="button" id="mainReticleZoomMinusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustMainReticleZoom(-0.25)" title="Reduzir retículo">－</button>
+          <button type="button" id="mainReticleZoomPlusBtn" class="dist-panel-reticle-zoom-btn metallic-icon-btn" onclick="adjustMainReticleZoom(0.25)" title="Ampliar retículo">＋</button>
+        </div>
+
+        <div class="reticle-zoom-row" style="margin-top:8px; justify-content:center;">
+          <span id="mainReticleZoomLabel" class="reticle-zoom-label">🔍 1.00x</span>
+        </div>
 
         <!-- Torre de elevação simulada: cada clique soa (som sintetizado) e move o
              ponto de mira, recalculando a que distância cada MIL do retículo
@@ -2117,11 +2249,12 @@ body.nvg-red-mode .leaflet-tile-container img {
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="font-weight:700; color:var(--ink); margin-bottom:2px; font-size:12px;">Cenário editável por checkpoint</div>
-    <div style="font-size:10.5px; color:var(--muted);">Ajuste modo e deslocamento inicial de cada alvo móvel</div>
+    <div style="font-size:10.5px; color:var(--muted);">Ajuste modo e deslocamento inicial de cada alvo móvel · desmarque "Ativo" pra tirar um alvo dos diagramas</div>
     <div class="cd2-table-scroll">
       <table>
         <thead>
           <tr>
+            <th>Ativo</th>
             <th>Checkpoint</th>
             <th>Modo</th>
             <th>Deslocamento inicial</th>
@@ -2147,13 +2280,10 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:12px;">🎯 Corredor de risco (visão superior)</div>
-    <svg id="riskCorridorSvg" viewBox="0 0 760 300" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
-    <div id="riskCorridorLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:var(--muted);"></div>
-  </div>
-
-  <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:12px;">📉 Perfil de trajetória (altura x distância)</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
+      <div style="font-weight:700; color:var(--ink); font-size:12px;">📉 Perfil de trajetória (altura x distância)</div>
+      <button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:10.5px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
+    </div>
     <svg id="trajectoryProfileSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
     <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:var(--muted);"></div>
 
@@ -2290,6 +2420,9 @@ body.nvg-red-mode .leaflet-tile-container img {
 
   <div class="reticle-pill-group-label">Tipo de Alvo (referência)</div>
   <div id="reticleExpandTargetPills" class="reticle-pill-row"></div>
+    <button type="button" id="reticleExpandTargetToggle" class="reticle-pill" style="margin-left: auto;" onclick="toggleReticleExpandTarget()" title="Desligar tipo de alvo">
+      ✕ Desligar
+    </button>
 
   <div class="reticle-expand-canvases">
     <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
@@ -2937,7 +3070,10 @@ function openTab(evt, tabName) {
       if (typeof positionDrawToolbar === 'function') positionDrawToolbar(mapNormal, document.getElementById('drawToolbarNormal'), 'left');
     }
     if (tabName === 'tabRaios' && mapRaios) mapRaios.invalidateSize();
-    if (tabName === 'tabBalistica' && typeof runBallistics === 'function') runBallistics();
+    // preserveTurretDial:true — voltar pra essa aba só atualiza a tela, não
+    // conta como um novo cálculo pedido pelo operador, então a zeragem
+    // simulada (marcador amarelo) que ele já tinha ajustado não é apagada.
+    if (tabName === 'tabBalistica' && typeof runBallistics === 'function') runBallistics(true);
   }, 100);
 }
 
@@ -3196,85 +3332,28 @@ function windDriftCm(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
 
 function renderCenaDisparoVisuals() {
   renderAdjustSummary();
-  renderRiskCorridorDiagram();
   renderTrajectoryProfileDiagram();
   renderCompensatedProfilePair();
   cd2Render();
-}
-
-// Corredor de risco: visão de cima, mostrando o quanto o vento desvia
-// o projétil lateralmente até o alvo (e um pouco além, sinalizando que
-// não há anteparo conhecido ali).
-function renderRiskCorridorDiagram() {
-  const svg = document.getElementById('riskCorridorSvg');
-  if (!svg) return;
-  const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
-  const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
-  const targetDistM = simState.distance;
-  const sceneEndM = Math.max(targetDistM + 20, Math.round(targetDistM * 1.15 / 5) * 5);
-  const latRange = 8; // metros (±4m) — enquadramento fixo, cobre qualquer deriva realista nas distâncias do app
-  const gridStep = sceneEndM <= 400 ? 50 : 100;
-  const driftAtM = d => windDriftCm(d, simState.windClock, simState.windSpeed, fps, bcVal) / 100;
-
-  const W = 760, H = 300, ML = 54, MR = 20, MT = 22, MB = 34;
-  const plotW = W - ML - MR, plotH = H - MT - MB;
-  const scaleX = plotW / sceneEndM;
-  const scaleY = plotH / latRange;
-  const cy = MT + plotH / 2;
-  const X = d => ML + d * scaleX;
-  const Y = lat => cy + lat * scaleY;
-  const halfLat = latRange / 2;
-
-  let s = '';
-  for (let d = 0; d <= sceneEndM; d += gridStep) {
-    s += `<line x1="${X(d)}" y1="${MT}" x2="${X(d)}" y2="${MT+plotH}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${X(d)}" y="${H-14}" fill="var(--muted)" font-size="10.5" text-anchor="middle">${d}m</text>`;
-  }
-  for (let lat = -halfLat; lat <= halfLat + 0.001; lat += halfLat / 2) {
-    s += `<line x1="${ML}" y1="${Y(lat)}" x2="${ML+plotW}" y2="${Y(lat)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Y(lat)+3}" fill="var(--muted)" font-size="10" text-anchor="end">${lat>0?'+':''}${Math.round(lat)}m</text>`;
-  }
-  s += `<text x="${ML-40}" y="${MT+8}" fill="var(--muted)" font-size="9.5" text-anchor="middle">◄ esq.</text>`;
-  s += `<text x="${ML-40}" y="${MT+plotH-4}" fill="var(--muted)" font-size="9.5" text-anchor="middle">dir. ►</text>`;
-
-  if (targetDistM < sceneEndM) {
-    s += `<rect x="${X(targetDistM)}" y="${MT}" width="${X(sceneEndM)-X(targetDistM)}" height="${plotH}" fill="var(--accent)" opacity="0.10"/>`;
-    s += `<text x="${(X(targetDistM)+X(sceneEndM))/2}" y="${MT+14}" fill="var(--accent)" font-size="10" text-anchor="middle">sem anteparo</text>`;
-  }
-
-  s += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(sceneEndM)}" y2="${Y(0)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
-
-  let path = '';
-  for (let d = 0; d <= sceneEndM; d += 5) {
-    const lat = driftAtM(d);
-    path += (d === 0 ? 'M' : 'L') + X(d).toFixed(1) + ',' + Y(lat).toFixed(1) + ' ';
-  }
-  s += `<path d="${path}" fill="none" stroke="var(--action)" stroke-width="2.2"/>`;
-
-  s += `<circle cx="${X(0)}" cy="${Y(0)}" r="6" fill="var(--ink)"/>`;
-  s += `<text x="${X(0)}" y="${Y(0)-12}" fill="var(--ink)" font-size="10.5" text-anchor="middle">ATIRADOR</text>`;
-
-  const targetLat = driftAtM(targetDistM);
-  s += `<circle cx="${X(targetDistM)}" cy="${Y(targetLat)}" r="7" fill="none" stroke="var(--sem-hostile)" stroke-width="2"/>`;
-  s += `<circle cx="${X(targetDistM)}" cy="${Y(targetLat)}" r="2.4" fill="var(--sem-hostile)"/>`;
-  s += `<text x="${X(targetDistM)}" y="${Y(targetLat)-12}" fill="var(--sem-hostile)" font-size="10.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
-
-  svg.innerHTML = s;
-
-  const legend = document.getElementById('riskCorridorLegend');
-  if (legend) {
-    legend.innerHTML = `
-      <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:var(--muted); display:inline-block;"></span>linha de mira (reta)</span>
-      <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:var(--action); display:inline-block;"></span>trajetória real (com deriva de vento)</span>
-      <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:var(--accent); opacity:0.6; display:inline-block;"></span>além do alvo, sem anteparo</span>
-    `;
-  }
 }
 
 // Perfil de trajetória: altura em relação à linha de mira, sem nenhuma
 // compensação aplicada — amarelo tracejado na subida (boca até a
 // zeragem), vermelho sólido na queda (zeragem até o alvo, ou até onde
 // a trajetória chega ao "solo" do desenho, se antes do alvo).
+// Zoom padrão do gráfico bruto: liga/desliga com a seta "expandir". Quando
+// a trajetória sem compensação bate no chão bem antes do fim da cena (caso
+// comum — o alvo real costuma estar muito além de onde o projétil, sem
+// dial nenhum, já voltou à terra), mostrar o eixo inteiro (0 a ~660m)
+// deixava boa parte do gráfico em branco e encolhia a curva de verdade.
+// Por padrão mostramos só até 20% depois do impacto; a seta revela a cena
+// inteira sob demanda.
+let cenaRawProfileExpanded = false;
+function toggleCenaRawProfileExpand() {
+  cenaRawProfileExpanded = !cenaRawProfileExpanded;
+  renderTrajectoryProfileDiagram();
+}
+
 function renderTrajectoryProfileDiagram() {
   const svg = document.getElementById('trajectoryProfileSvg');
   if (!svg) return;
@@ -3285,7 +3364,6 @@ function renderTrajectoryProfileDiagram() {
   const targetDistM = simState.distance;
   const AIM_HEIGHT_M = 0.3; // altura de zeragem do equipamento: posição do atirador deitado (boca do cano até o chão, com bipé) — referência real da posição de tiro, não é constante de balística
   const sceneEndM = Math.max(targetDistM, zeroDist) + Math.max(20, Math.round(targetDistM * 0.1));
-  const gridStep = sceneEndM <= 400 ? 50 : 100;
   const hAG = d => AIM_HEIGHT_M - trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) / 100;
 
   // Sem nenhuma compensação, se a trajetória já cruza o "solo" do desenho
@@ -3304,6 +3382,20 @@ function renderTrajectoryProfileDiagram() {
   const targetReachable = targetDistM <= drawEndM + 0.01;
   const splitM = Math.min(zeroDist, drawEndM);
 
+  // Janela de exibição: recortada (padrão) ou a cena inteira (expandida).
+  // A física acima (impactD, drawEndM, hAG) sempre usa sceneEndM real —
+  // só o que aparece no eixo muda.
+  const zoomEndM = impactD != null ? Math.min(sceneEndM, impactD * 1.2) : sceneEndM;
+  const canZoom = impactD != null && zoomEndM < sceneEndM - 0.5;
+  const displayEndM = cenaRawProfileExpanded ? sceneEndM : zoomEndM;
+  const gridStep = displayEndM <= 400 ? 50 : 100;
+  const expandBtn = document.getElementById('trajectoryProfileExpandBtn');
+  if (expandBtn) {
+    expandBtn.style.display = canZoom ? 'flex' : 'none';
+    expandBtn.textContent = cenaRawProfileExpanded ? '⤡ Recolher' : '⤢ Expandir (ver cena toda)';
+    expandBtn.setAttribute('aria-pressed', cenaRawProfileExpanded ? 'true' : 'false');
+  }
+
   let peakH = AIM_HEIGHT_M;
   for (let d = 0; d <= drawEndM; d += Math.max(2, drawEndM / 150)) {
     const h = hAG(d);
@@ -3314,34 +3406,50 @@ function renderTrajectoryProfileDiagram() {
 
   const W = 760, H = 260, ML = 54, MR = 20, MT = 20, MB = 30;
   const plotW = W - ML - MR, plotH = H - MT - MB;
-  const scaleX = plotW / sceneEndM;
+  const scaleX = plotW / displayEndM;
   const scaleY2 = plotH / hRange;
   const X = d => ML + d * scaleX;
   const Yh = h => MT + (hRange - h) * scaleY2;
 
   let s = '';
-  for (let d = 0; d <= sceneEndM; d += gridStep) {
+  // Cor mais clara que --muted só pras marcações de eixo (distância/altura)
+  // — legendas e rótulos continuam em --muted, mas essas duas escalas são o
+  // que o operador mais precisa ler rápido, então ganham mais contraste.
+  // Fontes um pouco maiores que a primeira rodada de ajuste, a pedido.
+  const AXIS_LABEL_COLOR = '#b7b59c';
+  for (let d = 0; d <= displayEndM; d += gridStep) {
     s += `<line x1="${X(d)}" y1="${MT}" x2="${X(d)}" y2="${MT+plotH}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${X(d)}" y="${H-10}" fill="var(--muted)" font-size="10.5" text-anchor="middle">${d}m</text>`;
+    s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="12.5" font-weight="600" text-anchor="middle">${d}m</text>`;
+  }
+  // Marca extra exatamente no fim real da janela exibida, quando ele cai
+  // fora da última marca "redonda" — tanto no recorte padrão (ex.: zoom até
+  // 311m mas a grade só marca de 50 em 50) quanto na vista expandida (cena
+  // até 660m com grade de 100 em 100).
+  const lastGridD = Math.floor(displayEndM / gridStep) * gridStep;
+  if (displayEndM - lastGridD >= 10) {
+    s += `<line x1="${X(displayEndM)}" y1="${MT}" x2="${X(displayEndM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>`;
+    s += `<text x="${X(displayEndM)}" y="${H-9}" fill="var(--accent)" font-size="11" font-weight="600" text-anchor="end">${displayEndM.toFixed(0)}m</text>`;
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     s += `<line x1="${ML}" y1="${Yh(h)}" x2="${ML+plotW}" y2="${Yh(h)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Yh(h)+3}" fill="var(--muted)" font-size="10" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
+    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="11.5" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
   }
 
-  if (targetReachable && targetDistM < sceneEndM) {
-    s += `<rect x="${X(targetDistM)}" y="${MT}" width="${X(sceneEndM)-X(targetDistM)}" height="${plotH}" fill="var(--accent)" opacity="0.10"/>`;
+  if (targetReachable && targetDistM < displayEndM) {
+    s += `<rect x="${X(targetDistM)}" y="${MT}" width="${X(displayEndM)-X(targetDistM)}" height="${plotH}" fill="var(--accent)" opacity="0.10"/>`;
   }
 
   s += `<line x1="${ML}" y1="${Yh(0)}" x2="${ML+plotW}" y2="${Yh(0)}" stroke="var(--ink)" stroke-width="1.6"/>`;
-  s += `<line x1="${X(0)}" y1="${Yh(AIM_HEIGHT_M)}" x2="${X(drawEndM)}" y2="${Yh(AIM_HEIGHT_M)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
-  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="10" text-anchor="start">altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
+  s += `<line x1="${X(0)}" y1="${Yh(AIM_HEIGHT_M)}" x2="${X(Math.min(drawEndM, displayEndM))}" y2="${Yh(AIM_HEIGHT_M)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
+  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="11" text-anchor="start">altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
 
-  s += `<line x1="${X(splitM)}" y1="${MT}" x2="${X(splitM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
-  s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="9.5" text-anchor="middle">zero ${zeroDist}m</text>`;
+  if (splitM <= displayEndM) {
+    s += `<line x1="${X(splitM)}" y1="${MT}" x2="${X(splitM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
+    s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="10.5" text-anchor="middle">zero ${zeroDist}m</text>`;
+  }
 
   let risePath = '';
-  for (let d = 0; d <= splitM; d += 5) {
+  for (let d = 0; d <= Math.min(splitM, displayEndM); d += 5) {
     const h = Math.max(0, Math.min(hRange, hAG(d)));
     risePath += (d === 0 ? 'M' : 'L') + X(d).toFixed(1) + ',' + Yh(h).toFixed(1) + ' ';
   }
@@ -3349,21 +3457,21 @@ function renderTrajectoryProfileDiagram() {
 
   if (drawEndM > splitM) {
     let fallPath = '';
-    for (let d = splitM; d <= drawEndM; d += 5) {
+    for (let d = splitM; d <= Math.min(drawEndM, displayEndM); d += 5) {
       const h = Math.max(0, Math.min(hRange, hAG(d)));
       fallPath += (d === splitM ? 'M' : 'L') + X(d).toFixed(1) + ',' + Yh(h).toFixed(1) + ' ';
     }
     s += `<path d="${fallPath}" fill="none" stroke="var(--sem-hostile)" stroke-width="2.6"/>`;
   }
 
-  if (targetReachable) {
+  if (targetReachable && targetDistM <= displayEndM) {
     const hTarget = hAG(targetDistM);
     s += `<circle cx="${X(targetDistM)}" cy="${Yh(hTarget)}" r="4" fill="var(--sem-hostile)"/>`;
-    s += `<text x="${X(targetDistM)}" y="${Yh(hTarget)-10}" fill="var(--sem-hostile)" font-size="10.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
-  } else {
+    s += `<text x="${X(targetDistM)}" y="${Yh(hTarget)-10}" fill="var(--sem-hostile)" font-size="11.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
+  } else if (!targetReachable) {
     s += `<circle cx="${X(impactD)}" cy="${Yh(0)}" r="4.5" fill="var(--accent)"/>`;
-    s += `<text x="${X(impactD)}" y="${Yh(0)-28}" fill="var(--accent)" font-size="10.5" text-anchor="middle">impacto ~${impactD.toFixed(0)}m</text>`;
-    s += `<text x="${X(impactD)}" y="${Yh(0)-14}" fill="var(--accent)" font-size="9.5" text-anchor="middle">(sem compensação — alvo real a ${targetDistM}m)</text>`;
+    s += `<text x="${X(impactD)}" y="${Yh(0)-28}" fill="var(--accent)" font-size="11.5" text-anchor="middle">impacto ~${impactD.toFixed(0)}m</text>`;
+    s += `<text x="${X(impactD)}" y="${Yh(0)-14}" fill="var(--accent)" font-size="10.5" text-anchor="middle">(sem compensação — alvo real a ${targetDistM}m)</text>`;
   }
 
   svg.innerHTML = s;
@@ -3518,7 +3626,12 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
   const zeroDist = simState.zeroDist;
   const targetDistM = simState.distance;
-  const sceneEndM = targetDistM + Math.max(20, Math.round(targetDistM * 0.1));
+  // Mesma regra do gráfico bruto (renderTrajectoryProfileDiagram) — inclui a
+  // zeragem no cálculo do fim de cena, pra os dois gráficos nunca terem
+  // extensões diferentes pro "mesmo tiro" (achado numa auditoria de
+  // coerência entre os dois: se a zeragem for maior que o alvo, as fórmulas
+  // divergiam e cada gráfico desenhava um pedaço de cena diferente).
+  const sceneEndM = Math.max(targetDistM, zeroDist) + Math.max(20, Math.round(targetDistM * 0.1));
   const gridStep = sceneEndM <= 400 ? 50 : 100;
 
   const comp = getCompensatedTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM);
@@ -3534,13 +3647,19 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   const Yh = h => MT + (hRange - h) * scaleY2;
 
   let s = '';
+  const AXIS_LABEL_COLOR = '#b7b59c';
   for (let d = 0; d <= sceneEndM; d += gridStep) {
     s += `<line x1="${X(d)}" y1="${MT}" x2="${X(d)}" y2="${MT+plotH}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${X(d)}" y="${H-10}" fill="var(--muted)" font-size="10.5" text-anchor="middle">${d}m</text>`;
+    s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="11.5" font-weight="600" text-anchor="middle">${d}m</text>`;
+  }
+  const lastGridD = Math.floor(sceneEndM / gridStep) * gridStep;
+  if (sceneEndM - lastGridD >= 10) {
+    s += `<line x1="${X(sceneEndM)}" y1="${MT}" x2="${X(sceneEndM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>`;
+    s += `<text x="${X(sceneEndM)}" y="${H-9}" fill="var(--accent)" font-size="10" font-weight="600" text-anchor="end">${sceneEndM.toFixed(0)}m</text>`;
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     s += `<line x1="${ML}" y1="${Yh(h)}" x2="${ML+plotW}" y2="${Yh(h)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Yh(h)+3}" fill="var(--muted)" font-size="10" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
+    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="10.5" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
   }
 
   if (targetReachable && targetDistM < sceneEndM) {
@@ -3606,7 +3725,7 @@ function renderCompensatedProfilePair() {
 // CORREDOR DE INTERCEPTAÇÃO + COMPENSAÇÃO DE DESLOCAMENTO (aba Simulação)
 //
 // Segunda camada da Cena de Disparo: além da deriva de vento simples já
-// desenhada em renderRiskCorridorDiagram (aba Perfis), estes dois
+// visível no mapa de risco da própria aba Simulação, estes dois
 // diagramas acrescentam alvos de treinamento móveis (esteira/trilho —
 // nunca pessoas) em checkpoints ao longo da linha de tiro, cruzando
 // trajetória + deslocamento do alvo + sincronismo no tempo pra estimar
@@ -3661,7 +3780,7 @@ function cd2EnsureTargets(targetDistM) {
       const mode = r1 > 0.5 ? 'rapido' : 'lento';
       const sign = r2 > 0.5 ? 1 : -1;
       const mag = 2.2 + r1 * 1.8; // 2.2m a 4m
-      cd2State.targets[d] = { mode, offset: +(sign * mag).toFixed(1) };
+      cd2State.targets[d] = { mode, offset: +(sign * mag).toFixed(1), enabled: true };
     }
   });
   // limpa alvos de checkpoints que não existem mais (distância diminuiu)
@@ -3678,7 +3797,7 @@ function cd2ShuffleScenario() {
     const mode = r1 > 0.5 ? 'rapido' : 'lento';
     const sign = r2 > 0.5 ? 1 : -1;
     const mag = 1.6 + Math.random() * 2.6;
-    cd2State.targets[d] = { mode, offset: +(sign * mag).toFixed(1) };
+    cd2State.targets[d] = { mode, offset: +(sign * mag).toFixed(1), enabled: true };
   });
   cd2Render();
 }
@@ -3738,7 +3857,7 @@ function cd2ComputeSceneGeometry(targetDistM, windClock, windSpeed, fps, bcVal) 
   const sceneEndM = Math.max(targetDistM + 20, Math.round(targetDistM * 1.15 / 5) * 5);
   const latRangeMax = 4.6;
   const driftAtM = d => windDriftCm(d, windClock, windSpeed, fps, bcVal) / 100;
-  const W = 760, H = 460, ML = 54, MR = 20, MT = 30, MB = 40;
+  const W = 760, H = 460, ML = 60, MR = 20, MT = 30, MB = 40;
   const plotW = W - ML - MR, plotH = H - MT - MB;
   const scaleX = plotW / sceneEndM;
   const scaleY = plotH / (latRangeMax * 2);
@@ -3757,7 +3876,7 @@ function cd2DrawBaseScene(geo, targetDistM) {
   const gridStep = sceneEndM <= 400 ? 50 : 100;
   for (let d = 0; d <= sceneEndM; d += gridStep) {
     s += `<line x1="${X(d)}" y1="${MT}" x2="${X(d)}" y2="${MT+plotH}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${X(d)}" y="${H-16}" fill="var(--muted)" font-size="10.5" text-anchor="middle" font-family="var(--font-mono)">${d}m</text>`;
+    s += `<text x="${X(d)}" y="${H-16}" fill="var(--muted)" font-size="16" font-weight="600" text-anchor="middle" font-family="var(--font-mono)">${d}m</text>`;
   }
   for (let latI = -Math.floor(latRangeMax*2); latI <= Math.floor(latRangeMax*2); latI++) {
     const lat = latI * 0.5;
@@ -3765,10 +3884,10 @@ function cd2DrawBaseScene(geo, targetDistM) {
     const isWhole = latI % 2 === 0;
     s += `<line x1="${ML}" y1="${Y(lat)}" x2="${ML+plotW}" y2="${Y(lat)}" stroke="var(--line)" stroke-width="1" opacity="${isWhole ? 1 : 0.4}"/>`;
     const labelTxt = (lat === 0 ? '0' : (lat > 0 ? '+' : '') + (isWhole ? lat.toFixed(0) : cd2Fmt(lat, 1)));
-    s += `<text x="${ML-8}" y="${Y(lat)+3}" fill="var(--muted)" font-size="${isWhole ? 9.5 : 8}" text-anchor="end" font-family="var(--font-mono)">${labelTxt}m</text>`;
+    s += `<text x="${ML-8}" y="${Y(lat)+4}" fill="var(--muted)" font-size="${isWhole ? 15 : 13}" font-weight="${isWhole ? 600 : 400}" text-anchor="end" font-family="var(--font-mono)">${labelTxt}m</text>`;
   }
-  s += `<text x="${ML-40}" y="${MT-10}" fill="var(--muted)" font-size="9.5" text-anchor="middle">◄ esq.</text>`;
-  s += `<text x="${ML-40}" y="${MT+plotH+18}" fill="var(--muted)" font-size="9.5" text-anchor="middle">dir. ►</text>`;
+  s += `<text x="${ML-44}" y="${MT-10}" fill="var(--muted)" font-size="14.5" font-weight="600" text-anchor="middle">◄ esq.</text>`;
+  s += `<text x="${ML-44}" y="${MT+plotH+18}" fill="var(--muted)" font-size="14.5" font-weight="600" text-anchor="middle">dir. ►</text>`;
 
   if (targetDistM < sceneEndM) {
     s += `<rect x="${X(targetDistM)}" y="${MT}" width="${X(sceneEndM)-X(targetDistM)}" height="${plotH}" fill="var(--accent)" opacity="0.09"/>`;
@@ -3904,7 +4023,9 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
   const svg = document.getElementById('cd2CompSvg');
   if (!svg) return;
   const geo = cd2ComputeSceneGeometry(targetDistM, simState.windClock, simState.windSpeed, fps, bcVal);
-  const { X, Y, driftAtM, sceneEndM, latRangeMax, scaleY, MT, plotH } = geo;
+  const { X, Y, driftAtM, sceneEndM, latRangeMax, scaleY, MT, plotH, ML, plotW } = geo;
+  const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
+  const zeroDist = simState.zeroDist;
   let s = cd2DrawBaseScene(geo, targetDistM);
 
   const selRow = cd2State.selectedTarget !== null ? rows.find(r => r.d === cd2State.selectedTarget) : null;
@@ -3925,11 +4046,14 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     if (isSel) {
       const yBullet = Y(row.driftM);
       s += `<rect id="cd2-comp-halo-${row.d}" x="${xC-5}" y="${yBullet - CD2_RISK_SIGMA*scaleY}" width="10" height="${CD2_RISK_SIGMA*2*scaleY}" rx="5" fill="${color}" opacity="0.13"/>`;
+      // brilho suave atrás do alvo selecionado, pra ele saltar aos olhos mesmo
+      // num glifo pequeno — só no selecionado, pra não poluir os demais.
+      s += `<circle cx="${xC}" cy="${yStart}" r="15" fill="${color}" opacity="0.16"/>`;
     }
-    s += `<line id="cd2-comp-trail-${row.d}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="1.6" stroke-dasharray="3 3" opacity="${isSel ? 0.75 : 0.35}"/>`;
-    s += `<circle cx="${xC}" cy="${yArrive}" r="3" fill="none" stroke="${isSel ? 'var(--muted)' : 'var(--line)'}" stroke-width="1.3"/>`;
-    s += `<g id="cd2-comp-mover-${row.d}" transform="translate(${xC},${yStart})" opacity="${isSel ? 1 : 0.45}">`;
-    s += cd2TargetIconSvg(color, isSel ? 1 : 0.72);
+    s += `<line id="cd2-comp-trail-${row.d}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="${isSel ? 2.1 : 1.6}" stroke-dasharray="3 3" opacity="${isSel ? 0.85 : 0.42}"/>`;
+    s += `<circle cx="${xC}" cy="${yArrive}" r="${isSel ? 3.6 : 3}" fill="none" stroke="${isSel ? 'var(--muted)' : 'var(--line)'}" stroke-width="1.3"/>`;
+    s += `<g id="cd2-comp-mover-${row.d}" transform="translate(${xC},${yStart})" opacity="${isSel ? 1 : 0.62}">`;
+    s += cd2TargetIconSvg(color, isSel ? 1.45 : 0.95);
     s += `</g>`;
   });
 
@@ -3939,7 +4063,16 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
   // satura em ±latRangeMax bem antes de sceneEndM nesses casos).
   const reticleD = selRow ? selRow.d : 30;
   const xR = X(reticleD);
-  const zeroLat = selRow ? comp.requiredAimOffsetM : 0;
+  // O zero do retículo é plotado na posição FÍSICA ABSOLUTA de encontro
+  // (posAtArrival) — o mesmo ponto onde o glifo do alvo (carrinho) e o anel
+  // fantasma de chegada acabam parando quando a animação encerra. Usar
+  // comp.requiredAimOffsetM aqui (a referência óptica, sem a deriva do
+  // vento somada de volta) fazia o círculo vermelho "flutuar" ao lado do
+  // carrinho parado em vez de cair em cima dele — daí o descompasso.
+  // O valor de comp.mrad/comp.leadOffsetM continua vindo da fórmula óptica
+  // (é o quanto girar na torre a partir da posição de repouso), só a
+  // posição DESENHADA do zero mudou.
+  const zeroLat = selRow ? selRow.posAtArrival : 0;
   const pxPerMrad = (reticleD / 1000) * scaleY;
   const niceSteps = [1, 2, 4, 5, 10, 20, 25, 50, 100];
   let majorStep = niceSteps[niceSteps.length - 1];
@@ -3977,7 +4110,7 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
       s += `<circle cx="${xR}" cy="${y}" r="6.5" fill="var(--sem-hostile)" stroke="${CD2_SIGHT_YELLOW}" stroke-width="2.2"/>`;
       s += `<circle cx="${xR}" cy="${y}" r="2" fill="#fff"/>`;
     } else if (isMajor) {
-      s += `<text x="${xR+tickLen+3}" y="${y+3.5}" fill="var(--sem-hostile)" font-size="9" font-family="var(--font-mono)">${k>0?'+':''}${k}</text>`;
+      s += `<text x="${xR+tickLen+4}" y="${y+4.3}" fill="var(--sem-hostile)" font-size="13.5" font-weight="600" font-family="var(--font-mono)">${k>0?'+':''}${k}</text>`;
     }
   }
   s += `</g>`;
@@ -3997,6 +4130,32 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     const selColor = cd2RiskColor(cd2RiskTier(selRow.risk));
     s += `<text x="${labelX}" y="${labelY0}" fill="${selColor}" font-size="9.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${selRow.d}m · ${Math.round(selRow.risk)}%</text>`;
     s += `<text x="${labelX}" y="${labelY0+dy}" fill="var(--sem-hostile)" font-size="10.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${comp.mrad>=0?'+':''}${cd2Fmt(comp.mrad,2)} MRAD</text>`;
+  }
+
+  // Ajuste final em cliques — só com a torre, sem precisar de holdover —
+  // no mesmo canto onde "sem anteparo" já chama atenção pro operador.
+  // Elevação: compensação balística padrão pra distância do alvo móvel
+  // selecionado (mesma conta da aba Balística/Simulação, computeCompensationMrad).
+  // Lateral: já vem pronta de cd2ComputeCompensation — combina deriva de
+  // vento e deslocamento do alvo num só valor de lead.
+  if (selRow && targetDistM < sceneEndM) {
+    const elevMradAtSel = computeCompensationMrad(fps, bcVal, scopeH_m, zeroDist, selRow.d);
+    const turretInfo = cd2TurretInfo();
+    const elevInTurretUnit = turretInfo.unit === 'MOA' ? mradToMoa(elevMradAtSel) : elevMradAtSel;
+    const elevClicks = Math.round(Math.abs(elevInTurretUnit) / turretInfo.val);
+    const latInTurretUnit = turretInfo.unit === 'MOA' ? mradToMoa(comp.mrad) : comp.mrad;
+    const latClicks = Math.round(Math.abs(latInTurretUnit) / turretInfo.val);
+    const latDirShort = comp.dir === 'centro' ? '' : (comp.dir === 'direita' ? ' ► dir' : ' ◄ esq');
+    // Ancorado na quina direita do PLOT (não no meio-termo entre alvo e fim de
+    // cena) — pra nunca estourar a viewBox quando o alvo selecionado fica
+    // perto do fim da cena. Fonte reduzida (era grande/dominante demais no
+    // celular) e linhas mais compactas.
+    const boxRightX = ML + plotW - 6;
+    const halo2 = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="2.2" stroke-linejoin="round"';
+    const halo3 = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="1.8" stroke-linejoin="round"';
+    s += `<text x="${boxRightX}" y="${MT+20}" fill="var(--ink)" font-size="7.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo2}>⬆ ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</text>`;
+    s += `<text x="${boxRightX}" y="${MT+29}" fill="var(--ink)" font-size="7.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo2}>↔ ${latClicks} cliques (${cd2Fmt(Math.abs(latInTurretUnit), 2)} ${turretInfo.unit})${latDirShort}</text>`;
+    s += `<text x="${boxRightX}" y="${MT+38}" fill="var(--muted)" font-size="6.5" text-anchor="end" font-family="var(--font-mono)" ${halo3}>alvo ${selRow.d}m · só na torre, sem holdover</text>`;
   }
 
   s += `<g id="cd2CompBulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
@@ -4374,8 +4533,11 @@ function cd2RenderTable(rows) {
   if (!tbody) return;
   tbody.innerHTML = rows.map(row => {
     const tier = cd2RiskTier(row.risk);
+    const enabled = row.p.enabled !== false;
+    const rowStyle = enabled ? '' : ' style="opacity:0.45;"';
     return `
-      <tr>
+      <tr${rowStyle}>
+        <td><input type="checkbox" ${enabled ? 'checked' : ''} data-d="${row.d}" class="cd2-ctl-enabled" title="Desligar esse alvo — some dos diagramas e das estatísticas de risco"></td>
         <td>${row.d}m</td>
         <td>
           <select data-d="${row.d}" data-field="mode" class="cd2-ctl-mode">
@@ -4391,6 +4553,13 @@ function cd2RenderTable(rows) {
     `;
   }).join('');
 
+  tbody.querySelectorAll('.cd2-ctl-enabled').forEach(el => {
+    el.addEventListener('change', () => {
+      const d = el.getAttribute('data-d');
+      cd2State.targets[d].enabled = el.checked;
+      cd2Render();
+    });
+  });
   tbody.querySelectorAll('.cd2-ctl-mode').forEach(el => {
     el.addEventListener('change', () => {
       const d = el.getAttribute('data-d');
@@ -4416,11 +4585,16 @@ function cd2Render() {
   const targetDistM = simState.distance;
   const cps = cd2EnsureTargets(targetDistM);
   const rows = cps.map(d => cd2ComputeRow(d, fps, bcVal));
-  cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal);
-  cd2RenderBanner(rows);
-  cd2RenderStats(rows, targetDistM);
+  // Alvo desligado pelo checkbox da tabela: some dos dois diagramas, do
+  // seletor de alvo e das estatísticas de risco — mas continua na tabela
+  // (esmaecido), pra poder ligar de volta. `enabled` ausente = ligado
+  // (compatível com cenários salvos antes desse campo existir).
+  const visibleRows = rows.filter(r => r.p.enabled !== false);
+  cd2RenderCorridorSvg(visibleRows, targetDistM, fps, bcVal);
+  cd2RenderBanner(visibleRows);
+  cd2RenderStats(visibleRows, targetDistM);
   cd2RenderTable(rows);
-  if (cd2State.selectedTarget !== null && !rows.some(r => r.d === cd2State.selectedTarget)) {
+  if (cd2State.selectedTarget !== null && !visibleRows.some(r => r.d === cd2State.selectedTarget)) {
     cd2State.selectedTarget = null;
   }
   cd2RefreshComp();
@@ -4486,7 +4660,9 @@ function initCenaCameraForCurrentState() {
   const targetDistM = simState.distance;
   const windClock = simState.windClock;
   const windSpeed = simState.windSpeed;
-  const sceneEndM = targetDistM + Math.max(20, Math.round(targetDistM * 0.1));
+  // Mesma regra do par bruto (initCenaRawCameraForCurrentState) — ver nota em
+  // renderCompensatedProfileDiagram.
+  const sceneEndM = Math.max(targetDistM, zeroDist) + Math.max(20, Math.round(targetDistM * 0.1));
   const sig = [fps, bcVal, scopeH_m, zeroDist, targetDistM, windClock, windSpeed, sceneEndM].join('|');
 
   // Fase 6 (troca de aba): se nada realmente mudou desde a última vez —
@@ -4576,16 +4752,30 @@ function drawCenaLateral(d) {
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '10px ' + cssVar('--font-mono');
-  for (let dd = 0; dd <= c.sceneEndM; dd += (c.sceneEndM <= 400 ? 50 : 100)) {
+  const axisLabelColor = '#b7b59c';
+  const gridStepCanvas = c.sceneEndM <= 400 ? 50 : 100;
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '600 11px ' + cssVar('--font-mono');
+  for (let dd = 0; dd <= c.sceneEndM; dd += gridStepCanvas) {
     ctx.beginPath(); ctx.moveTo(X(dd), MT); ctx.lineTo(X(dd), MT + plotH); ctx.stroke();
-    ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 10);
+    ctx.fillStyle = axisLabelColor; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 9);
+  }
+  // Marca extra no fim real da cena — mesma ideia do gráfico estático
+  // equivalente (renderCompensatedProfileDiagram): a câmera anda até
+  // c.sceneEndM, que costuma cair além da última marca "redonda".
+  const lastGridDd = Math.floor(c.sceneEndM / gridStepCanvas) * gridStepCanvas;
+  if (c.sceneEndM - lastGridDd >= 10) {
+    ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.55; ctx.strokeStyle = accent;
+    ctx.beginPath(); ctx.moveTo(X(c.sceneEndM), MT); ctx.lineTo(X(c.sceneEndM), MT + plotH); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.fillStyle = accent; ctx.font = '600 9.5px ' + cssVar('--font-mono'); ctx.textAlign = 'right';
+    ctx.fillText(c.sceneEndM.toFixed(0) + 'm', X(c.sceneEndM), H - 9);
+    ctx.font = '600 11px ' + cssVar('--font-mono');
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(ML, Yh(h)); ctx.lineTo(ML + plotW, Yh(h)); ctx.stroke();
-    ctx.fillStyle = muted; ctx.textAlign = 'right';
-    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3);
+    ctx.fillStyle = axisLabelColor; ctx.textAlign = 'right';
+    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3.5);
   }
 
   ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
@@ -4645,7 +4835,12 @@ function drawCenaLateral(d) {
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
 }
 
-const CENA_REAR_RANGE = 14, CENA_REAR_TOP = 10, CENA_REAR_BOTTOM = -40;
+// Faixa vertical dimensionada pra caber o arco JÁ COMPENSADO (chega a
+// subir uns +98cm acima da linha de mira original perto do pico, e ainda
+// fecha em 0 no alvo) — bem diferente da faixa antiga, que tinha sido
+// calibrada pra queda BRUTA (sempre negativa e bem maior). Ver nota abaixo
+// em drawCenaRear sobre por que o eixo vertical mudou de base.
+const CENA_REAR_RANGE = 14, CENA_REAR_TOP = 115, CENA_REAR_BOTTOM = -60;
 function drawCenaRear(d) {
   const c = cenaCam;
   const ctx = c.ctxRear;
@@ -4665,33 +4860,38 @@ function drawCenaRear(d) {
     ctx.beginPath(); ctx.moveTo(Xr(cm), 20); ctx.lineTo(Xr(cm), H - 20); ctx.stroke();
     ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.fillText((cm > 0 ? '+' : '') + cm, Xr(cm), H - 8);
   });
-  [-40, -20, 0].forEach(cm => {
+  [-50, 0, 50, 100].forEach(cm => {
     ctx.beginPath(); ctx.moveTo(20, Yr(cm)); ctx.lineTo(W - 20, Yr(cm)); ctx.stroke();
-    ctx.fillStyle = muted; ctx.textAlign = 'left'; ctx.fillText(cm, 4, Yr(cm) + 3);
+    ctx.fillStyle = muted; ctx.textAlign = 'left'; ctx.fillText((cm > 0 ? '+' : '') + cm, 4, Yr(cm) + 3);
   });
 
   ctx.strokeStyle = muted; ctx.lineWidth = 1.4;
   ctx.beginPath(); ctx.moveTo(Xr(0) - 9, Yr(0)); ctx.lineTo(Xr(0) + 9, Yr(0)); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(Xr(0), Yr(0) - 9); ctx.lineTo(Xr(0), Yr(0) + 9); ctx.stroke();
 
+  // Eixo vertical usa a trajetória JÁ COMPENSADA (mesma conta da câmera
+  // lateral ao lado: queda bruta menos a correção linear dos MRAD
+  // dialados) — antes usava a queda bruta, o que fazia o ponto aqui não
+  // bater com o arco compensado mostrado do lado. O horizontal continua
+  // sendo só a deriva de vento, que não muda com a compensação de elevação.
   ctx.strokeStyle = accent; ctx.lineWidth = 2;
   ctx.beginPath();
   let started = false;
   for (let dd = 0; dd <= d; dd += 5) {
-    const rawX = windDriftCm(dd, c.windClock, c.windSpeed, c.fps, c.bcVal);
-    const rawY = -trajectoryHeightCm(dd, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
-    const cxp = Math.max(-CENA_REAR_RANGE, Math.min(CENA_REAR_RANGE, rawX));
-    const cyp = Math.max(CENA_REAR_BOTTOM, Math.min(CENA_REAR_TOP, rawY));
+    const driftX = windDriftCm(dd, c.windClock, c.windSpeed, c.fps, c.bcVal);
+    const compY = -(trajectoryHeightCm(dd, c.zeroDist, c.fps, c.bcVal, c.scopeH_m) - dd * 0.1 * c.comp.compMrad);
+    const cxp = Math.max(-CENA_REAR_RANGE, Math.min(CENA_REAR_RANGE, driftX));
+    const cyp = Math.max(CENA_REAR_BOTTOM, Math.min(CENA_REAR_TOP, compY));
     started ? ctx.lineTo(Xr(cxp), Yr(cyp)) : ctx.moveTo(Xr(cxp), Yr(cyp));
     started = true;
   }
   ctx.stroke();
 
-  const rawXNow = windDriftCm(d, c.windClock, c.windSpeed, c.fps, c.bcVal);
-  const rawYNow = -trajectoryHeightCm(d, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
-  const outNow = rawXNow > CENA_REAR_RANGE || rawXNow < -CENA_REAR_RANGE || rawYNow > CENA_REAR_TOP || rawYNow < CENA_REAR_BOTTOM;
-  const cxNow = Math.max(-CENA_REAR_RANGE, Math.min(CENA_REAR_RANGE, rawXNow));
-  const cyNow = Math.max(CENA_REAR_BOTTOM, Math.min(CENA_REAR_TOP, rawYNow));
+  const driftXNow = windDriftCm(d, c.windClock, c.windSpeed, c.fps, c.bcVal);
+  const compYNow = -(trajectoryHeightCm(d, c.zeroDist, c.fps, c.bcVal, c.scopeH_m) - d * 0.1 * c.comp.compMrad);
+  const outNow = driftXNow > CENA_REAR_RANGE || driftXNow < -CENA_REAR_RANGE || compYNow > CENA_REAR_TOP || compYNow < CENA_REAR_BOTTOM;
+  const cxNow = Math.max(-CENA_REAR_RANGE, Math.min(CENA_REAR_RANGE, driftXNow));
+  const cyNow = Math.max(CENA_REAR_BOTTOM, Math.min(CENA_REAR_TOP, compYNow));
   ctx.beginPath(); ctx.arc(Xr(cxNow), Yr(cyNow), outNow ? 5 : 5.5, 0, Math.PI * 2);
   ctx.fillStyle = danger; ctx.fill();
   ctx.strokeStyle = outNow ? warnColor : '#fff'; ctx.lineWidth = outNow ? 2.2 : 1.2; ctx.stroke();
@@ -4716,11 +4916,20 @@ function cenaRenderCheckpoints() {
   const c = cenaCam;
   const latBox = document.getElementById('cenaCpLateral');
   const rearBox = document.getElementById('cenaCpTraseira');
+  // Elevação: quanto de MRAD seria preciso pra zerar EXATAMENTE nesse
+  // checkpoint (não o valor fixo de 4,77 MRAD dialado pro alvo a 600m) —
+  // mostra como a correção necessária cresce ao longo do trajeto. Queda:
+  // a queda balística bruta (sem compensar) até ali, mesma referência já
+  // discutida (2,86m aos 600m) — informação física, não muda com o dial.
   if (latBox) {
     latBox.innerHTML = c.CHECKPOINTS.map(cp => {
       const on = c.passed[cp];
       const t = flightTimeS(cp, c.fps, c.bcVal);
-      const val = on ? `${c.comp.hAGComp(cp).toFixed(2).replace('.', ',')}m` : '—';
+      const elevMrad = computeCompensationMrad(c.fps, c.bcVal, c.scopeH_m, c.zeroDist, cp);
+      const quedaCm = trajectoryHeightCm(cp, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
+      const val = on
+        ? `${c.comp.hAGComp(cp).toFixed(2).replace('.', ',')}m · ⬆${elevMrad.toFixed(2).replace('.', ',')}MRAD · ↓${quedaCm.toFixed(1).replace('.', ',')}cm`
+        : '—';
       const phase = cenaCheckpointPhaseColor(c, cp);
       const style = on
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
@@ -4734,8 +4943,11 @@ function cenaRenderCheckpoints() {
       const on = c.passed[cp];
       const t = flightTimeS(cp, c.fps, c.bcVal);
       const drift = windDriftCm(cp, c.windClock, c.windSpeed, c.fps, c.bcVal);
-      const drop = -trajectoryHeightCm(cp, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
-      const val = on ? `${drift.toFixed(1).replace('.', ',')}/${drop.toFixed(1).replace('.', ',')}cm` : '—';
+      const drop = trajectoryHeightCm(cp, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
+      const elevMrad = computeCompensationMrad(c.fps, c.bcVal, c.scopeH_m, c.zeroDist, cp);
+      const val = on
+        ? `${drift.toFixed(1).replace('.', ',')}/${drop.toFixed(1).replace('.', ',')}cm · ⬆${elevMrad.toFixed(2).replace('.', ',')}MRAD`
+        : '—';
       const phase = cenaCheckpointPhaseColor(c, cp);
       const style = on
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
@@ -4867,7 +5079,12 @@ function initCenaRawCameraForCurrentState() {
   const zeroDist = simState.zeroDist;
   const targetDistM = simState.distance;
   const sceneEndM = Math.max(targetDistM, zeroDist) + Math.max(20, Math.round(targetDistM * 0.1));
-  const sig = [fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM].join('|');
+  // Mesma janela de exibição do gráfico estático irmão (a seta "expandir"
+  // controla os dois juntos) — a física continua calculada até sceneEndM.
+  const rawPreview = getRawTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM);
+  const zoomEndM = rawPreview.impactD != null ? Math.min(sceneEndM, rawPreview.impactD * 1.2) : sceneEndM;
+  const displayEndM = cenaRawProfileExpanded ? sceneEndM : zoomEndM;
+  const sig = [fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM, displayEndM].join('|');
 
   // Mesmo cuidado da Fase 6 pra câmera compensada: se nada mudou desde a
   // última vez (só saiu e voltou pra aba), mantém a animação como estava.
@@ -4879,7 +5096,7 @@ function initCenaRawCameraForCurrentState() {
 
   if (cenaRawCam && cenaRawCam.rafId) cancelAnimationFrame(cenaRawCam.rafId);
 
-  const raw = getRawTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM);
+  const raw = rawPreview;
   const totalFlightS = flightTimeS(sceneEndM, fps, bcVal);
   const CHECKPOINTS = [];
   for (let cp = 50; cp <= targetDistM; cp += 50) CHECKPOINTS.push(cp);
@@ -4887,7 +5104,7 @@ function initCenaRawCameraForCurrentState() {
   cenaRawCam = {
     sig,
     fps, bcVal, scopeH_m, zeroDist, targetDistM,
-    raw, sceneEndM, totalFlightS, CHECKPOINTS,
+    raw, sceneEndM, displayEndM, totalFlightS, CHECKPOINTS,
     ANIM_DURATION_S: 14,
     playing: false, elapsedAnim: 0, lastTs: null, rafId: null,
     passed: {},
@@ -4920,7 +5137,7 @@ function drawCenaRawLateral(d) {
         accent = cssVar('--accent'), danger = cssVar('--sem-hostile'), bg = cssVar('--bg');
   const W = 620, H = 230, ML = 46, MR = 14, MT = 16, MB = 26;
   const plotW = W - ML - MR, plotH = H - MT - MB;
-  const scaleX = plotW / c.sceneEndM;
+  const scaleX = plotW / c.displayEndM;
   const hRange = Math.max(0.8, c.raw.peakH * 1.15);
   const scaleY = plotH / hRange;
   const X = dd => ML + dd * scaleX, Yh = h => MT + (hRange - h) * scaleY;
@@ -4929,46 +5146,61 @@ function drawCenaRawLateral(d) {
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '10px ' + cssVar('--font-mono');
-  for (let dd = 0; dd <= c.sceneEndM; dd += (c.sceneEndM <= 400 ? 50 : 100)) {
+  const axisLabelColor = '#b7b59c';
+  const gridStepCanvas = c.displayEndM <= 400 ? 50 : 100;
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '600 12px ' + cssVar('--font-mono');
+  for (let dd = 0; dd <= c.displayEndM; dd += gridStepCanvas) {
     ctx.beginPath(); ctx.moveTo(X(dd), MT); ctx.lineTo(X(dd), MT + plotH); ctx.stroke();
-    ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 10);
+    ctx.fillStyle = axisLabelColor; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 9);
+  }
+  const lastGridDd = Math.floor(c.displayEndM / gridStepCanvas) * gridStepCanvas;
+  if (c.displayEndM - lastGridDd >= 10) {
+    ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.55; ctx.strokeStyle = accent;
+    ctx.beginPath(); ctx.moveTo(X(c.displayEndM), MT); ctx.lineTo(X(c.displayEndM), MT + plotH); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.fillStyle = accent; ctx.font = '600 10.5px ' + cssVar('--font-mono'); ctx.textAlign = 'right';
+    ctx.fillText(c.displayEndM.toFixed(0) + 'm', X(c.displayEndM), H - 9);
+    ctx.font = '600 12px ' + cssVar('--font-mono');
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(ML, Yh(h)); ctx.lineTo(ML + plotW, Yh(h)); ctx.stroke();
-    ctx.fillStyle = muted; ctx.textAlign = 'right';
-    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3);
+    ctx.fillStyle = axisLabelColor; ctx.textAlign = 'right';
+    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3.5);
   }
 
   ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(ML, Yh(0)); ctx.lineTo(ML + plotW, Yh(0)); ctx.stroke();
   ctx.setLineDash([5, 4]); ctx.globalAlpha = 0.7;
-  ctx.beginPath(); ctx.moveTo(X(0), Yh(c.raw.AIM_HEIGHT_M)); ctx.lineTo(X(c.sceneEndM), Yh(c.raw.AIM_HEIGHT_M)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(X(0), Yh(c.raw.AIM_HEIGHT_M)); ctx.lineTo(X(Math.min(c.sceneEndM, c.displayEndM)), Yh(c.raw.AIM_HEIGHT_M)); ctx.stroke();
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 
   // trajetória completa (prévia fraca) — mesma divisão do gráfico estático:
   // zeragem mecânica (raw.splitM), não um "pico" (essa trajetória não tem
   // compensação nenhuma pra ter pico compensado).
   const splitM = c.raw.splitM;
+  const drawEndClamped = Math.min(c.sceneEndM, c.displayEndM);
   ctx.globalAlpha = 0.28;
   ctx.setLineDash([6, 4]); ctx.strokeStyle = accent; ctx.lineWidth = 2;
   ctx.beginPath();
-  for (let dd = 0; dd <= splitM; dd += 5) {
+  for (let dd = 0; dd <= Math.min(splitM, drawEndClamped); dd += 5) {
     const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
     dd === 0 ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
   }
   ctx.stroke(); ctx.setLineDash([]);
   ctx.strokeStyle = danger; ctx.lineWidth = 2;
   ctx.beginPath();
-  for (let dd = splitM; dd <= c.sceneEndM; dd += 5) {
+  for (let dd = splitM; dd <= drawEndClamped; dd += 5) {
     const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
     dd === splitM ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
   }
   ctx.stroke(); ctx.globalAlpha = 1;
 
-  // trajetória percorrida (sólida, mesma divisão de cor)
-  const travelRiseEnd = Math.min(splitM, d);
+  // trajetória percorrida (sólida, mesma divisão de cor) — clampada na
+  // janela exibida: no recorte padrão, o marcador para na borda visível em
+  // vez de desenhar fora do canvas enquanto a animação continua avançando.
+  const dClamped = Math.min(d, drawEndClamped);
+  const travelRiseEnd = Math.min(splitM, dClamped);
   ctx.setLineDash([6, 4]); ctx.strokeStyle = accent; ctx.lineWidth = 2.6;
   ctx.beginPath();
   for (let dd = 0; dd <= travelRiseEnd; dd += 5) {
@@ -4976,10 +5208,10 @@ function drawCenaRawLateral(d) {
     dd === 0 ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
   }
   ctx.stroke(); ctx.setLineDash([]);
-  if (d > splitM) {
+  if (dClamped > splitM) {
     ctx.strokeStyle = danger; ctx.lineWidth = 2.8;
     ctx.beginPath();
-    for (let dd = splitM; dd <= d; dd += 5) {
+    for (let dd = splitM; dd <= dClamped; dd += 5) {
       const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
       dd === splitM ? ctx.moveTo(X(dd), Yh(h)) : ctx.lineTo(X(dd), Yh(h));
     }
@@ -4987,15 +5219,15 @@ function drawCenaRawLateral(d) {
   }
 
   // rastro (motion blur) + marcador
-  const hNow = Math.max(0, Math.min(hRange, c.raw.hAG(d)));
+  const hNow = Math.max(0, Math.min(hRange, c.raw.hAG(dClamped)));
   [24, 16, 8].forEach((back, i) => {
-    const dd = Math.max(0, d - back);
+    const dd = Math.max(0, dClamped - back);
     const h = Math.max(0, Math.min(hRange, c.raw.hAG(dd)));
     ctx.globalAlpha = 0.15 + i * 0.1;
     ctx.beginPath(); ctx.arc(X(dd), Yh(h), 4, 0, Math.PI * 2); ctx.fillStyle = danger; ctx.fill();
   });
   ctx.globalAlpha = 1;
-  ctx.beginPath(); ctx.arc(X(d), Yh(hNow), 5.5, 0, Math.PI * 2);
+  ctx.beginPath(); ctx.arc(X(dClamped), Yh(hNow), 5.5, 0, Math.PI * 2);
   ctx.fillStyle = danger; ctx.fill();
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
 }
@@ -6521,6 +6753,43 @@ function resetDistPanelReticleZoom() {
   distPanelReticleZoom = 1;
   applyDistPanelReticleZoomTransform();
 }
+// Preenche os badges de MOA do balão Medir (posição ❶: distância/elevação,
+// posição ❷: vento) com a solução balística que acabou de vir da API. O
+// badge de vento só aparece quando há vento de fato (mradWind !== 0) — sem
+// vento configurado, não há nada relevante pra mostrar ali.
+//
+// O badge de elevação desconta o que a zeragem simulada (torre/marcador
+// amarelo) já "girou" — mesma lógica da escada de referência do retículo
+// grande (ver refDistances em renderReticle): pela física balística, se o
+// operador já dialou uma parte do ajuste na simulação, o que falta girar na
+// torre real é o total menos o que já foi simulado. O vento não entra nessa
+// conta — a torre simulada só ajusta elevação, nunca deriva de vento.
+function updateDistPanelMoaBadges(sol) {
+  lastDistPanelSol = sol; // guardado pra recalcular quando a torre for dialada (ver redrawReticleWithDial)
+  const distBadge = document.getElementById('distPanelMoaDist');
+  const windBadge = document.getElementById('distPanelMoaWind');
+  if (distBadge) {
+    const dialedAngleRad = (typeof reticleDialedClicks !== 'undefined' && typeof currentDialedAngleRad === 'function')
+      ? currentDialedAngleRad() : 0;
+    const moaAlreadyDialed = mradToMoa(dialedAngleRad * 1000);
+    const moaLeft = (parseFloat(sol.moaElev) || 0) - moaAlreadyDialed;
+    const sign = moaLeft >= 0 ? '↑' : '↑▼';
+    distBadge.textContent = `${sign} ${Math.abs(moaLeft).toFixed(2)} MOA`;
+    distBadge.classList.toggle('btn-moa', moaLeft >= 0);
+    distBadge.style.background = moaLeft >= 0 ? '' : 'var(--sem-hostile-dim)';
+  }
+  if (windBadge) {
+    const mradWind = parseFloat(sol.mradWind) || 0;
+    if (mradWind !== 0) {
+      const moaWind = Math.abs(mradWind) * 3.4377;
+      windBadge.textContent = `← ${moaWind.toFixed(2)} MOA`;
+      windBadge.style.display = 'flex';
+    } else {
+      windBadge.style.display = 'none';
+    }
+  }
+}
+
 function adjustDistPanelReticleZoom(delta) {
   const val = Math.max(1, Math.min(2.5, distPanelReticleZoom + delta));
   distPanelReticleZoom = Math.round(val * 100) / 100;
@@ -7450,7 +7719,21 @@ function initMaps(lat, lng) {
           <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
           <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
           <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
-          <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+          <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:#c9d4b8; letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+          <!-- Posição ❶/❷: MOAs relativos à distância e ao vento (se houver),
+               lado a lado — preenchidos logo abaixo, junto com renderMiniReticle. -->
+          <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
+            <div id="distPanelMoaDist" class="dist-panel-square-btn btn-moa" style="width:auto; height:auto; padding:3px 8px; font-size:0.68em; font-weight:800; gap:0;" title="MOA relativo à distância">-- MOA</div>
+            <div id="distPanelMoaWind" class="dist-panel-square-btn btn-windmoa" style="width:auto; height:auto; padding:3px 8px; font-size:0.68em; font-weight:800; gap:0; display:none;" title="MOA de vento">-- MOA vento</div>
+          </div>
+          <!-- Abrem os retículos expandidos do Modo Campo (mesmas marcações de
+               deslocamento) numa janela flutuante, sem trocar de aba — ver
+               toggleMedirFloatReticle. Mesmo acabamento do balão (borda
+               metálica + fundo verde militar). -->
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
+            <button type="button" class="dist-panel-float-trigger-btn dist-panel-military-bg metallic-dock-border" onclick="toggleMedirFloatReticle('main')" title="Abrir o retículo expandido Principal (compensação horizontal/vertical de deslocamento) numa janela flutuante">🎯 Principal</button>
+            <button type="button" class="dist-panel-float-trigger-btn dist-panel-military-bg metallic-dock-border" onclick="toggleMedirFloatReticle('lead')" title="Abrir o retículo expandido de Deslocamento Diagonal numa janela flutuante">◇ Diagonal</button>
+          </div>
           <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px;">
             <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
             <div id="mapReticleWrap" class="dist-panel-reticle-wrap">
@@ -7471,7 +7754,7 @@ function initMaps(lat, lng) {
           <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
             <div id="miniTurretDialTextWrap" style="text-align:center; min-width:9.5em; line-height:1.15; transition:transform 0.2s ease;">
               <div id="miniTurretDialReadout" class="mono" style="font-weight:800; color:#e6b428; font-size:0.95em;">0 cliques (0.00 MOA)</div>
-              <div style="font-size:0.5em; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px;">🟡 Zeragem Simulada</div>
+              <div style="font-size:0.5em; color:#c9d4b8; text-transform:uppercase; letter-spacing:0.3px;">🟡 Zeragem Simulada</div>
             </div>
             <button type="button" onclick="resetTurretDial()" title="Zerar torre" class="dist-panel-turret-btn" style="background:var(--surface); color:var(--muted); border:1px solid var(--line); width:2.30em; height:2.30em; font-size:1.05em;">↺</button>
           </div>
@@ -7488,6 +7771,7 @@ function initMaps(lat, lng) {
       reticleDialedClicks = 0;
       updateTurretDialReadout();
       renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom || 16);
+      updateDistPanelMoaBadges(sol);
       resetDistPanelReticleZoom();
       injectEnvTelemetry(targetLat, targetLng);
       drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
@@ -7739,7 +8023,20 @@ function initMaps(lat, lng) {
                 <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;">
                   <b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
                 </div>
-                <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:var(--muted); letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+                <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:#c9d4b8; letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+                <!-- Posição ❶/❷: MOAs relativos à distância e ao vento (se houver). -->
+                <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
+                  <div id="distPanelMoaDist" class="dist-panel-square-btn btn-moa" style="width:auto; height:auto; padding:3px 8px; font-size:0.68em; font-weight:800; gap:0;" title="MOA relativo à distância">-- MOA</div>
+                  <div id="distPanelMoaWind" class="dist-panel-square-btn btn-windmoa" style="width:auto; height:auto; padding:3px 8px; font-size:0.68em; font-weight:800; gap:0; display:none;" title="MOA de vento">-- MOA vento</div>
+                </div>
+                <!-- Abrem os retículos expandidos do Modo Campo (mesmas
+                     marcações de deslocamento) numa janela flutuante, sem
+                     trocar de aba — ver toggleMedirFloatReticle. Mesmo
+                     acabamento do balão (borda metálica + fundo verde militar). -->
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                  <button type="button" class="dist-panel-float-trigger-btn dist-panel-military-bg metallic-dock-border" onclick="toggleMedirFloatReticle('main')" title="Abrir o retículo expandido Principal (compensação horizontal/vertical de deslocamento) numa janela flutuante">🎯 Principal</button>
+                  <button type="button" class="dist-panel-float-trigger-btn dist-panel-military-bg metallic-dock-border" onclick="toggleMedirFloatReticle('lead')" title="Abrir o retículo expandido de Deslocamento Diagonal numa janela flutuante">◇ Diagonal</button>
+                </div>
                 <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px;">
                   <button onclick="limparPontoRecebido()" title="Limpar ponto" class="dist-panel-round-btn btn-clear">🗑️</button>
                   <div id="mapReticleWrap" class="dist-panel-reticle-wrap">
@@ -7760,7 +8057,7 @@ function initMaps(lat, lng) {
                 <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
                   <div id="miniTurretDialTextWrap" style="text-align:center; min-width:9.5em; line-height:1.15; transition:transform 0.2s ease;">
                     <div id="miniTurretDialReadout" class="mono" style="font-weight:800; color:#e6b428; font-size:0.95em;">0 cliques (0.00 MOA)</div>
-                    <div style="font-size:0.5em; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px;">🟡 Zeragem Simulada</div>
+                    <div style="font-size:0.5em; color:#c9d4b8; text-transform:uppercase; letter-spacing:0.3px;">🟡 Zeragem Simulada</div>
                   </div>
                   <button type="button" onclick="resetTurretDial()" title="Zerar torre" class="dist-panel-turret-btn" style="background:var(--surface); color:var(--muted); border:1px solid var(--line); width:2.30em; height:2.30em; font-size:1.08em;">↺</button>
                 </div>
@@ -7777,6 +8074,7 @@ function initMaps(lat, lng) {
               reticleDialedClicks = 0;
               updateTurretDialReadout();
               renderMiniReticle(sol.mradElev, sol.mradWind, distanceMeters, sol.recommendedZoom);
+              updateDistPanelMoaBadges(sol);
               resetDistPanelReticleZoom();
               injectEnvTelemetry(targetLat, targetLng);
               drawTacticalRouteAndLine(currentPos[0], currentPos[1], targetLat, targetLng);
@@ -7967,7 +8265,7 @@ async function getBallisticSolutionForDistance(dist) {
   el.innerHTML = `<b style="color:var(--ink);">${weight}gr</b> · ${fps} FPS · BC ${bc} · Perfil ${profile}`;
 }
 
-   async function runBallistics() {
+   async function runBallistics(preserveTurretDial = false) {
   refreshBalisticaProfileMirror();
   const parseVal = (id, defaultVal) => {
     const el = document.getElementById(id);
@@ -8030,10 +8328,15 @@ async function getBallisticSolutionForDistance(dist) {
   // chegava até o desenho, então trocar a opção não mudava nada na luneta.
   const reticleStyle = document.getElementById('eqReticleType')?.value || 'mildot';
 
-  // Cada novo cálculo balístico reinicia a torre de cliques simulada (nova
-  // "zeragem" na tela) e guarda os argumentos do último render, pra permitir
-  // redesenhar o retículo só com o dial da torre sem rodar o cálculo inteiro.
-  reticleDialedClicks = 0;
+  // Cada novo cálculo balístico PEDIDO PELO OPERADOR (botão CALCULAR, troca
+  // de distância/equipamento/estilo) reinicia a torre de cliques simulada
+  // (nova "zeragem" na tela). Mas runBallistics() também é chamado só pra
+  // ATUALIZAR A TELA — por exemplo, ao voltar pra essa aba depois de estar em
+  // outra (ver openTab) — e nesse caso preserveTurretDial:true entra aqui
+  // pra NÃO apagar o dial que o operador já tinha ajustado antes de sair.
+  if (!preserveTurretDial) {
+    reticleDialedClicks = 0;
+  }
   lastReticleRenderArgs = [mradElevVal, mradWindVal, dist, data.recommendedZoom || 15, reticleStyle];
   updateTurretDialReadout();
 
@@ -8047,6 +8350,9 @@ async function getBallisticSolutionForDistance(dist) {
   if (document.getElementById('reticleExpandModal')?.style.display === 'block') {
     renderReticleExpandView();
   }
+  // Mesma ideia, pras duas janelas flutuantes da aba Medir — só redesenha se
+  // pelo menos uma estiver aberta (renderMedirFloatReticles já checa isso).
+  renderMedirFloatReticles();
 }
 
 // Prepara um canvas pra desenhar nítido em tela retina/alta densidade: o
@@ -8416,6 +8722,80 @@ function calculateMRD() {
 // de distância/alvo são compartilhados por todos os estilos — só essa camada
 // muda. `pxPerMrad` continua sendo a mesma escala física (1 MIL) em todos os
 // estilos; o que muda é como cada graduação é desenhada e rotulada.
+
+// Linha pontilhada do marcador vermelho de alvo (já compensado por elevação
+// + vento) até a linha vertical central do retículo (fio vertical, x = cx),
+// na mesma altura Y do alvo — mostra visualmente o quanto o vento deslocou o
+// ponto de mira lateralmente. Só desenha quando há vento de verdade (senão o
+// marcador já está em cima da linha vertical e não haveria nada pra ver).
+function drawWindLineToVertical(ctx, cx, cy, radius, mradElev, mradWind, pxPerMrad) {
+  if (!mradWind) return;
+  const targetX = cx + (mradWind * pxPerMrad);
+  const targetY = cy + (mradElev * pxPerMrad);
+  if (Math.abs(targetX - cx) > radius - 12 || Math.abs(targetY - cy) > radius - 12) return;
+
+  ctx.save();
+  ctx.setLineDash([3, 3]);
+  ctx.strokeStyle = 'rgba(193,72,61,0.55)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(targetX, targetY);
+  ctx.lineTo(cx, targetY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// Renderiza MOAs de elevação e vento no canto superior direito do retículo.
+// Recuado o bastante da borda pra nunca ser cortado pelo clip circular do
+// vidro (o círculo é bem mais estreito perto do topo que no equador), com
+// chapa de fundo translúcida + contorno branco no texto — mesmo padrão de
+// legibilidade já usado no resto do retículo (chip da legenda de velocidade,
+// rótulo da faixa de altura do alvo) — fonte maior (12px) e mais legível
+// que a versão anterior (10px, sem contraste, colada na borda).
+function renderReticuleMoaCorner(ctx, cx, cy, radius, mradElev, mradWind, pxPerMrad) {
+  if (!mradElev && !mradWind) return;
+
+  ctx.save();
+  ctx.font = `700 12px ${RETICLE_MONO}`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+
+  const cornerX = cx + radius * 0.62;
+  const cornerY = cy - radius * 0.62;
+  const rowH = 16;
+
+  const lines = [];
+  if (mradElev !== 0) {
+    const moaElev = mradElev * 3.4377;
+    lines.push({ text: `↑ ${moaElev.toFixed(2)} MOA`, color: '#3a6996' });
+  }
+  if (mradWind !== 0) {
+    const moaWind = Math.abs(mradWind) * 3.4377;
+    lines.push({ text: `← ${moaWind.toFixed(2)} MOA`, color: '#4a7a3a' });
+  }
+
+  lines.forEach((line, i) => {
+    const y = cornerY + i * rowH;
+    const textW = ctx.measureText(line.text).width;
+
+    // Chapa de fundo, pra ficar legível em cima de qualquer parte do vidro.
+    ctx.fillStyle = 'rgba(255,255,255,0.78)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(cornerX - textW - 8, y - 8, textW + 12, 16, 4);
+    } else {
+      ctx.rect(cornerX - textW - 8, y - 8, textW + 12, 16);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = line.color;
+    ctx.fillText(line.text, cornerX, y);
+  });
+
+  ctx.restore();
+}
+
 function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
   ctx.save();
   ctx.font = `700 12px ${RETICLE_MONO}`;
@@ -8839,6 +9219,10 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
 let reticleDialedClicks = 0;
 let lastReticleRenderArgs = null;
 let lastMiniReticleRenderArgs = null;
+// Última solução balística usada pra preencher os badges de MOA do balão
+// Medir — guardada pra poder recalcular os badges (ver updateDistPanelMoaBadges)
+// toda vez que a torre simulada for dialada, sem precisar de nova medição.
+let lastDistPanelSol = null;
 let lastBallisticData = null;
 let lastBallisticDistance = null;
 
@@ -8902,6 +9286,9 @@ function updateTurretDialReadout() {
 function redrawReticleWithDial() {
   if (lastReticleRenderArgs) renderReticle(...lastReticleRenderArgs);
   if (lastMiniReticleRenderArgs) renderMiniReticle(...lastMiniReticleRenderArgs);
+  // Recalcula os badges de MOA do balão Medir com o novo ajuste da torre
+  // simulada (ver updateDistPanelMoaBadges) — só se já houve uma medição.
+  if (lastDistPanelSol) updateDistPanelMoaBadges(lastDistPanelSol);
 }
 
 // Ângulo (radianos) que a torre está adicionando/removendo em cima da zeragem
@@ -9084,6 +9471,18 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
 
   const refDistances = [200, 300, 400, 500, 600, 700, 800];
 
+  // MOA que a torre simulada já "gastou" (marcador amarelo, reticleDialedClicks)
+  // — subtraído do MOA de cada distância de referência abaixo, pra refletir
+  // quanto FALTA ajustar na torre real a partir de onde a simulação já está,
+  // em vez de sempre mostrar o total partindo do zero em 100m. Pela lógica
+  // balística: se o operador já girou 15 MOA na simulação e uma referência
+  // precisava de 21 MOA partindo do zero, só faltam 6 MOA dali pra lá — e se
+  // já girou mais do que essa referência precisava, o valor fica negativo
+  // (mostrado com ▼, sinalizando que precisa descer, não subir mais).
+  const dialedAngleRadForRefs = (typeof reticleDialedClicks !== 'undefined' && typeof currentDialedAngleRad === 'function')
+    ? currentDialedAngleRad() : 0;
+  const moaAlreadyDialed = mradToMoa(dialedAngleRadForRefs * 1000);
+
   refDistances.forEach(d => {
     const dFeet = d * 3.28084;
     const drag = 0.00007 / bcVal;
@@ -9098,6 +9497,10 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
     const zAngle = (dropZ + scopeH_m) / 100;
 
     const netDropCm = (dropM - (d * zAngle) + scopeH_m) * 100;
+    // dMrad e refY (posição do pontinho azul na régua física) continuam sem
+    // considerar o dial — a régua do retículo não se move quando o operador
+    // gira a torre simulada, só o marcador amarelo. O que muda é o MOA
+    // exibido ao lado (ver moaAtDist mais abaixo).
     const dMrad = d <= 100 ? 0 : netDropCm / (d * 0.1);
     const refY = cy + (dMrad * pxPerMrad);
 
@@ -9130,15 +9533,25 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
       // disso o operador ainda quer ver a referência de MOA até 600m.
       const moaCutoff = Math.max(600, distanceMeters);
       if (d <= moaCutoff) {
-        const moaAtDist = dMrad * 3.4377;
+        // MOA que ainda falta ajustar na torre, já descontando o que a
+        // zeragem simulada (marcador amarelo) já "girou" — ver comentário
+        // acima de refDistances.
+        const moaAtDist = (dMrad * 3.4377) - moaAlreadyDialed;
         const refLabelW = ctx.measureText(refLabel).width;
-        ctx.fillStyle = '#4a7a3a';
+        // Verde = ainda falta subir; âmbar/▼ = a simulação já passou desse
+        // ponto (precisaria descer a torre real, não subir mais).
+        ctx.fillStyle = moaAtDist >= 0 ? '#4a7a3a' : '#a67c1e';
         ctx.font = `600 10px ${RETICLE_MONO}`;
-        ctx.fillText(`${moaAtDist.toFixed(1)}moa`, cx + 9 + refLabelW + 5, refY + 4);
+        const moaSign = moaAtDist >= 0 ? '' : '▼';
+        ctx.fillText(`${moaSign}${Math.abs(moaAtDist).toFixed(1)}moa`, cx + 9 + refLabelW + 5, refY + 4);
         ctx.font = `700 12px ${RETICLE_MONO}`;
       }
     }
   });
+
+  // Linha pontilhada do vento até o fio vertical (posição ❶) — desenhada
+  // ANTES do marcador vermelho, pra ficar por baixo dele visualmente.
+  drawWindLineToVertical(ctx, cx, cy, radius, mradElev, mradWind, pxPerMrad);
 
   // POSIÇÃO DO ALVO SELECIONADO (VERMELHO)
   const targetX = cx + (mradWind * pxPerMrad);
@@ -9160,6 +9573,14 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   ctx.fillStyle = "#c1483d";
   ctx.font = `700 13px ${RETICLE_MONO}`;
   ctx.fillText(`🎯 ${Math.round(distanceMeters)}m`, targetX + 11, targetY + 4);
+
+  // MOAs de elevação/vento no canto superior direito (posição ❶) — só no
+  // retículo original da aba Balística por padrão; opts.showMoaCorner:false
+  // desliga (não é usado hoje, mas fica disponível caso algum retículo
+  // precise ocultar essa leitura no futuro).
+  if (opts.showMoaCorner !== false) {
+    renderReticuleMoaCorner(ctx, cx, cy, radius, mradElev, mradWind, pxPerMrad);
+  }
 
   // PONTO SIMULADO (AMARELO) — só aparece quando a torre está dialada.
   // O vermelho acima é a mira/hold real da zeragem base (nunca muda com o
@@ -9254,6 +9675,14 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
   }
 
   ctx.restore();
+
+  // Reposiciona os botões －/＋ presos nos lados do círculo — só faz sentido
+  // pro canvas ORIGINAL da aba Balística (id="reticleCanvas"); os retículos
+  // expandidos do Modo Campo usam outro par de botões, fixos numa fileira
+  // embaixo (.reticle-zoom-row), sem esse acompanhamento de borda.
+  if (canvas.id === 'reticleCanvas' && typeof positionMainReticleZoomButtons === 'function') {
+    positionMainReticleZoomButtons();
+  }
 }
 
 // ============ MODO CAMPO — RETÍCULO EXPANDIDO (TELA CHEIA) ============
@@ -9368,6 +9797,14 @@ function renderReticleExpandTargetPills() {
   box.innerHTML = RETICLE_TARGET_TYPES.map(t => `
     <button type="button" class="reticle-pill ${t.id === reticleExpandState.targetTypeId ? 'active' : ''}" onclick="selectReticleExpandTarget('${t.id}')">${t.label}</button>
   `).join('');
+
+  // Reflete o estado ligado/desligado no botão toggle, se ele existir no DOM.
+  const toggleBtn = document.getElementById('reticleExpandTargetToggle');
+  if (toggleBtn) {
+    const isOff = !reticleExpandState.targetTypeId;
+    toggleBtn.textContent = isOff ? '✓ Ligar alvo' : '✕ Desligar';
+    toggleBtn.classList.toggle('active', isOff);
+  }
 }
 
 function selectReticleExpandStyle(styleId) {
@@ -9378,6 +9815,26 @@ function selectReticleExpandStyle(styleId) {
 
 function selectReticleExpandTarget(targetId) {
   reticleExpandState.targetTypeId = targetId;
+  renderReticleExpandTargetPills();
+  renderReticleExpandView();
+}
+
+// Guarda o último tipo de alvo escolhido antes de desligar, pra restaurar
+// exatamente esse mesmo tipo ao religar (em vez de sempre cair no primeiro
+// da lista).
+let reticleExpandTargetBeforeToggle = null;
+
+// Botão "✕ Desligar" (ao lado dos pills de tipo de alvo, Modo Campo) — some
+// com a faixa de altura do alvo (drawTargetHeightBracket) nos dois retículos
+// expandidos sem perder qual tipo estava selecionado; "✓ Ligar alvo" religa
+// no mesmo tipo de antes.
+function toggleReticleExpandTarget() {
+  if (reticleExpandState.targetTypeId) {
+    reticleExpandTargetBeforeToggle = reticleExpandState.targetTypeId;
+    reticleExpandState.targetTypeId = null;
+  } else {
+    reticleExpandState.targetTypeId = reticleExpandTargetBeforeToggle || (RETICLE_TARGET_TYPES[0] && RETICLE_TARGET_TYPES[0].id) || null;
+  }
   renderReticleExpandTargetPills();
   renderReticleExpandView();
 }
@@ -9397,6 +9854,40 @@ function selectReticleExpandTarget(targetId) {
 // Zoom independente por retículo — não redesenha em escala diferente (o
 // desenho continua o mesmo pxPerMrad dos dois), só amplia visualmente via
 // CSS, então cada canvas pode ter seu próprio nível sem afetar o outro.
+// Zoom visual do retículo PRINCIPAL da aba Balística (id="reticleCanvas") —
+// mesmo princípio dos retículos do Modo Campo (só o canvas escala via CSS
+// transform, o resto da tela fica do tamanho normal).
+let mainReticleZoom = 1;
+function adjustMainReticleZoom(delta) {
+  const val = Math.max(1, Math.min(2.5, mainReticleZoom + delta));
+  mainReticleZoom = Math.round(val * 100) / 100;
+  const canvas = document.getElementById('reticleCanvas');
+  if (canvas) canvas.style.transform = `scale(${mainReticleZoom})`;
+  const label = document.getElementById('mainReticleZoomLabel');
+  if (label) label.textContent = `🔍 ${mainReticleZoom.toFixed(2)}x`;
+  positionMainReticleZoomButtons();
+}
+
+// Botões －/＋ do retículo principal, presos nos lados do círculo — mesma
+// matemática de positionDistPanelReticleZoomButtons (o canvas escala via
+// transform:scale com origem 50% 100%, então um ponto a X px do centro em
+// repouso se afasta pra X*zoom px quando o canvas cresce; os botões, que são
+// irmãos sem escala própria, recalculam esse "left" a cada zoom pra
+// continuarem colados na borda em vez de ficarem cobertos por ela).
+function positionMainReticleZoomButtons() {
+  const canvas = document.getElementById('reticleCanvas');
+  const minusBtn = document.getElementById('mainReticleZoomMinusBtn');
+  const plusBtn = document.getElementById('mainReticleZoomPlusBtn');
+  if (!canvas || !minusBtn || !plusBtn) return;
+  const halfWidth = canvas.offsetWidth / 2; // largura "em repouso" — offsetWidth não muda com transform:scale
+  if (!halfWidth) return; // canvas ainda não tem layout (aba escondida) — tenta de novo no próximo zoom/render
+  const radiusFraction = 0.68;
+  const restGap = 6;
+  const offset = (halfWidth * radiusFraction + restGap) * mainReticleZoom;
+  minusBtn.style.left = `calc(50% - ${offset}px)`;
+  plusBtn.style.left = `calc(50% + ${offset}px)`;
+}
+
 function adjustReticleExpandZoom(which, delta) {
   const key = which === 'main' ? 'zoomMain' : 'zoomLead';
   const val = Math.max(1, Math.min(2.5, reticleExpandState[key] + delta));
@@ -9430,9 +9921,22 @@ function renderReticleExpandView() {
   renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: false, zeroEvolutionLabel: true });
   renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'reticleExpandCanvasLead', sizePx: 320, telemetryId: null, showDialedDistances: false });
 
-  // Mesma escala fixa (RETICLE_PX_PER_MRAD) que renderReticle acabou de usar
-  // nos dois canvases acima — precisa ser igual, senão a faixa de altura do
-  // alvo e as marcações de lead ficam desalinhadas da cruzeta/graduação.
+  drawReticleExpandOverlays('reticleExpandCanvasMain', 'reticleExpandCanvasLead', mradElevVal, mradWindVal, dist);
+
+  renderLeadReadout(dist);
+  renderReticleExpandTelemetry(dist, zoomLevel, mradElevVal, mradWindVal);
+}
+
+// Marcações de deslocamento (faixa de altura do alvo, lead lateral/vertical
+// no Principal, lead diagonal + "nova zeragem" no de Deslocamento) — extraído
+// de renderReticleExpandView() pra poder desenhar em QUALQUER par de canvas,
+// não só nos dois do modal "⛶ EXPANDIR". É o que permite as duas janelas
+// flutuantes da aba Medir (ver renderMedirFloatReticles) mostrarem exatamente
+// a mesma informação sem duplicar toda essa lógica de desenho.
+function drawReticleExpandOverlays(mainCanvasId, leadCanvasId, mradElevVal, mradWindVal, dist) {
+  // Mesma escala fixa (RETICLE_PX_PER_MRAD) que renderReticle usou pra
+  // desenhar os canvases — precisa ser igual, senão a faixa de altura do alvo
+  // e as marcações de lead ficam desalinhadas da cruzeta/graduação.
   const pxPerMradExpand = RETICLE_PX_PER_MRAD;
   const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
   const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
@@ -9451,7 +9955,7 @@ function renderReticleExpandView() {
   // UMA vez só, depois dos dois, no lugar que a antiga coluna de distância
   // dialada deixou livre — ela vale pros dois (o valor em mil é o mesmo,
   // só muda o fio onde ele é aplicado).
-  const mainCanvas = document.getElementById('reticleExpandCanvasMain');
+  const mainCanvas = mainCanvasId ? document.getElementById(mainCanvasId) : null;
   if (mainCanvas) {
     const ctx = mainCanvas.getContext('2d');
     const size = 320;
@@ -9468,7 +9972,7 @@ function renderReticleExpandView() {
   // com outro modo. No lugar da legenda, o canto superior direito mostra a
   // mesma leitura de "nova zeragem" do Principal, sempre que a torre
   // simulada estiver dialada.
-  const leadCanvas = document.getElementById('reticleExpandCanvasLead');
+  const leadCanvas = leadCanvasId ? document.getElementById(leadCanvasId) : null;
   if (leadCanvas) {
     const ctx = leadCanvas.getContext('2d');
     const size = 320;
@@ -9476,9 +9980,81 @@ function renderReticleExpandView() {
     drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMradExpand, radius, dist, mradElevVal, mradWindVal);
     drawZeroEvolutionCorner(ctx, cx, cy, radius, fps, bcVal, scopeH_m);
   }
+}
 
-  renderLeadReadout(dist);
-  renderReticleExpandTelemetry(dist, zoomLevel, mradElevVal, mradWindVal);
+// Duas janelas flutuantes da aba Medir (ver toggleMedirFloatReticle) que
+// mostram os mesmos dois retículos do Modo Campo (Principal e Deslocamento
+// Diagonal) sem precisar trocar de aba nem abrir o modal de tela cheia —
+// reaproveita renderReticle + drawReticleExpandOverlays (mesmo motor do
+// "⛶ EXPANDIR"), só apontando pra um par de canvas novo. Usa a MESMA fonte de
+// dados (lastReticleRenderArgs) que a medição/marcação na aba Medir já
+// mantém atualizada via syncMedirDistanceToBalistica — então essas janelas
+// sempre refletem o último ponto medido, e continuam mostrando a última
+// distância calculada mesmo se o operador abandonar a marcação.
+function renderMedirFloatReticles() {
+  if (!lastReticleRenderArgs) return;
+  const [mradElevVal, mradWindVal, dist, zoomLevel] = lastReticleRenderArgs;
+  const style = reticleExpandState.style;
+
+  const mainPanelOpen = document.getElementById('medirFloatReticleMain')?.style.display !== 'none';
+  const leadPanelOpen = document.getElementById('medirFloatReticleLead')?.style.display !== 'none';
+  if (!mainPanelOpen && !leadPanelOpen) return;
+
+  if (mainPanelOpen) {
+    renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'medirExpandCanvasMain', sizePx: 320, telemetryId: null, showDialedDistances: false, zeroEvolutionLabel: true });
+    const tel = document.getElementById('medirFloatTelemetryMain');
+    if (tel) tel.textContent = `DIST ${Math.round(dist)}m · ZOOM ${zoomLevel}x`;
+  }
+  if (leadPanelOpen) {
+    renderReticle(mradElevVal, mradWindVal, dist, zoomLevel, style, { canvasId: 'medirExpandCanvasLead', sizePx: 320, telemetryId: null, showDialedDistances: false });
+    const tel = document.getElementById('medirFloatTelemetryLead');
+    if (tel) tel.textContent = `DIST ${Math.round(dist)}m · ZOOM ${zoomLevel}x`;
+  }
+
+  drawReticleExpandOverlays(
+    mainPanelOpen ? 'medirExpandCanvasMain' : null,
+    leadPanelOpen ? 'medirExpandCanvasLead' : null,
+    mradElevVal, mradWindVal, dist
+  );
+}
+
+// Zoom visual independente de cada janela flutuante — mesmo princípio (só
+// CSS transform:scale no canvas) já usado em todo o resto do app.
+let medirFloatZoom = { main: 1, lead: 1 };
+function adjustMedirFloatZoom(which, delta) {
+  const val = Math.max(1, Math.min(2.5, medirFloatZoom[which] + delta));
+  medirFloatZoom[which] = Math.round(val * 100) / 100;
+  const canvas = document.getElementById(which === 'main' ? 'medirExpandCanvasMain' : 'medirExpandCanvasLead');
+  if (canvas) canvas.style.transform = `scale(${medirFloatZoom[which]})`;
+  const label = document.getElementById(which === 'main' ? 'medirFloatZoomMainLabel' : 'medirFloatZoomLeadLabel');
+  if (label) label.textContent = `🔍 ${medirFloatZoom[which].toFixed(2)}x`;
+}
+
+// Botões "🎯 Principal"/"◇ Diagonal" do balão da aba Medir — abrem/fecham as
+// duas janelas flutuantes. As janelas já nascem vinculadas ao sistema de
+// arrastar/redimensionar/minimizar (data-floating-panel, ver
+// setupFloatingPanels/makeFloatingPanel, chamado uma vez no início do app) —
+// aqui só liga/desliga a visibilidade e força um redesenho na hora de abrir,
+// pra nunca mostrar retículo desatualizado.
+function toggleMedirFloatReticle(which) {
+  const panel = document.getElementById(which === 'main' ? 'medirFloatReticleMain' : 'medirFloatReticleLead');
+  if (!panel) return;
+  if (panel.style.display !== 'none') {
+    closeMedirFloatReticle(which);
+    return;
+  }
+  if (!lastReticleRenderArgs) {
+    alert('⚠️ Calcule uma solução balística primeiro — marque um ponto na aba Medir ou toque em ⚡ CALCULAR SOLUÇÃO na aba Balística.');
+    return;
+  }
+  panel.classList.remove('collapsed');
+  panel.style.display = '';
+  renderMedirFloatReticles();
+}
+
+function closeMedirFloatReticle(which) {
+  const panel = document.getElementById(which === 'main' ? 'medirFloatReticleMain' : 'medirFloatReticleLead');
+  if (panel) panel.style.display = 'none';
 }
 
 // Marca, nos dois lados do ponto de mira JÁ compensado (queda + deriva do
@@ -9666,7 +10242,9 @@ function drawLeadSpeedLegendPanel(ctx, cx, cy, radius, distanceMeters) {
 
   ctx.save();
   const legendX = cx - Math.min(95, radius - 40);
-  let legendY = cy - Math.min(58, radius - 60);
+  // POSIÇÃO ❶: Quadro de velocidades deslocado para cima, mais afastado do
+  // centro do retículo (era cy - Math.min(58, radius - 60)).
+  let legendY = cy - Math.min(radius - 40, radius - 16);
   const rowH = 20;
   ctx.textBaseline = 'middle';
 
@@ -9866,6 +10444,12 @@ function drawDiagonalLeadMarkers(ctx, cx, cy, pxPerMrad, radius, distanceMeters,
 // ao vivo, o de Deslocamento mostra Diagonal ao vivo, e este painel reúne a
 // tabela de referência dos três, pro operador conferir os números exatos
 // sem precisar ficar lendo em cima do vidro.
+
+// NOTA: MOAs nos dois retículos expandidos (posições ❷❸) não precisam de
+// função própria — renderReticuleMoaCorner já roda dentro de renderReticle()
+// pros dois canvases (Principal e Deslocamento), então o canto MOA aparece
+// nos dois automaticamente.
+
 function renderLeadReadout(distanceMeters) {
   const box = document.getElementById('diagLeadReadout');
   if (!box) return;
@@ -9929,6 +10513,7 @@ function renderLeadReadout(distanceMeters) {
 // não perceber).
 function drawTargetHeightBracket(ctx, cx, cy, pxPerMrad, mradElev, mradWind, distanceMeters) {
   if (!distanceMeters) return;
+  if (!reticleExpandState.targetTypeId) return; // alvo desligado (toggle "✕ Desligar") — não desenha faixa nenhuma
   const target = RETICLE_TARGET_TYPES.find(t => t.id === reticleExpandState.targetTypeId) || RETICLE_TARGET_TYPES[0];
   const heightMil = (target.heightM * 1000) / distanceMeters;
   const halfPx = (heightMil * pxPerMrad) / 2;
@@ -10145,6 +10730,13 @@ function renderMiniReticle(mradElev = 0, mradWind = 0, distanceMeters = 600, zoo
   // retículo grande da aba Balística, em escala compacta.
   drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceMeters);
 
+  // MOAs de elevação/vento no canto superior direito — mesmo indicador
+  // (chip branco) já usado no retículo grande e nos expandidos, reaproveitado
+  // aqui sem duplicar lógica de desenho.
+  if (typeof renderReticuleMoaCorner === 'function') {
+    renderReticuleMoaCorner(ctx, cx, cy, radius, mradElev, mradWind, pxPerMrad);
+  }
+
   ctx.restore();
 }
 
@@ -10153,6 +10745,15 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
   const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
   const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
   const dialedAngleRad = (typeof currentDialedAngleRad === 'function') ? currentDialedAngleRad() : 0;
+
+  // MOA que a torre simulada já "gastou" (marcador amarelo) — descontado do
+  // MOA "puro" de cada distância abaixo, mesma lógica/convenção da escada de
+  // referência do retículo grande (ver refDistances em renderReticle): se a
+  // simulação já girou parte do ajuste, só falta girar na torre real a
+  // diferença; se já girou mais do que essa distância precisava, o valor
+  // fica negativo (▼, precisa descer em vez de subir mais).
+  const moaAlreadyDialed = (typeof mradToMoa === 'function')
+    ? mradToMoa(dialedAngleRad * 1000) : 0;
 
   ctx.save();
   ctx.textAlign = 'left';
@@ -10171,6 +10772,28 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
     ctx.strokeText(label, cx + 10, y + 3);
     ctx.fillStyle = '#ffffff';
     ctx.fillText(label, cx + 10, y + 3);
+
+    // MOA "puro" (zeragem original de 100m, sem descontar o dial) pra essa
+    // distância real, menos o que a zeragem simulada já girou — igual ao
+    // resultado balístico completo mostrado no retículo grande, só que aqui
+    // a distância de referência é a que o próprio MIL da cruzeta ocupa.
+    const labelW = ctx.measureText(label).width;
+    const dropCmPure = (typeof trajectoryHeightCmDialed === 'function')
+      ? trajectoryHeightCmDialed(dist, 0, fps, bcVal, scopeH_m) : 0;
+    const dMradPure = dist <= 100 ? 0 : dropCmPure / (dist * 0.1);
+    const moaAtDist = (dMradPure * 3.4377) - moaAlreadyDialed;
+    const moaSign = moaAtDist >= 0 ? '' : '▼';
+    // Fonte um pouco menor que a da distância — o espaço horizontal some
+    // rápido nas linhas mais baixas do mini retículo (perto do clip
+    // circular), então o MOA precisa caber sem "sair" do vidro.
+    ctx.font = `700 7px ${RETICLE_MONO}`;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+    const moaLabel = `${moaSign}${Math.abs(moaAtDist).toFixed(1)}moa`;
+    ctx.strokeText(moaLabel, cx + 10 + labelW + 3, y + 3);
+    ctx.fillStyle = moaAtDist >= 0 ? '#7fd66a' : '#e0b84a';
+    ctx.fillText(moaLabel, cx + 10 + labelW + 3, y + 3);
+    ctx.font = `800 9px ${RETICLE_MONO}`;
   }
   ctx.restore();
 }
