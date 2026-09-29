@@ -609,21 +609,21 @@
     }
     .tactical-draw-dock-colors .tdd-color-label { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-right: 2px; }
     .tdd-swatch { width: 22px; height: 22px; }
-    .tactical-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .tactical-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .tactical-table thead th {
-      position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 6px;
-      text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; z-index: 1;
+      position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 8px;
+      text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; z-index: 1;
     }
-    .tactical-table td { padding: 5px 6px; line-height: 1.3; }
+    .tactical-table td { padding: 8px 8px; line-height: 1.35; }
     /* Tipo e Rótulo só precisam do espaço do próprio conteúdo — sem isso o
        navegador espalhava sobra de largura entre as colunas e ficava um vão
        grande entre a 1ª e a 2ª coluna. Localidade fica com largura fixa e
        trunca com "..." (o campo agora é um <input readonly> — ver abaixo). */
     .tactical-table th:nth-child(1), .tactical-table td:nth-child(1) { width: 1%; white-space: nowrap; }
     .tactical-table th:nth-child(2), .tactical-table td:nth-child(2) { width: 1%; white-space: nowrap; }
-    .tactical-table th:nth-child(3), .tactical-table td:nth-child(3) { width: 140px; }
+    .tactical-table th:nth-child(3), .tactical-table td:nth-child(3) { width: 180px; }
     .loc-cell-input {
-      display: block; width: 100%; max-width: 140px; border: none; background: transparent;
+      display: block; width: 100%; max-width: 180px; border: none; background: transparent;
       color: inherit; font: inherit; padding: 0; margin: 0; cursor: text;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
@@ -945,7 +945,7 @@
        embaralhada. Com wrap, o badge desce pra própria linha quando não cabe. */
     .flex-between { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; }
     .badge-status {
-      font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; text-transform: none;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.3px; text-transform: none;
       color: #a9c4de; background: rgba(90, 140, 190, 0.12); border: 1px solid rgba(90, 140, 190, 0.35);
       border-radius: 20px; padding: 4px 10px; white-space: normal;
     }
@@ -1085,7 +1085,7 @@ body.nvg-red-mode .leaflet-tile-container img {
    crítico, caution = moderado, good = baixo risco). ============ */
 .cd2-shuffle-btn {
   background: var(--surface-2); border: 1px solid var(--line); color: var(--ink);
-  font-family: var(--font-body, inherit); font-size: 11px; font-weight: 700;
+  font-family: var(--font-body, inherit); font-size: 13px; font-weight: 700;
   padding: 7px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap;
 }
 .cd2-shuffle-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -1096,7 +1096,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   border-radius: 10px; padding: 12px 14px; margin: 10px;
 }
 .cd2-alert-banner .cd2-icon { font-size: 20px; flex-shrink: 0; }
-.cd2-alert-banner .cd2-txt { font-size: 12.5px; line-height: 1.4; color: var(--ink); }
+.cd2-alert-banner .cd2-txt { font-size: 14px; line-height: 1.4; color: var(--ink); }
 .cd2-alert-banner .cd2-txt b { font-weight: 700; color: #4caf6b; }
 .cd2-alert-banner.cd2-alert-critical { background: rgba(229,72,77,0.16); border-color: #e5484d; }
 .cd2-alert-banner.cd2-alert-critical .cd2-txt b { color: #e5484d; }
@@ -1110,26 +1110,26 @@ body.nvg-red-mode .leaflet-tile-container img {
 
 .cd2-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin: 0 10px 10px; }
 .cd2-stat-tile { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
-.cd2-stat-tile .cd2-lbl { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+.cd2-stat-tile .cd2-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
 .cd2-stat-tile .cd2-big { font-family: var(--font-mono); font-size: 20px; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; color: var(--ink); }
-.cd2-stat-tile .cd2-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.cd2-stat-tile .cd2-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .cd2-stat-tile.cd2-stat-warn .cd2-big { color: #f0b429; }
 .cd2-stat-tile.cd2-stat-critical .cd2-big { color: #e5484d; }
 
 .cd2-anim-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .cd2-anim-btn {
   background: var(--action); color: #fff; border: none; border-radius: 8px;
-  padding: 9px 16px; font-family: var(--font-body, inherit); font-size: 12px; font-weight: 700;
+  padding: 9px 16px; font-family: var(--font-body, inherit); font-size: 14px; font-weight: 700;
   cursor: pointer; flex: 1 1 auto; min-width: 120px;
 }
 .cd2-anim-btn:hover { filter: brightness(1.12); }
 .cd2-anim-btn.cd2-reset { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); flex: 0 0 auto; }
 .cd2-anim-btn.cd2-reset:hover { border-color: var(--accent); color: var(--accent); }
 .cd2-anim-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
-.cd2-anim-readout { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); margin-top: 8px; min-height: 15px; font-variant-numeric: tabular-nums; }
+.cd2-anim-readout { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 15px; font-variant-numeric: tabular-nums; }
 .cd2-anim-readout b { color: var(--ink); }
 
-.cd2-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 10px; color: var(--muted); }
+.cd2-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--muted); }
 .cd2-legend .cd2-sw { display: inline-flex; align-items: center; gap: 5px; }
 .cd2-legend .cd2-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
@@ -1147,7 +1147,7 @@ body.nvg-red-mode .leaflet-tile-container img {
 .cd2-target-select { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 10px 10px; }
 .cd2-chip {
   background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
   padding: 7px 12px; border-radius: 20px; cursor: pointer; font-variant-numeric: tabular-nums;
 }
 .cd2-chip:hover { border-color: var(--accent); color: var(--ink); }
@@ -1159,15 +1159,15 @@ body.nvg-red-mode .leaflet-tile-container img {
   padding: 12px 14px; margin-top: 10px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
 }
 .cd2-comp-readout.cd2-active { border-color: var(--sem-hostile); background: rgba(193,72,61,0.10); }
-.cd2-comp-readout .cd2-cr-label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.cd2-comp-readout .cd2-cr-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
 .cd2-comp-readout .cd2-cr-value { font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
 .cd2-comp-readout .cd2-cr-value.cd2-hostile { color: var(--sem-hostile); }
-.cd2-comp-readout .cd2-cr-sub { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.cd2-comp-readout .cd2-cr-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
 
 .cd2-table-scroll { overflow-x: auto; margin-top: 8px; }
-.cd2-table-scroll table { width: 100%; border-collapse: collapse; font-size: 11.5px; min-width: 600px; }
+.cd2-table-scroll table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
 .cd2-table-scroll thead th {
-  font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted);
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted);
   text-align: left; padding: 0 8px 8px; border-bottom: 1px solid var(--line); font-weight: 600;
 }
 .cd2-table-scroll tbody td {
@@ -1177,9 +1177,9 @@ body.nvg-red-mode .leaflet-tile-container img {
 .cd2-table-scroll tbody tr:last-child td { border-bottom: none; }
 .cd2-table-scroll select, .cd2-table-scroll input[type=number] {
   background: var(--surface); border: 1px solid var(--line); color: var(--ink); border-radius: 6px;
-  padding: 5px 6px; font-family: var(--font-mono); font-size: 11px; width: 100%; min-width: 96px;
+  padding: 5px 6px; font-family: var(--font-mono); font-size: 13px; width: 100%; min-width: 96px;
 }
-.cd2-risk-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-weight: 700; font-size: 11px; }
+.cd2-risk-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-weight: 700; font-size: 13px; }
 .cd2-risk-badge.cd2-low { background: rgba(76,175,107,0.18); color: #4caf6b; border: 1px solid #4caf6b; }
 .cd2-risk-badge.cd2-warn { background: rgba(240,180,41,0.18); color: #f0b429; border: 1px solid #f0b429; }
 .cd2-risk-badge.cd2-critical { background: rgba(229,72,77,0.2); color: #e5484d; border: 1px solid #e5484d; }
@@ -1356,7 +1356,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="tactical-table-header">
       <span>📋 PONTOS TÁTICOS REGISTRADOS</span>
       <div class="tactical-table-header-actions">
-        <button onclick="openPontosTableModal()" style="background:var(--action); color:#fff; border:none; border-radius:6px; padding:5px 10px; font-weight:800; font-size:10px; cursor:pointer; text-transform:none; letter-spacing:0;">⛶ Tela Cheia</button>
+        <button onclick="openPontosTableModal()" style="background:var(--action); color:#fff; border:none; border-radius:6px; padding:5px 10px; font-weight:800; font-size:12px; cursor:pointer; text-transform:none; letter-spacing:0;">⛶ Tela Cheia</button>
         <button type="button" class="dock-toggle-btn" data-table-toggle aria-label="Minimizar tabela">▾</button>
       </div>
     </div>
@@ -1456,13 +1456,13 @@ body.nvg-red-mode .leaflet-tile-container img {
 <div id="pontosTableModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.95); z-index:9999; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--line); padding-bottom:10px; flex-wrap:wrap; gap:10px;">
     <h3 style="color:var(--accent); margin:0; font-size:18px;">📋 PONTOS TÁTICOS REGISTRADOS</h3>
-    <button onclick="closePontosTableModal()" style="background:var(--sem-hostile); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer;">❌ FECHAR</button>
+    <button onclick="closePontosTableModal()" style="background:var(--sem-hostile); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer;">❌ FECHAR</button>
   </div>
   <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
     <input id="pontosLocalidadeFilter" type="text" placeholder="🔎 Filtrar por localidade..." oninput="filterPontosTableByLocalidade()" style="flex:1; min-width:180px; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:9px 12px; font-size:13px;">
-    <button onclick="shareFilteredPontos()" style="background:#25D366; color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap;">📲 Compartilhar Filtrado</button>
-    <button onclick="savePontosTableCSV()" title="Salva a tabela filtrada (.csv) neste aparelho" style="background:var(--action); color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap;">💾 Salvar</button>
-    <button onclick="exportPontosTableXLSX()" title="Exporta a tabela filtrada como planilha Excel (.xlsx), com links clicáveis" style="background:var(--accent); color:#15160f; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap;">📊 Exportar Tabela</button>
+    <button onclick="shareFilteredPontos()" style="background:#25D366; color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">📲 Compartilhar Filtrado</button>
+    <button onclick="savePontosTableCSV()" title="Salva a tabela filtrada (.csv) neste aparelho" style="background:var(--action); color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">💾 Salvar</button>
+    <button onclick="exportPontosTableXLSX()" title="Exporta a tabela filtrada como planilha Excel (.xlsx), com links clicáveis" style="background:var(--accent); color:#15160f; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">📊 Exportar Tabela</button>
   </div>
   <div style="overflow-x:auto;">
     <table class="tactical-table" style="color:var(--ink);">
@@ -1482,7 +1482,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <input id="locSearchMedir" type="text" class="location-search-input" placeholder="🔎 Centralizar em localidade...">
     <div id="locSearchMedirList" class="location-search-list"></div>
   </div>
-  <button type="button" onclick="openTacticalCameraFromEquip()" title="Mire no ponto marcado no mapa e capture o ângulo de sítio e o azimute com foto de comprovação (retículo GEOSNIPER AÇÃO)." class="metallic-dock-border" style="position:absolute; top:155px; right:10px; z-index:950; color:#fff; font-weight:700; padding:8px 12px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📷 Visada</button>
+  <button type="button" onclick="openTacticalCameraFromEquip()" title="Mire no ponto marcado no mapa e capture o ângulo de sítio e o azimute com foto de comprovação (retículo GEOSNIPER AÇÃO)." class="metallic-dock-border" style="position:absolute; top:155px; right:10px; z-index:950; color:#fff; font-weight:700; padding:8px 12px; border-radius:20px; font-size:14px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📷 Visada</button>
   <div id="distPanel" class="dist-info-panel dist-panel-military-bg metallic-dock-border">Clique em qualquer ponto no mapa para medir</div>
   <div id="distPanelRestoreBtn" onclick="restoreDistPanel()" title="Mostrar o balão de informação do ponto" class="metallic-dock-border" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:1000; color:#fff; font-weight:700; padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">📍 Ver Ponto Marcado ▲</div>
 
@@ -2117,16 +2117,16 @@ body.nvg-red-mode .leaflet-tile-container img {
 <div id="tabCenaSimulacao" class="tab-content">
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px;">
     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 10px; margin-bottom:8px;">
-      <div style="font-size:10px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; color:var(--accent);">🎯 Simulação</div>
+      <div style="font-size:12px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; color:var(--accent);">🎯 Simulação</div>
       <span class="badge-status" id="cenaSimProfileBadge">PERFIL ATIVO: PADRÃO</span>
     </div>
     <div style="font-weight:900; font-size:20px; letter-spacing:0.3px; color:var(--ink); margin-bottom:6px;">CENA DE DISPARO</div>
-    <div style="font-size:12px; color:var(--muted); line-height:1.55; margin-bottom:16px;">Visualização didática de <b style="color:var(--ink);">trajetória</b>, <b style="color:var(--ink);">deriva de vento</b> e <b style="color:var(--ink);">risco a terceiros</b> na linha de tiro — usando a mesma física de queda e o mesmo motor de balística do GeoSniper. Os campos abaixo começam com os valores da Balística/Equipamento, mas são independentes: editar aqui não altera nada nessas abas. Use "Resetar" pra puxar os valores atuais de novo.</div>
+    <div style="font-size:14px; color:var(--muted); line-height:1.55; margin-bottom:16px;"><b style="color:var(--ink);">Trajetória</b>, <b style="color:var(--ink);">vento</b> e <b style="color:var(--ink);">risco a terceiros</b> na linha de tiro. Os campos partem da Balística/Equipamento, mas são independentes. "Resetar" puxa os valores atuais.</div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px;">
       <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
-        <label for="simZeroDist" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Zeragem</label>
-        <select id="simZeroDist" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
+        <label for="simZeroDist" style="display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Zeragem</label>
+        <select id="simZeroDist" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:16px; font-weight:700; padding:0; cursor:pointer;">
           <option value="100">100m</option>
           <option value="200">200m</option>
           <option value="300">300m</option>
@@ -2140,8 +2140,8 @@ body.nvg-red-mode .leaflet-tile-container img {
         </select>
       </div>
       <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
-        <label for="simDistance" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Distância alvo</label>
-        <select id="simDistance" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
+        <label for="simDistance" style="display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Distância alvo</label>
+        <select id="simDistance" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:16px; font-weight:700; padding:0; cursor:pointer;">
           <option value="50">50m</option>
           <option value="100">100m</option>
           <option value="150">150m</option>
@@ -2165,8 +2165,8 @@ body.nvg-red-mode .leaflet-tile-container img {
         </select>
       </div>
       <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
-        <label for="simWindClock" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Vento — relógio</label>
-        <select id="simWindClock" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
+        <label for="simWindClock" style="display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Vento — relógio</label>
+        <select id="simWindClock" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:16px; font-weight:700; padding:0; cursor:pointer;">
           <option value="12">12h (Frente)</option>
           <option value="1">1h</option>
           <option value="2">2h</option>
@@ -2182,8 +2182,8 @@ body.nvg-red-mode .leaflet-tile-container img {
         </select>
       </div>
       <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px 10px;">
-        <label for="simWindSpeed" style="display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Vento — vel. (km/h)</label>
-        <select id="simWindSpeed" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; padding:0; cursor:pointer;">
+        <label for="simWindSpeed" style="display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Vento — vel. (km/h)</label>
+        <select id="simWindSpeed" onchange="onSimFieldChange()" style="width:100%; box-sizing:border-box; background:transparent; border:none; color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:16px; font-weight:700; padding:0; cursor:pointer;">
           <option value="0">0 (sem vento)</option>
           <option value="5">5</option>
           <option value="10">10</option>
@@ -2197,22 +2197,22 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
     </div>
 
-    <button onclick="resetSimFields()" style="margin-top:14px; width:100%; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; font-size:12px; cursor:pointer;">↺ Resetar (puxar da Balística/Equipamento)</button>
+    <button onclick="resetSimFields()" style="margin-top:14px; width:100%; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; font-size:14px; cursor:pointer;">↺ Resetar (puxar da Balística)</button>
 
     <div id="cenaAdjustSummary" style="margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:10px;"></div>
   </div>
 
-  <div style="margin:10px; background:var(--surface); border:1px dashed var(--line); border-radius:8px; padding:14px; text-align:center; color:var(--muted); font-size:12px;">
-    🎥 As câmeras lentas ficam na aba <b style="color:var(--ink);">📈 Perfis</b>, dentro do card "Perfil compensado" — usam estes mesmos campos.
+  <div style="margin:10px; background:var(--surface); border:1px dashed var(--line); border-radius:8px; padding:14px; text-align:center; color:var(--muted); font-size:14px;">
+    🎥 Câmeras lentas: aba <b style="color:var(--ink);">📈 Perfis</b> (usam estes campos).
   </div>
 
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-      <div style="font-weight:700; color:var(--ink); font-size:12px;">🎯 Corredor de interceptação (visão superior)</div>
+      <div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor de interceptação (visão superior)</div>
       <button class="cd2-shuffle-btn" type="button" onclick="cd2ShuffleScenario()">🎲 Novo cenário de alvos</button>
     </div>
-    <div style="font-size:11px; color:var(--muted); line-height:1.45;">Cruza a trajetória real (balística + vento), o deslocamento de cada alvo de treinamento móvel (esteira/trilho — nunca pessoas) e o sincronismo entre os dois, checkpoint por checkpoint, usando os mesmos campos de zeragem/distância/vento acima.</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.45;">Cruza trajetória (balística + vento) e deslocamento de cada alvo móvel de treinamento (esteira/trilho), checkpoint a checkpoint.</div>
   </div>
 
   <div id="cd2AlertBanner" class="cd2-alert-banner"></div>
@@ -2224,32 +2224,32 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button class="cd2-anim-btn" id="cd2AnimBtn" type="button" onclick="cd2ToggleAnim()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2AnimResetBtn" type="button" onclick="cd2ResetAnim()">↺ Reiniciar</button>
     </div>
-    <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.</div>
+    <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto pra animar: projétil e alvos móveis em tempo real.</div>
     <div class="cd2-legend" id="cd2CorridorLegend"></div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:12px;">🧭 Sistema de compensação de deslocamento</div>
-    <div style="font-size:11px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
+    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">🧭 Sistema de compensação de deslocamento</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel acima. A <b style="color:var(--ink);">bolinha vermelha</b> é o <b style="color:var(--ink);">ponto de encontro</b> projétil–alvo; a linha <b style="color:#e8c948;">amarela</b> é a visada até lá. A marcação da régua onde o alvo repousa é a compensação.</div>
     <div class="cd2-target-select" id="cd2TargetSelect"></div>
     <svg id="cd2CompSvg" viewBox="0 0 760 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
     <div class="cd2-anim-row">
       <button class="cd2-anim-btn" id="cd2CompAnimBtn" type="button" onclick="cd2ToggleAnimB()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2CompAnimResetBtn" type="button" onclick="cd2ResetAnimB()">↺ Reiniciar</button>
     </div>
-    <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione um alvo móvel acima pra calcular a compensação.</div>
+    <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione um alvo móvel acima.</div>
     <div id="cd2CompReadout"></div>
     <div class="cd2-legend" id="cd2CompLegend"></div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:12px;">Como o risco é calculado</div>
-    <div style="font-size:11.5px; color:var(--muted); line-height:1.55;">Mesma física de queda e deriva de vento das outras abas. Cada checkpoint (100m e depois a cada 50m até a distância do alvo) tem um alvo de treinamento móvel se deslocando lateralmente numa das duas velocidades do trilho — 🎯 lento (1,4 m/s) ou 🎯 rápido (3,8 m/s) — a partir do instante do disparo. Quanto mais perto o alvo passa do caminho real do projétil no instante em que ele chega, maior o risco (acima de 65% é sinalizado como crítico).</div>
+    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">Como o risco é calculado</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.55;">Cada checkpoint (100m, depois a cada 50m) tem um alvo móvel lateral: 🎯 lento (1,4 m/s) ou 🎯 rápido (3,8 m/s). Quanto mais perto ele passa do projétil na chegada, maior o risco (acima de 65% = crítico).</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:2px; font-size:12px;">Cenário editável por checkpoint</div>
-    <div style="font-size:10.5px; color:var(--muted);">Ajuste modo e deslocamento inicial de cada alvo móvel · desmarque "Ativo" pra tirar um alvo dos diagramas</div>
+    <div style="font-weight:700; color:var(--ink); margin-bottom:2px; font-size:14px;">Cenário editável por checkpoint</div>
+    <div style="font-size:12px; color:var(--muted);">Ajuste modo e deslocamento de cada alvo · desmarque "Ativo" pra removê-lo</div>
     <div class="cd2-table-scroll">
       <table>
         <thead>
@@ -2273,55 +2273,55 @@ body.nvg-red-mode .leaflet-tile-container img {
 <div id="tabCenaPerfis" class="tab-content">
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px;">
     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 10px; margin-bottom:4px;">
-      <div style="font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; font-size:12px;">📈 Perfis de Trajetória</div>
+      <div style="font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; font-size:14px;">📈 Perfis de Trajetória</div>
       <span class="badge-status" id="cenaPerfilProfileBadge">PERFIL ATIVO: PADRÃO</span>
     </div>
-    <div style="font-size:11px; color:var(--muted); line-height:1.4;">Usa os mesmos campos da aba Simulação (zeragem, distância, vento) — mude ali pra ver o efeito aqui.</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.4;">Usa os campos da aba Simulação — mude lá pra ver o efeito aqui.</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
-      <div style="font-weight:700; color:var(--ink); font-size:12px;">📉 Perfil de trajetória (altura x distância)</div>
-      <button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:10.5px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
+      <div style="font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div>
+      <button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir</button>
     </div>
     <svg id="trajectoryProfileSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
-    <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:var(--muted);"></div>
+    <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
 
-    <div style="font-size:11px; font-weight:700; color:var(--accent); margin-top:16px; margin-bottom:4px;">Com câmera lenta (animada)</div>
+    <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:16px; margin-bottom:4px;">Com câmera lenta (animada)</div>
     <canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
     <div id="cenaCpRaw" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
 
     <div style="display:flex; gap:8px; margin-top:10px;">
-      <button onclick="toggleCenaRawCameraPlay()" id="cenaCamRawPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:12px; cursor:pointer;">▶ Reproduzir</button>
-      <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:12px; cursor:pointer;">↺ Reiniciar</button>
+      <button onclick="toggleCenaRawCameraPlay()" id="cenaCamRawPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
+      <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
-    <div id="cenaCamRawReadout" style="margin-top:8px; font-size:10.5px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:9.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div id="cenaCamRawReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Toque num checkpoint pra pausar ali. Play retoma; Reiniciar volta ao início.</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:12px;">🧭 Perfil compensado</div>
-    <div id="compensatedReadout" style="font-size:11px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
+    <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">🧭 Perfil compensado</div>
+    <div id="compensatedReadout" style="font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
 
-    <div style="font-size:11px; font-weight:700; color:var(--accent); margin-bottom:4px;">Com câmera lenta (animada)</div>
+    <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:4px;">Com câmera lenta (animada)</div>
     <canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas>
     <div id="cenaCpLateral" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
 
     <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:12px auto 0; background:var(--bg); border-radius:6px;"></canvas>
     <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
 
-    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:10.5px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
+    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ Projétil fora do quadro da câmera traseira.</div>
 
     <div style="display:flex; gap:8px; margin-top:10px;">
-      <button onclick="toggleCenaCameraPlay()" id="cenaCamPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:12px; cursor:pointer;">▶ Reproduzir</button>
-      <button onclick="resetCenaCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:12px; cursor:pointer;">↺ Reiniciar</button>
+      <button onclick="toggleCenaCameraPlay()" id="cenaCamPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
+      <button onclick="resetCenaCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
-    <div id="cenaCamReadout" style="margin-top:8px; font-size:10.5px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:9.5px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div id="cenaCamReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Toque num checkpoint pra pausar ali. Play retoma; Reiniciar volta ao início.</div>
 
-    <div style="font-size:11px; font-weight:700; color:var(--accent); margin-top:18px; margin-bottom:4px;">Estático (sem animação)</div>
+    <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:18px; margin-bottom:4px;">Estático (sem animação)</div>
     <svg id="compensatedProfileStaticSvg" viewBox="0 0 760 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg>
-    <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:var(--muted);"></div>
+    <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
   </div>
 </div>
 
@@ -2349,7 +2349,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div style="position:absolute; top:50%; left:min(calc(50% + 92px), calc(100vw - 84px)); transform:translate(0, -50%); pointer-events:none; background:rgba(15,23,42,0.82); border:1px solid #ff2222; border-radius:5px; padding:4px 6px; text-align:center; line-height:1.2; max-width:64px;">
-    <span style="color:#ffd400; font-weight:800; font-size:10px; letter-spacing:0.2px;">GEOSNIPER<br>AÇÃO</span>
+    <span style="color:#ffd400; font-weight:800; font-size:12px; letter-spacing:0.2px;">GEOSNIPER<br>AÇÃO</span>
   </div>
 
   <div id="cameraHUD" style="position:absolute; top:20px; background:rgba(15,23,42,0.9); color:var(--accent); padding:10px 18px; border-radius:10px; font-weight:800; font-size:13px; border:1px solid var(--line); text-align:center;">
@@ -3392,7 +3392,7 @@ function renderTrajectoryProfileDiagram() {
   const expandBtn = document.getElementById('trajectoryProfileExpandBtn');
   if (expandBtn) {
     expandBtn.style.display = canZoom ? 'flex' : 'none';
-    expandBtn.textContent = cenaRawProfileExpanded ? '⤡ Recolher' : '⤢ Expandir (ver cena toda)';
+    expandBtn.textContent = cenaRawProfileExpanded ? '⤡ Recolher' : '⤢ Expandir';
     expandBtn.setAttribute('aria-pressed', cenaRawProfileExpanded ? 'true' : 'false');
   }
 
@@ -3419,7 +3419,7 @@ function renderTrajectoryProfileDiagram() {
   const AXIS_LABEL_COLOR = '#b7b59c';
   for (let d = 0; d <= displayEndM; d += gridStep) {
     s += `<line x1="${X(d)}" y1="${MT}" x2="${X(d)}" y2="${MT+plotH}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="12.5" font-weight="600" text-anchor="middle">${d}m</text>`;
+    s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="16" font-weight="600" text-anchor="middle">${d}m</text>`;
   }
   // Marca extra exatamente no fim real da janela exibida, quando ele cai
   // fora da última marca "redonda" — tanto no recorte padrão (ex.: zoom até
@@ -3428,11 +3428,11 @@ function renderTrajectoryProfileDiagram() {
   const lastGridD = Math.floor(displayEndM / gridStep) * gridStep;
   if (displayEndM - lastGridD >= 10) {
     s += `<line x1="${X(displayEndM)}" y1="${MT}" x2="${X(displayEndM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>`;
-    s += `<text x="${X(displayEndM)}" y="${H-9}" fill="var(--accent)" font-size="11" font-weight="600" text-anchor="end">${displayEndM.toFixed(0)}m</text>`;
+    s += `<text x="${X(displayEndM)}" y="${H-9}" fill="var(--accent)" font-size="14.5" font-weight="600" text-anchor="end">${displayEndM.toFixed(0)}m</text>`;
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     s += `<line x1="${ML}" y1="${Yh(h)}" x2="${ML+plotW}" y2="${Yh(h)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="11.5" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
+    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="15" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
   }
 
   if (targetReachable && targetDistM < displayEndM) {
@@ -3441,11 +3441,11 @@ function renderTrajectoryProfileDiagram() {
 
   s += `<line x1="${ML}" y1="${Yh(0)}" x2="${ML+plotW}" y2="${Yh(0)}" stroke="var(--ink)" stroke-width="1.6"/>`;
   s += `<line x1="${X(0)}" y1="${Yh(AIM_HEIGHT_M)}" x2="${X(Math.min(drawEndM, displayEndM))}" y2="${Yh(AIM_HEIGHT_M)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
-  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="11" text-anchor="start">altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
+  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="14.5" text-anchor="start">altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
 
   if (splitM <= displayEndM) {
     s += `<line x1="${X(splitM)}" y1="${MT}" x2="${X(splitM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
-    s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="10.5" text-anchor="middle">zero ${zeroDist}m</text>`;
+    s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="13.5" text-anchor="middle">zero ${zeroDist}m</text>`;
   }
 
   let risePath = '';
@@ -3467,11 +3467,11 @@ function renderTrajectoryProfileDiagram() {
   if (targetReachable && targetDistM <= displayEndM) {
     const hTarget = hAG(targetDistM);
     s += `<circle cx="${X(targetDistM)}" cy="${Yh(hTarget)}" r="4" fill="var(--sem-hostile)"/>`;
-    s += `<text x="${X(targetDistM)}" y="${Yh(hTarget)-10}" fill="var(--sem-hostile)" font-size="11.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
+    s += `<text x="${X(targetDistM)}" y="${Yh(hTarget)-10}" fill="var(--sem-hostile)" font-size="15" text-anchor="middle">ALVO ${targetDistM}m</text>`;
   } else if (!targetReachable) {
     s += `<circle cx="${X(impactD)}" cy="${Yh(0)}" r="4.5" fill="var(--accent)"/>`;
-    s += `<text x="${X(impactD)}" y="${Yh(0)-28}" fill="var(--accent)" font-size="11.5" text-anchor="middle">impacto ~${impactD.toFixed(0)}m</text>`;
-    s += `<text x="${X(impactD)}" y="${Yh(0)-14}" fill="var(--accent)" font-size="10.5" text-anchor="middle">(sem compensação — alvo real a ${targetDistM}m)</text>`;
+    s += `<text x="${X(impactD)}" y="${Yh(0)-28}" fill="var(--accent)" font-size="15" text-anchor="middle">impacto ~${impactD.toFixed(0)}m</text>`;
+    s += `<text x="${X(impactD)}" y="${Yh(0)-14}" fill="var(--accent)" font-size="13.5" text-anchor="middle">(sem compensação — alvo real a ${targetDistM}m)</text>`;
   }
 
   svg.innerHTML = s;
@@ -3608,11 +3608,11 @@ function renderAdjustSummary() {
   const windDir = windMrad >= 0 ? '► dir' : '◄ esq';
   el.innerHTML = `
     <div style="background:rgba(195,154,79,0.10); border:1px solid var(--accent); border-radius:6px; padding:8px 10px;">
-      <div style="font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.3px;">⬆️ Ajuste elevação</div>
+      <div style="font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.3px;">⬆️ Ajuste elevação</div>
       <div style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${fmtMradMoa(elevMrad)}</div>
     </div>
     <div style="background:rgba(195,154,79,0.10); border:1px solid var(--accent); border-radius:6px; padding:8px 10px;">
-      <div style="font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.3px;">💨 Ajuste vento</div>
+      <div style="font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.3px;">💨 Ajuste vento</div>
       <div style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px; font-weight:800; color:var(--ink); margin-top:2px;">${fmtMradMoa(Math.abs(windMrad))} ${windDir}</div>
     </div>
   `;
@@ -3650,16 +3650,16 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   const AXIS_LABEL_COLOR = '#b7b59c';
   for (let d = 0; d <= sceneEndM; d += gridStep) {
     s += `<line x1="${X(d)}" y1="${MT}" x2="${X(d)}" y2="${MT+plotH}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="11.5" font-weight="600" text-anchor="middle">${d}m</text>`;
+    s += `<text x="${X(d)}" y="${H-9}" fill="${AXIS_LABEL_COLOR}" font-size="15" font-weight="600" text-anchor="middle">${d}m</text>`;
   }
   const lastGridD = Math.floor(sceneEndM / gridStep) * gridStep;
   if (sceneEndM - lastGridD >= 10) {
     s += `<line x1="${X(sceneEndM)}" y1="${MT}" x2="${X(sceneEndM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>`;
-    s += `<text x="${X(sceneEndM)}" y="${H-9}" fill="var(--accent)" font-size="10" font-weight="600" text-anchor="end">${sceneEndM.toFixed(0)}m</text>`;
+    s += `<text x="${X(sceneEndM)}" y="${H-9}" fill="var(--accent)" font-size="13" font-weight="600" text-anchor="end">${sceneEndM.toFixed(0)}m</text>`;
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     s += `<line x1="${ML}" y1="${Yh(h)}" x2="${ML+plotW}" y2="${Yh(h)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="10.5" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
+    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="13.5" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
   }
 
   if (targetReachable && targetDistM < sceneEndM) {
@@ -3668,10 +3668,10 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
 
   s += `<line x1="${ML}" y1="${Yh(0)}" x2="${ML+plotW}" y2="${Yh(0)}" stroke="var(--ink)" stroke-width="1.6"/>`;
   s += `<line x1="${X(0)}" y1="${Yh(AIM_HEIGHT_M)}" x2="${X(drawEndM)}" y2="${Yh(AIM_HEIGHT_M)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7"/>`;
-  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="10" text-anchor="start">linha de mira original — altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
+  s += `<text x="${X(0)+6}" y="${Yh(AIM_HEIGHT_M)-6}" fill="var(--muted)" font-size="13" text-anchor="start">linha de mira original — altura de zeragem do equipamento ≈${AIM_HEIGHT_M.toFixed(2).replace('.', ',')}m</text>`;
 
   s += `<line x1="${X(splitM)}" y1="${MT}" x2="${X(splitM)}" y2="${MT+plotH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
-  s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="9.5" text-anchor="middle">pico ~${splitM.toFixed(0)}m</text>`;
+  s += `<text x="${X(splitM)}" y="${MT+11}" fill="var(--accent)" font-size="12.5" text-anchor="middle">pico ~${splitM.toFixed(0)}m</text>`;
 
   let risePath = '';
   for (let d = 0; d <= splitM; d += 5) {
@@ -3692,10 +3692,10 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   if (targetReachable) {
     const hTarget = hAGComp(targetDistM);
     s += `<circle cx="${X(targetDistM)}" cy="${Yh(hTarget)}" r="4" fill="var(--sem-hostile)"/>`;
-    s += `<text x="${X(targetDistM)}" y="${Yh(hTarget)-10}" fill="var(--sem-hostile)" font-size="10.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
+    s += `<text x="${X(targetDistM)}" y="${Yh(hTarget)-10}" fill="var(--sem-hostile)" font-size="13.5" text-anchor="middle">ALVO ${targetDistM}m</text>`;
   } else {
     s += `<circle cx="${X(impactD)}" cy="${Yh(0)}" r="4.5" fill="var(--accent)"/>`;
-    s += `<text x="${X(impactD)}" y="${Yh(0)-28}" fill="var(--accent)" font-size="10.5" text-anchor="middle">impacto ~${impactD.toFixed(0)}m</text>`;
+    s += `<text x="${X(impactD)}" y="${Yh(0)-28}" fill="var(--accent)" font-size="13.5" text-anchor="middle">impacto ~${impactD.toFixed(0)}m</text>`;
   }
 
   svg.innerHTML = s;
@@ -4356,7 +4356,7 @@ function cd2ResetAnim() {
     if (bulletMover) bulletMover.setAttribute('opacity', '0');
   }
   const el = document.getElementById('cd2AnimReadout');
-  if (el) el.innerHTML = 'Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.';
+  if (el) el.innerHTML = 'Pronto pra animar: projétil e alvos móveis em tempo real.';
 }
 
 function cd2StopAnimForRerender() {
@@ -4600,7 +4600,7 @@ function cd2Render() {
   cd2RefreshComp();
   cd2SetControlsDisabled(false);
   const el = document.getElementById('cd2AnimReadout');
-  if (el) el.innerHTML = 'Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.';
+  if (el) el.innerHTML = 'Pronto pra animar: projétil e alvos móveis em tempo real.';
 }
 
 
@@ -4754,7 +4754,7 @@ function drawCenaLateral(d) {
 
   const axisLabelColor = '#b7b59c';
   const gridStepCanvas = c.sceneEndM <= 400 ? 50 : 100;
-  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '600 11px ' + cssVar('--font-mono');
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '600 15px ' + cssVar('--font-mono');
   for (let dd = 0; dd <= c.sceneEndM; dd += gridStepCanvas) {
     ctx.beginPath(); ctx.moveTo(X(dd), MT); ctx.lineTo(X(dd), MT + plotH); ctx.stroke();
     ctx.fillStyle = axisLabelColor; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 9);
@@ -4767,9 +4767,9 @@ function drawCenaLateral(d) {
     ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.55; ctx.strokeStyle = accent;
     ctx.beginPath(); ctx.moveTo(X(c.sceneEndM), MT); ctx.lineTo(X(c.sceneEndM), MT + plotH); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
-    ctx.fillStyle = accent; ctx.font = '600 9.5px ' + cssVar('--font-mono'); ctx.textAlign = 'right';
+    ctx.fillStyle = accent; ctx.font = '600 13px ' + cssVar('--font-mono'); ctx.textAlign = 'right';
     ctx.fillText(c.sceneEndM.toFixed(0) + 'm', X(c.sceneEndM), H - 9);
-    ctx.font = '600 11px ' + cssVar('--font-mono');
+    ctx.font = '600 15px ' + cssVar('--font-mono');
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     ctx.strokeStyle = line;
@@ -4855,7 +4855,7 @@ function drawCenaRear(d) {
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '9.5px ' + cssVar('--font-mono');
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '13px ' + cssVar('--font-mono');
   [-10, 0, 10].forEach(cm => {
     ctx.beginPath(); ctx.moveTo(Xr(cm), 20); ctx.lineTo(Xr(cm), H - 20); ctx.stroke();
     ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.fillText((cm > 0 ? '+' : '') + cm, Xr(cm), H - 8);
@@ -5148,7 +5148,7 @@ function drawCenaRawLateral(d) {
 
   const axisLabelColor = '#b7b59c';
   const gridStepCanvas = c.displayEndM <= 400 ? 50 : 100;
-  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '600 12px ' + cssVar('--font-mono');
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.font = '600 16px ' + cssVar('--font-mono');
   for (let dd = 0; dd <= c.displayEndM; dd += gridStepCanvas) {
     ctx.beginPath(); ctx.moveTo(X(dd), MT); ctx.lineTo(X(dd), MT + plotH); ctx.stroke();
     ctx.fillStyle = axisLabelColor; ctx.textAlign = 'center'; ctx.fillText(dd + 'm', X(dd), H - 9);
@@ -5158,9 +5158,9 @@ function drawCenaRawLateral(d) {
     ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.55; ctx.strokeStyle = accent;
     ctx.beginPath(); ctx.moveTo(X(c.displayEndM), MT); ctx.lineTo(X(c.displayEndM), MT + plotH); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
-    ctx.fillStyle = accent; ctx.font = '600 10.5px ' + cssVar('--font-mono'); ctx.textAlign = 'right';
+    ctx.fillStyle = accent; ctx.font = '600 14px ' + cssVar('--font-mono'); ctx.textAlign = 'right';
     ctx.fillText(c.displayEndM.toFixed(0) + 'm', X(c.displayEndM), H - 9);
-    ctx.font = '600 12px ' + cssVar('--font-mono');
+    ctx.font = '600 16px ' + cssVar('--font-mono');
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     ctx.strokeStyle = line;
@@ -6443,7 +6443,7 @@ function renderTacticalMarkersTable() {
       ? `${pin.operatorLat.toFixed(6)}, ${pin.operatorLng.toFixed(6)}`
       : '-';
     const photo = pin.photoUrl
-      ? `<img src="${pin.photoUrl}" style="width:32px; height:32px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewTacticalPhoto('${pin.photoUrl}')">`
+      ? `<img src="${pin.photoUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:5px; cursor:pointer;" onclick="viewTacticalPhoto('${pin.photoUrl}')">`
       : '<span style="color:var(--line);">—</span>';
     // Localidade: campo <input readonly> em vez de texto solto — trunca com "..."
     // quando não cabe (igual antes), mas o operador pode clicar dentro, o cursor de
@@ -6452,19 +6452,19 @@ function renderTacticalMarkersTable() {
     const localidadeCell = `<input type="text" readonly class="loc-cell-input" value="${escAttr(pin.localidade || '-')}" title="${escAttr(pin.localidade || '')}">`;
     return `
       <tr style="border-bottom:1px solid var(--surface);" data-localidade="${escAttr(normalizeSearchText(pin.localidade))}">
-        <td style="white-space:nowrap;"><img src="${t.icon}" style="width:17px; height:17px; vertical-align:middle; margin-right:4px;">${t.label}</td>
+        <td style="white-space:nowrap;"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}</td>
         <td style="color:var(--ink); white-space:nowrap;">${pin.label || '-'}</td>
         <td style="color:var(--ink);">${localidadeCell}</td>
-        <td style="color:var(--muted); font-size:10px; white-space:nowrap; font-family:var(--font-mono);">${coords}</td>
-        <td style="color:var(--sem-hostile); font-size:10px; white-space:nowrap; font-family:var(--font-mono);">${shooterCoords}</td>
-        <td style="color:var(--muted); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.observation || '-'}</td>
+        <td style="color:var(--muted); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${coords}</td>
+        <td style="color:var(--sem-hostile); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${shooterCoords}</td>
+        <td style="color:var(--muted); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.observation || '-'}</td>
         <td style="color:var(--muted);">${pin.operator || '-'}</td>
-        <td style="color:var(--muted); font-size:10px; white-space:nowrap;">${when}</td>
+        <td style="color:var(--muted); font-size:12px; white-space:nowrap;">${when}</td>
         <td style="text-align:center;">${photo}</td>
         <td style="text-align:center; white-space:nowrap;">
-          <button onclick="focusTacticalMarker('${pin.id}')" title="Ver no mapa" style="background:var(--action); color:#fff; border:none; border-radius:4px; padding:4px 7px; margin-right:3px; cursor:pointer; font-size:11px;">📍</button>
-          <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" title="Compartilhar no WhatsApp" style="background:#25D366; color:#fff; border:none; border-radius:4px; padding:4px 7px; margin-right:3px; cursor:pointer; font-size:11px;">📲</button>
-          <button onclick="deleteTacticalMarker('${pin.id}')" title="Excluir" style="background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:4px; padding:4px 7px; cursor:pointer; font-size:11px;">🗑️</button>
+          <button onclick="focusTacticalMarker('${pin.id}')" title="Ver no mapa" style="background:var(--action); color:#fff; border:none; border-radius:5px; padding:6px 9px; margin-right:4px; cursor:pointer; font-size:13px;">📍</button>
+          <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" title="Compartilhar no WhatsApp" style="background:#25D366; color:#fff; border:none; border-radius:5px; padding:6px 9px; margin-right:4px; cursor:pointer; font-size:13px;">📲</button>
+          <button onclick="deleteTacticalMarker('${pin.id}')" title="Excluir" style="background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:5px; padding:6px 9px; cursor:pointer; font-size:13px;">🗑️</button>
         </td>
       </tr>
     `;
