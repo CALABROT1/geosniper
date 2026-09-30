@@ -114,6 +114,18 @@
     .home-wrap { max-width: 760px; margin: 0 auto; padding: 18px 14px 28px; box-sizing: border-box; }
     .home-hero { text-align: center; padding: 6px 6px 14px; }
     .home-hero-title { font-weight: 900; font-size: 24px; letter-spacing: 1px; color: var(--ink); }
+    .cd2-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 10px 10px; }
+    .cd2-speed-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+    .cd2-speed-mixed { font-size: 12px; color: var(--muted); font-style: italic; }
+    .cd2-clicks { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; font-family: var(--font-mono); font-weight: 800;
+      font-size: 13px; line-height: 1.35; color: var(--ink); margin: 0 0 10px; padding: 7px 10px; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line); border-radius: 10px; }
+    .cd2-clicks:empty { display: none; }
+    .cd2-clicks .cd2-clicks-sub { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .home-hero-brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .home-hero-logo { width: 84px; height: 84px; object-fit: contain; flex: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+    body.nvg-red-mode .home-hero-logo { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-35deg) brightness(0.75); }
+    .home-hero-brand .home-hero-title { text-align: left; }
     .home-hero-title span { color: var(--accent); display: block; font-size: 16px; font-weight: 800; letter-spacing: 1.2px; margin-top: 2px; }
     .home-hero-tag { margin: 8px auto 0; font-size: 14px; color: var(--muted); line-height: 1.5; max-width: 460px; }
     .home-who { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted);
@@ -336,7 +348,7 @@
     /* Docks de bússola (Marker e Estratégia) — botão ▾ minimiza pra uma
        pastilha compacta, escondendo o miolo (rosa + calibração + CALIBRAR)
        e deixando só o botão pra reabrir. */
-    .compass-dock-toggle { width: 24px; height: 20px; font-size: 12px; }
+    .compass-dock-toggle { width: 18px; height: 12px !important; min-height: 0 !important; padding: 0 !important; line-height: 1; font-size: 10px; }
     /* Fileira interna (setas + rosa, ou setas sozinhas) de um dock de
        bússola — precisa ser uma CLASSE (não style inline no próprio
        elemento) porque um "display" inline tem prioridade sobre QUALQUER
@@ -345,7 +357,7 @@
        style, o "display:none" do collapsed nunca conseguiria escondê-la —
        só a linha CALIBRAR (que não tinha display inline) sumia, dando a
        impressão de que "minimizar só esconde a palavra". */
-    .compass-dock-row { display: flex; align-items: center; gap: 8px; }
+    .compass-dock-row { display: flex; align-items: center; gap: 4px; }
     .compass-dock-group.compass-dock-collapsed .compass-dock-body { display: none; }
     .compass-dock-group.compass-dock-collapsed { padding-bottom: 6px !important; }
     .draw-toolbar {
@@ -1418,7 +1430,7 @@ body.nvg-red-mode .leaflet-tile-container img {
 <div id="tabInicio" class="tab-content active">
   <div class="home-wrap">
     <div class="home-hero">
-      <div class="home-hero-title">GEOSNIPER <span>Precisão em campo</span></div>
+      <div class="home-hero-brand"><img class="home-hero-logo" src="data:image/webp;base64,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" alt="Logotipo do GeoSniper"><div class="home-hero-title">GEOSNIPER <span>Precisão em campo</span></div></div>
       <div class="home-hero-tag">Cálculo e referência para tiro de precisão: zeragem, retículo e marcação tática em campo.</div>
     </div>
     <div class="home-who" id="homeWho"></div>
@@ -2383,6 +2395,8 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Sistema de compensação de deslocamento</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensacao')" title="Abrir em janela">⤢ Janela</button></div>
     <div style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
     <div class="cd2-target-select" id="cd2TargetSelect"></div>
+    <div class="cd2-speed" id="cd2SpeedAll"></div>
+    <div id="cd2CompClicks" class="cd2-clicks" aria-live="polite"></div>
     <div class="diag-scroll"><svg id="cd2CompSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div class="cd2-anim-row">
       <button class="cd2-anim-btn" id="cd2CompAnimBtn" type="button" onclick="cd2ToggleAnimB()">▶ Animar</button>
@@ -2434,8 +2448,8 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="trajetoria" data-diag-title="Perfil de trajetória" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
-      <div style="font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div>
+    <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
+      <div style="flex:1 1 100%; font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div>
       <button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria')" title="Abrir em janela">⤢ Janela</button><button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
     </div>
     <div class="diag-scroll"><svg id="trajectoryProfileSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
@@ -3041,12 +3055,12 @@ body.nvg-red-mode .leaflet-tile-container img {
       // o minimizar não funcionava no dock inteiro.
       // top:44 -> 60px: estava colado na caixa de busca de localidade
       // (que termina por volta de 44-46px) — agora sobra uma folga visível.
-      group.style.cssText = 'position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:2px; border-radius:10px; padding:6px 10px 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+      group.style.cssText = 'position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:950; display:flex; flex-direction:column; align-items:center; gap:1px; border-radius:10px; padding:3px 6px 2px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
       group.innerHTML = `
         <button type="button" class="dock-toggle-btn compass-dock-toggle" onclick="toggleCompassDockMinimize('${groupId}')" aria-label="Minimizar bússola" title="Minimizar/expandir bússola">▾</button>
         <div class="compass-dock-body compass-dock-row">
-          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
-          <svg width="34" height="34" viewBox="0 0 48 48" style="flex-shrink:0;">
+          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(-45)" title="Girar leitura da bússola -45°" style="width:24px; height:24px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">◀</button>
+          <svg width="22" height="22" viewBox="0 0 48 48" style="flex-shrink:0;">
             <circle cx="24" cy="24" r="21" fill="rgba(6,10,6,0.9)" stroke="#b6e06a" stroke-width="1.8"/>
             <g stroke="#eef7d8" stroke-width="1.8" stroke-linecap="round">
               <line x1="24" y1="3" x2="24" y2="9"/>
@@ -3062,13 +3076,13 @@ body.nvg-red-mode .leaflet-tile-container img {
             <line id="${rosePrefix}Needle" x1="24" y1="24" x2="24" y2="7" stroke="#ff5b4a" stroke-width="2.8" stroke-linecap="round" style="transform-origin:24px 24px;"/>
             <circle cx="24" cy="24" r="2.8" fill="#ff5b4a"/>
           </svg>
-          <div style="display:flex; flex-direction:column; align-items:center; line-height:1.15; min-width:50px;">
-            <div id="${rosePrefix}Readout" style="font-size:20px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
-            <div style="font-size:17px; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; line-height:1.1; min-width:0;">
+            <div id="${rosePrefix}Readout" style="font-size:11px; white-space:nowrap; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO};">--°</div>
+            <div style="font-size:9px; white-space:nowrap; color:#9fb37e; font-weight:700; font-family: ${RETICLE_MONO};">🧭 <span class="compass-calib-deg">0°</span></div>
           </div>
-          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:39px; height:39px; border-radius:8px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:17px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">▶</button>
+          <button type="button" class="btn-compass-invert-icon" onclick="adjustCompassOffset(45)" title="Girar leitura da bússola +45°" style="width:24px; height:24px; border-radius:6px; background:rgba(15,23,42,0.9); border:1px solid var(--line); color:#fff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">▶</button>
         </div>
-        <div class="compass-dock-body" style="font-size:9px; color:#c39a4f; font-weight:800; letter-spacing:0.5px;">CALIBRAR</div>
+        <div class="compass-dock-body" style="font-size:7px; color:#c39a4f; font-weight:800; letter-spacing:0.4px;">CALIBRAR</div>
       `;
       container.appendChild(group);
 
@@ -4054,6 +4068,8 @@ const CD2_RISK_SIGMA = 1.2;
 const CD2_RISK_CRITICAL = 65, CD2_RISK_WARN = 30;
 const CD2_ANIM_DURATION_S = 10; // duração visual — o tempo real de voo é bem menor
 const CD2_SIGHT_YELLOW = '#e8c948';
+const CD2_RETICLE_INK = '#ffffff';    // régua, marcações e números do retículo
+const CD2_RETICLE_ZERO = '#39ff14';   // zero (ponto de encontro) e leitura em MRAD: verde fluorescente
 
 function cd2Fmt(n, d) { return n.toFixed(d).replace('.', ','); }
 
@@ -4230,7 +4246,7 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
   const svg = document.getElementById('cd2CorridorSvg');
   if (!svg) return;
   const geo = cd2ComputeSceneGeometry(targetDistM, simState.windClock, simState.windSpeed, fps, bcVal);
-  const { X, Y, driftAtM, sceneEndM, scaleY } = geo;
+  const { X, Y, driftAtM, sceneEndM, scaleY, MT, plotH } = geo;
   let s = cd2DrawBaseScene(geo, targetDistM);
 
   rows.forEach(row => {
@@ -4250,12 +4266,17 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
     s += cd2TargetIconSvg(color, 1);
     s += `</g>`;
 
-    const labelY0 = upperHalf ? yArrive + 32 : yArrive - 17;
-    const dy = upperHalf ? 10 : -10;
+    // Rotulos ficam do lado de FORA do alvo (longe da linha central), pra nao se enfiarem entre o alvo e a trajetoria.
+    // Se nao couber no grafico, volta pro lado de dentro.
+    const L = 17;
+    let above = upperHalf;
+    if (above && yArrive - 12 - L < MT + 12) above = false;
+    if (!above && yArrive + 37 + L > MT + plotH - 2) above = true;
     const halo = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="3" stroke-linejoin="round"';
-    s += `<text x="${xC}" y="${labelY0}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.speed.toFixed(1).replace('.', ',')} m/s</text>`;
-    s += `<text x="${xC}" y="${labelY0+dy}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.d}m</text>`;
-    s += `<text x="${xC}" y="${labelY0+dy*2}" fill="${color}" font-size="12.5" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${Math.round(row.risk)}%</text>`;
+    // Duas linhas (distancia e risco): a velocidade fica na legenda e na tabela. Com 3 linhas os rotulos de alvos vizinhos (~40px de distancia) se sobrepunham.
+    const yTop = above ? yArrive - 12 - L : yArrive + 37;
+    s += `<text x="${xC}" y="${yTop}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.d}m</text>`;
+    s += `<text x="${xC}" y="${yTop + L}" fill="${color}" font-size="12.5" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${Math.round(row.risk)}%</text>`;
   });
 
   s += `<g id="cd2BulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
@@ -4331,6 +4352,23 @@ function cd2RenderTargetSelector(rows) {
       cd2RefreshComp();
     });
   });
+  // Velocidade de TODOS os alvos de uma vez: pra comparar distâncias com a mesma velocidade (a tabela de cenário continua editando alvo a alvo).
+  const sp = document.getElementById('cd2SpeedAll');
+  if (sp) {
+    const modes = rows.map(r => r.p.mode);
+    const cur = modes.every(m => m === 'lento') ? 'lento' : (modes.every(m => m === 'rapido') ? 'rapido' : 'misto');
+    sp.innerHTML = `<span class="cd2-speed-label">Velocidade dos alvos</span>
+      <button type="button" class="cd2-chip cd2-speed-btn ${cur === 'lento' ? 'cd2-active' : ''}" data-mode="lento">Lento 1,4 m/s</button>
+      <button type="button" class="cd2-chip cd2-speed-btn ${cur === 'rapido' ? 'cd2-active' : ''}" data-mode="rapido">Rápido 3,8 m/s</button>
+      ${cur === 'misto' ? '<span class="cd2-speed-mixed">cenário misto</span>' : ''}`;
+    sp.querySelectorAll('.cd2-speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode');
+        Object.keys(cd2State.targets).forEach(k => { cd2State.targets[k].mode = mode; });
+        cd2Render();
+      });
+    });
+  }
 }
 
 function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
@@ -4395,6 +4433,9 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
   }
   const minorStep = (majorStep % 2 === 0) ? majorStep / 2 : majorStep;
   const maxK = Math.ceil((latRangeMax * 1000 / reticleD) / minorStep) * minorStep + minorStep;
+  // Um reticulo de verdade cobre ~±10-12 MRAD. Esticar a regua ate a largura do grafico (±4,6 m) mostrava numeros
+  // absurdos em distancia curta (ex.: -24 a +50). Limita a ±12 MRAD, ampliando so se a leitura do alvo exigir.
+  const capK = Math.min(maxK, Math.ceil(Math.max(12, (comp ? Math.abs(comp.mrad) : 0) + 4) / minorStep) * minorStep);
 
   if (selRow) {
     const slope = zeroLat / reticleD;
@@ -4407,28 +4448,28 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     s += `<line id="cd2SightLine" x1="${X(0)}" y1="${Y(0)}" x2="${X(farD)}" y2="${Y(farLat)}" stroke="${CD2_SIGHT_YELLOW}" stroke-width="2" stroke-dasharray="8 5" opacity="0.9"/>`;
   }
 
-  s += `<line x1="${xR}" y1="${MT}" x2="${xR}" y2="${MT+plotH}" stroke="var(--sem-hostile)" stroke-width="2.2" opacity="0.45"/>`;
+  s += `<line x1="${xR}" y1="${MT}" x2="${xR}" y2="${MT+plotH}" stroke="${CD2_RETICLE_INK}" stroke-width="2.2" opacity="0.45"/>`;
   // régua de graduação — fica ESTÁTICA do início ao fim, mesmo durante a
   // animação: o zero representa a mira atual, fixa no instante do disparo.
   // Só o glifo do alvo e o projétil se movem durante "Animar".
   s += `<g id="cd2ReticleZeroGroup">`;
-  for (let k = -maxK; k <= maxK; k += minorStep) {
+  for (let k = -capK; k <= capK; k += minorStep) {
     const metersAtK = zeroLat + (k / 1000) * reticleD;
     if (Math.abs(metersAtK) > latRangeMax) continue;
     const y = Y(metersAtK);
     const isZero = k === 0;
     const isMajor = k % majorStep === 0;
     const tickLen = isZero ? 11 : (isMajor ? 7 : 4);
-    s += `<line x1="${xR-tickLen}" y1="${y}" x2="${xR+tickLen}" y2="${y}" stroke="var(--sem-hostile)" stroke-width="${isZero ? 2.6 : 1.5}"/>`;
+    s += `<line x1="${xR-tickLen}" y1="${y}" x2="${xR+tickLen}" y2="${y}" stroke="${CD2_RETICLE_INK}" stroke-width="${isZero ? 2.6 : 1.5}"/>`;
     if (isZero) {
-      s += `<circle cx="${xR}" cy="${y}" r="6.5" fill="var(--sem-hostile)" stroke="${CD2_SIGHT_YELLOW}" stroke-width="2.2"/>`;
+      s += `<circle cx="${xR}" cy="${y}" r="6.5" fill="${CD2_RETICLE_ZERO}" stroke="${CD2_SIGHT_YELLOW}" stroke-width="2.2"/>`;
       s += `<circle cx="${xR}" cy="${y}" r="2" fill="#fff"/>`;
     } else if (isMajor) {
-      s += `<text x="${xR+tickLen+4}" y="${y+4.3}" fill="var(--sem-hostile)" font-size="13.5" font-weight="600" font-family="var(--font-mono)">${k>0?'+':''}${k}</text>`;
+      s += `<text x="${xR+tickLen+4}" y="${y+4.3}" fill="${CD2_RETICLE_INK}" font-size="13.5" font-weight="600" font-family="var(--font-mono)">${k>0?'+':''}${k}</text>`;
     }
   }
   s += `</g>`;
-  s += `<text x="${xR}" y="${MT-10}" fill="var(--sem-hostile)" font-size="13" font-weight="700" text-anchor="middle">retículo (MRAD)</text>`;
+  s += `<text x="${xR}" y="${MT-10}" fill="${CD2_RETICLE_INK}" font-size="13" font-weight="700" text-anchor="middle">retículo (MRAD)</text>`;
 
   // etiqueta do alvo selecionado — desenhada por ÚLTIMO, pra nunca ficar
   // escondida atrás do trilho/marcações/zero. Empurrada pro lado CONTRÁRIO
@@ -4443,7 +4484,7 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     const labelX = xR - 15;
     const selColor = cd2RiskColor(cd2RiskTier(selRow.risk));
     s += `<text x="${labelX}" y="${labelY0}" fill="${selColor}" font-size="12.5" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${selRow.d}m · ${Math.round(selRow.risk)}%</text>`;
-    s += `<text x="${labelX}" y="${labelY0+dy}" fill="var(--sem-hostile)" font-size="13" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${comp.mrad>=0?'+':''}${cd2Fmt(comp.mrad,2)} MRAD</text>`;
+    s += `<text x="${labelX}" y="${labelY0+dy}" fill="${CD2_RETICLE_ZERO}" font-size="13" font-weight="700" text-anchor="end" font-family="var(--font-mono)" ${halo}>${comp.mrad>=0?'+':''}${cd2Fmt(comp.mrad,2)} MRAD</text>`;
   }
 
   // Ajuste final em cliques — só com a torre, sem precisar de holdover —
@@ -4460,18 +4501,12 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     const latInTurretUnit = turretInfo.unit === 'MOA' ? mradToMoa(comp.mrad) : comp.mrad;
     const latClicks = Math.round(Math.abs(latInTurretUnit) / turretInfo.val);
     const latDirShort = comp.dir === 'centro' ? '' : (comp.dir === 'direita' ? ' ► dir' : ' ◄ esq');
-    // Ancorado na quina direita do PLOT (não no meio-termo entre alvo e fim de
-    // cena) — pra nunca estourar a viewBox quando o alvo selecionado fica
-    // perto do fim da cena. Fonte reduzida (era grande/dominante demais no
-    // celular) e linhas mais compactas.
-    // Centro do diagrama, sobre a grade: nao colide mais com "sem anteparo" nem com o rotulo do reticulo.
-    const boxCx = ML + plotW / 2;
-    const boxY0 = cy - 44;
-    const halo2 = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="5" stroke-linejoin="round"';
-    const halo3 = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round"';
-    s += `<text x="${boxCx}" y="${boxY0}" fill="var(--ink)" font-size="14" font-weight="800" text-anchor="middle" font-family="var(--font-mono)" ${halo2}>⬆ ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</text>`;
-    s += `<text x="${boxCx}" y="${boxY0 + 21}" fill="var(--ink)" font-size="14" font-weight="800" text-anchor="middle" font-family="var(--font-mono)" ${halo2}>↔ ${latClicks} cliques (${cd2Fmt(Math.abs(latInTurretUnit), 2)} ${turretInfo.unit})${latDirShort}</text>`;
-    s += `<text x="${boxCx}" y="${boxY0 + 40}" fill="var(--muted)" font-size="12" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo3}>alvo ${selRow.d}m · só na torre, sem holdover</text>`;
+    // Texto de cliques fora do grafico (HTML acima dele, centralizado): nao disputa espaco com alvos nem trajetoria.
+    const clicksEl = document.getElementById('cd2CompClicks');
+    if (clicksEl) clicksEl.innerHTML = `<div>⬆ elevação: ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</div><div>↔ avanço: ${latClicks} cliques${latDirShort}</div><div class="cd2-clicks-sub">${cd2Fmt(Math.abs(comp.mrad), 2)} MRAD · ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m · ${selRow.p.mode === 'rapido' ? 'rápido' : 'lento'} ${cd2Fmt(selRow.speed, 1)} m/s</div>`;
+  } else {
+    const clicksEl0 = document.getElementById('cd2CompClicks');
+    if (clicksEl0) clicksEl0.innerHTML = '';
   }
 
   s += `<g id="cd2CompBulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
@@ -4524,6 +4559,7 @@ function cd2RenderCompReadout(rows) {
       <div class="cd2-cr-label">Compensação necessária — alvo ${selRow.d}m</div>
       <div class="cd2-cr-value cd2-hostile">${fmtMradMoa(comp.mrad)}</div>
       <div class="cd2-cr-sub">${clicks} cliques de ${cd2Fmt(turretInfo.val, turretInfo.unit==='MOA'?3:2)} ${turretInfo.unit} · ${dirLabel}, do ponto de encontro (zero) até a posição de repouso do alvo</div>
+      <div class="cd2-cr-sub">Avanço de ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m = ${cd2Fmt(selRow.speed, 1)} m/s × ${cd2Fmt(selRow.tFlight, 2)} s${simState.windSpeed > 0 ? ' (mais a deriva do vento)' : ''}. Em metros o avanço cresce com o tempo de voo. Em MRAD, que é o que o retículo mede, ele quase não muda com a distância e depende da velocidade do alvo (rápido 3,8 m/s, lento 1,4 m/s). Para comparar distâncias, use o mesmo modo em todos os alvos.</div>
     </div>
     <div>
       <div class="cd2-cr-label">Alvo selecionado</div>

@@ -183,3 +183,10 @@ details p { margin: 0 0 16px; color: var(--muted); }
   .nav .btn { margin: 6px 0 0; }
   .cta .btn { width: 100%; }
 }
+
+/* Botão principal do menu: a regra ".nav a" deixava o texto cinza sobre fundo dourado (pouco contraste) */
+.nav a.btn-primary { color: #1b1a10; font-weight: 800; font-size: 15px; padding: 10px 20px;
+  background: linear-gradient(180deg, #ffe08a, #e8b540); border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(242, 201, 106, 0.18), 0 6px 18px rgba(242, 201, 106, 0.4); }
+.nav a.btn-primary:hover { color: #000; background: linear-gradient(180deg, #fff0b8, #f0c050); text-decoration: none;
+  box-shadow: 0 0 0 4px rgba(242, 201, 106, 0.28), 0 10px 26px rgba(242, 201, 106, 0.55); }
