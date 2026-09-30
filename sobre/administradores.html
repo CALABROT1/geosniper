@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Para administradores — GeoSniper</title>
+<meta name="description" content="Guia para administradores do GeoSniper: unidades, vagas, usuários, convites, vínculo de instalação e auditoria.">
+<meta name="theme-color" content="#12130d">
+<link rel="canonical" href="https://geosniper.com.br/sobre/administradores.html">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#conteudo">Ir para o conteúdo</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="GeoSniper, início"><img src="img/logo-192.webp" alt="" width="34" height="34"><span>GEOSNIPER<small>Precisão em campo</small></span></a>
+    <nav class="nav" aria-label="Principal"><a href="./">Início</a><a class="btn btn-primary btn-sm" href="https://geosniper.com.br/">Acessar o app</a></nav>
+  </div>
+</header>
+
+<main id="conteudo" class="doc">
+<div class="wrap">
+  <span class="kicker">Guia</span>
+  <h1>Para administradores</h1>
+  <p class="meta">Orientações para quem gerencia uma unidade no GeoSniper. Última atualização: 30 de setembro de 2026</p>
+
+  <p>O painel de administração concentra a criação de unidades e de usuários, as vagas, os convites, o vínculo de instalação e os relatórios de auditoria. Este guia explica cada parte. <strong>O acesso ao painel é restrito:</strong> ele exige a sua conta de administrador, e esta página não tem campo de login.</p>
+  <p><a class="btn btn-primary btn-sm" href="https://api.geosniper.com.br/admin.html" rel="noopener">Abrir o painel de administração</a></p>
+
+  <h2>1. Unidade ou usuário único</h2>
+  <p>Ao criar um acesso, você escolhe a modalidade:</p>
+  <ul>
+    <li><strong>Unidade ou grupo:</strong> reúne vários operadores sob um administrador responsável. Começa <em>sem vagas de atirador</em>. Depois de criar, defina o limite de vagas e as abas liberadas.</li>
+    <li><strong>Usuário único:</strong> uma conta individual, com uma vaga.</li>
+  </ul>
+  <p>Você informa o nome da unidade, o administrador responsável (e-mail e celular) e uma senha inicial com no mínimo 12 caracteres.</p>
+
+  <h2>2. Vagas de atirador</h2>
+  <p>Cada unidade tem um <strong>limite de vagas</strong>. Uma conta ativa com permissão de visualizar e com acesso a Balística, Equipamento, Medir, Simulação ou Perfis ocupa <strong>uma vaga</strong>, mesmo que tenha várias dessas abas. Administrar cadastros não ocupa vaga.</p>
+
+  <h2>3. Usuários e permissões</h2>
+  <p>Para cadastrar um usuário, informe nome, e-mail, celular, senha inicial e escolha o <strong>perfil</strong>:</p>
+  <ul>
+    <li><strong>Usuário:</strong> usa o app conforme as abas e operações liberadas.</li>
+    <li><strong>Administrador da unidade:</strong> gerencia cadastros. As abas de uso dele são atribuídas à parte e também respeitam o limite de vagas.</li>
+  </ul>
+  <p>Você marca as <strong>abas permitidas</strong> e as <strong>operações permitidas</strong> de cada pessoa. As abas de mapas usam o mesmo conjunto de dados da unidade. Não existem conjuntos privados por aba.</p>
+
+  <h2>4. Convites de cadastro</h2>
+  <p>Em vez de criar cada conta, você pode gerar um <strong>link de convite</strong>:</p>
+  <ul>
+    <li>O link fixa a unidade. O operador escolhe a própria senha e aguarda a sua aprovação.</li>
+    <li>Você define a validade em horas e a quantidade de cadastros que o link aceita.</li>
+    <li><strong>Copie o link antes de sair da tela</strong>, pois ele é exibido uma vez. Você pode copiá-lo ou compartilhá-lo pelo WhatsApp.</li>
+    <li>Revogar o link impede novos cadastros. As solicitações já recebidas continuam pendentes até você decidir.</li>
+    <li>Revise as <strong>solicitações de operadores</strong> e aprove só quem você reconhece.</li>
+  </ul>
+
+  <h2>5. Vínculo de instalação e transferências</h2>
+  <p>O vínculo identifica o acesso autorizado. No navegador ele usa um cookie protegido, e no GeoSniper para Android o segredo fica guardado na instalação.</p>
+  <ul>
+    <li>Com o controle <strong>ativo</strong>, uma nova entrada encerra a sessão anterior da mesma conta.</li>
+    <li>Ligar ou desligar o controle <strong>encerra as sessões da unidade</strong>. Avise a equipe antes.</li>
+    <li>Quando um operador troca de aparelho, ele envia uma <strong>solicitação de transferência</strong>. Ao aprovar, o navegador anterior perde o acesso. <strong>Confirme com o titular antes de aprovar.</strong> A descrição é informada pelo usuário e não comprova o aparelho.</li>
+  </ul>
+
+  <h2>6. Auditoria e relatórios</h2>
+  <h3>Alterações nos registros</h3>
+  <p>Você escolhe o nível de coleta: <strong>Essencial</strong> (contas e acessos), <strong>Resumido</strong> (contagens diárias) ou <strong>Detalhado</strong> (contagens e identificação das operações). Pode coletar criação, edição e exclusão de pontos e de desenhos compartilhados, e definir por quantos dias os registros ficam guardados. Desabilitar interrompe novas coletas, e o histórico anterior permanece até vencer o prazo.</p>
+  <p>Os relatórios podem ser filtrados por período, categoria e operação, e exportados em JSON. O histórico detalhado só existe para operações coletadas no modo detalhado.</p>
+  <h3>Ativação da localização</h3>
+  <p>Este registro vem <strong>desligado por padrão</strong>. Quando você o habilita para um período, o app grava <strong>uma única posição</strong> ao iniciar a localização (ou a falha). Ele <strong>não registra o percurso</strong>. Você informa um motivo, que é mostrado ao usuário, e define a retenção em dias.</p>
+  <div class="callout">Seja transparente com a sua equipe: avise os operadores quando habilitar qualquer auditoria, e registre só o que precisar. Isso também é exigido pela LGPD. Veja a <a href="privacidade.html">Política de Privacidade</a>.</div>
+
+  <h2>Boas práticas</h2>
+  <ul>
+    <li>Use senhas iniciais fortes, e peça que cada operador troque a dele no primeiro acesso.</li>
+    <li>Não compartilhe contas entre pessoas. Cada conta ocupa uma vaga e identifica quem fez cada coisa.</li>
+    <li>Libere só as abas e operações que cada pessoa precisa.</li>
+    <li>Revise periodicamente quem tem acesso e remova quem saiu da unidade.</li>
+    <li>Trate os links de convite como senhas: compartilhe só com quem deve entrar e com validade curta.</li>
+  </ul>
+
+  <h2>Perdeu o acesso ou precisa de ajuda?</h2>
+  <p>Fale com a gente em <a href="mailto:contato@geosniper.com.br">contato@geosniper.com.br</a>. Por segurança, pediremos que você confirme a sua identidade.</p>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <a class="brand" href="./"><img src="img/logo-192.webp" alt="" width="34" height="34"><span>GEOSNIPER<small>Precisão em campo</small></span></a>
+      <ul class="footer-links">
+        <li><a href="privacidade.html">Política de Privacidade</a></li>
+        <li><a href="termos.html">Termos de Uso</a></li>
+        <li><a href="exclusao.html">Exclusão de dados</a></li>
+        <li><a href="administradores.html">Para administradores</a></li>
+        <li><a href="mailto:contato@geosniper.com.br">Contato</a></li>
+      </ul>
+    </div>
+    <p class="footer-note">GeoSniper é uma ferramenta de cálculo e referência. Não vende armas, munição ou acessórios. Use sempre dentro da lei. © 2026 GeoSniper.</p>
+  </div>
+</footer>
+</body>
+</html>
