@@ -704,6 +704,16 @@
     .diag-win-title { flex: 1; font-weight: 800; font-size: 14px; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .diag-win-btn { background: #262b1e; color: #fff; border: 1px solid var(--line); border-radius: 8px; min-width: 38px; height: 34px; font-size: 16px; font-weight: 800; cursor: pointer; }
     .diag-win-btn.close { background: #7a2b26; border-color: #a5433c; }
+    .diag-win-tools { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #14170f; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+    .diag-win-tools .diag-win-btn { min-width: 38px; height: 32px; font-size: 16px; }
+    .diag-win-tools .diag-zoom-reset { font-size: 12px; padding: 0 8px; }
+    .diag-zoom-label { min-width: 46px; text-align: center; font-weight: 800; font-size: 14px; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .diag-max-btn { display: none; margin-left: auto; }
+    @media (min-width: 700px) { .diag-max-btn { display: inline-block; } }
+    #diagWindow.diag-max { inset: 0 !important; border-radius: 0 !important; border: none !important; }
+    #diagWindow.min .diag-win-tools { display: none; }
+    .diag-zoom-sizer { margin: 0 auto; position: relative; }
+    .diag-zoom-inner { transform-origin: 0 0; }
     .diag-win-body { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px; }
     .diag-win-body .diag-card { margin: 0 0 10px; }
     .diag-win-body .diag-open-btn { display: none; }
@@ -2460,11 +2470,12 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div class="diag-scroll"><svg id="trajectoryProfileSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+  </div>
 
-    <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:16px; margin-bottom:4px;">Com câmera lenta (animada)</div>
+  <div class="diag-card" data-diag-key="trajetoria-anim" data-diag-title="Perfil de trajetória: câmera lenta" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil de trajetória: câmera lenta</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria-anim')" title="Abrir em janela">⤢ Janela</button></div>
     <div class="diag-scroll"><canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpRaw" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
-
     <div style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaRawCameraPlay()" id="cenaCamRawPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
@@ -2476,26 +2487,33 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="diag-card" data-diag-key="compensado" data-diag-title="Perfil compensado" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Perfil compensado</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensado')" title="Abrir em janela">⤢ Janela</button></div>
     <div id="compensatedReadout" style="font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
+    <div class="diag-scroll"><svg id="compensatedProfileStaticSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+    <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+  </div>
 
-    <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:4px;">Com câmera lenta (animada)</div>
+  <div class="diag-card" data-diag-key="comp-lateral" data-diag-title="Perfil compensado: câmera lenta (lateral)" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera lenta (lateral)</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-lateral')" title="Abrir em janela">⤢ Janela</button></div>
     <div class="diag-scroll"><canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpLateral" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
-
-    <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:12px auto 0; background:var(--bg); border-radius:6px;"></canvas>
-    <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
-
-    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
-
     <div style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaCameraPlay()" id="cenaCamPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
     <div id="cenaCamReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
     <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+  </div>
 
-    <div style="font-size:13px; font-weight:700; color:var(--accent); margin-top:18px; margin-bottom:4px;">Estático (sem animação)</div>
-    <div class="diag-scroll"><svg id="compensatedProfileStaticSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
-    <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+  <div class="diag-card" data-diag-key="comp-traseira" data-diag-title="Perfil compensado: câmera traseira" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera traseira</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-traseira')" title="Abrir em janela">⤢ Janela</button></div>
+    <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; background:var(--bg); border-radius:6px;"></canvas>
+    <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
+    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button onclick="toggleCenaRearPlay()" id="cenaRearPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
+      <button onclick="resetCenaRearAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
+    </div>
+    <div id="cenaRearReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
   </div>
 </div>
 
@@ -2506,7 +2524,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     <button type="button" class="diag-win-btn" id="diagWinMinBtn" onclick="toggleDiagMinimize()" title="Minimizar / restaurar">▁</button>
     <button type="button" class="diag-win-btn close" onclick="closeDiagWindow()" title="Fechar">✕</button>
   </div>
-  <div class="diag-win-body" id="diagWinBody"></div>
+  <div class="diag-win-tools" id="diagWinTools">
+    <button type="button" class="diag-win-btn" onclick="diagZoomBy(-0.1)" aria-label="Diminuir o diagrama" title="Diminuir">−</button>
+    <span class="diag-zoom-label" id="diagZoomLabel">100%</span>
+    <button type="button" class="diag-win-btn" onclick="diagZoomBy(0.1)" aria-label="Aumentar o diagrama" title="Aumentar">+</button>
+    <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagZoomReset()" title="Voltar a 100%">100%</button>
+    <button type="button" class="diag-win-btn diag-max-btn" id="diagMaxBtn" onclick="toggleDiagMaximize()" title="Maximizar / restaurar a janela">⤢</button>
+  </div>
+  <div class="diag-win-body" id="diagWinBody"><div class="diag-zoom-sizer" id="diagZoomSizer"><div class="diag-zoom-inner" id="diagZoomInner"></div></div></div>
 </div>
 
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
@@ -3593,7 +3618,48 @@ function windDriftCm(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
 // O card do diagrama (SVG/canvas + pills + botões + legenda) é MOVIDO pra janela
 // (não clonado), então ids, animações e pills continuam funcionando; ao fechar
 // volta pro lugar de origem. Nenhum cálculo balístico é tocado aqui.
-const DIAG_WIN = { card: null, placeholder: null, rot: null, min: false };
+const DIAG_WIN = { card: null, placeholder: null, rot: null, min: false, max: false, key: null, zoom: 1, zoomByKey: {} };
+const DIAG_ZOOM_MIN = 0.4, DIAG_ZOOM_MAX = 1.5;
+// Zoom do conteúdo da janela (diagrama + legendas + botões + leituras): escala o bloco inteiro por transform e
+// ajusta o "sizer" ao tamanho escalado, então a rolagem e o espaço da janela acompanham. Padrão 100%; lembra o zoom por diagrama na sessão.
+function diagZoomApply() {
+  const inner = document.getElementById('diagZoomInner'), sizer = document.getElementById('diagZoomSizer'), body = document.getElementById('diagWinBody');
+  if (!inner || !sizer || !body) return;
+  const z = DIAG_WIN.zoom || 1;
+  const w0 = Math.max(200, body.clientWidth - 16);
+  inner.style.width = w0 + 'px';
+  inner.style.transform = 'scale(' + z + ')';
+  sizer.style.width = Math.round(w0 * z) + 'px';
+  sizer.style.height = Math.round(inner.offsetHeight * z) + 'px';
+  const lb = document.getElementById('diagZoomLabel');
+  if (lb) lb.textContent = Math.round(z * 100) + '%';
+}
+function diagZoomSet(z) {
+  z = Math.min(DIAG_ZOOM_MAX, Math.max(DIAG_ZOOM_MIN, Math.round(z * 10) / 10));
+  DIAG_WIN.zoom = z;
+  if (DIAG_WIN.key) DIAG_WIN.zoomByKey[DIAG_WIN.key] = z;
+  diagZoomApply();
+}
+function diagZoomBy(delta) { diagZoomSet((DIAG_WIN.zoom || 1) + delta); }
+function diagZoomReset() { diagZoomSet(1); }
+function toggleDiagMaximize() {
+  DIAG_WIN.max = !DIAG_WIN.max;
+  const w = document.getElementById('diagWindow');
+  if (w) w.classList.toggle('diag-max', DIAG_WIN.max);
+  const b = document.getElementById('diagMaxBtn');
+  if (b) b.textContent = DIAG_WIN.max ? '⤡' : '⤢';
+  diagZoomApply();
+}
+(function setupDiagZoomObserver() {
+  const start = () => {
+    if (!window.ResizeObserver) return;
+    const inner = document.getElementById('diagZoomInner'), body = document.getElementById('diagWinBody');
+    if (!inner || !body) return;
+    const ro = new ResizeObserver(() => { if (DIAG_WIN.card) diagZoomApply(); });
+    ro.observe(inner); ro.observe(body);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
 function diagIsPortraitPhone() { return window.innerWidth < 700 && window.innerHeight > window.innerWidth; }
 function diagApplyLayout() {
   const w = document.getElementById('diagWindow');
@@ -3617,13 +3683,15 @@ function openDiagWindow(key) {
   ph.className = 'diag-placeholder';
   ph.innerHTML = '<span>Aberto em janela: ' + (card.dataset.diagTitle || '') + '</span><button type="button" onclick="closeDiagWindow()">Trazer de volta</button>';
   card.parentNode.insertBefore(ph, card);
-  body.appendChild(card);
+  document.getElementById('diagZoomInner').appendChild(card);
   DIAG_WIN.card = card; DIAG_WIN.placeholder = ph; DIAG_WIN.min = false; DIAG_WIN.rot = null;
+  DIAG_WIN.key = key; DIAG_WIN.zoom = DIAG_WIN.zoomByKey[key] || 1;
   document.getElementById('diagWinTitle').textContent = card.dataset.diagTitle || 'Diagrama';
   w.classList.add('open');
   body.scrollTop = 0;
   diagApplyLayout();
   try { renderCenaDisparoVisuals(); } catch (e) {}
+  diagZoomApply();
 }
 function closeDiagWindow() {
   const w = document.getElementById('diagWindow');
@@ -3632,8 +3700,9 @@ function closeDiagWindow() {
     DIAG_WIN.placeholder.remove();
   }
   const hadCard = !!DIAG_WIN.card;
-  DIAG_WIN.card = null; DIAG_WIN.placeholder = null; DIAG_WIN.min = false;
-  if (w) { w.classList.remove('open', 'min', 'diag-rot'); }
+  DIAG_WIN.card = null; DIAG_WIN.placeholder = null; DIAG_WIN.min = false; DIAG_WIN.max = false; DIAG_WIN.key = null;
+  if (w) { w.classList.remove('open', 'min', 'diag-rot', 'diag-max'); }
+  const mb = document.getElementById('diagMaxBtn'); if (mb) mb.textContent = '⤢';
   if (hadCard) { try { renderCenaDisparoVisuals(); } catch (e) {} }
 }
 function toggleDiagMinimize() { DIAG_WIN.min = !DIAG_WIN.min; diagApplyLayout(); }
@@ -5050,6 +5119,7 @@ function initCenaCameraForCurrentState() {
     cenaCam.ctxLat = setupCenaCrispCanvas(canvasLat, 620, 230);
     cenaCam.ctxRear = setupCenaCrispCanvas(canvasRear, 320, 320);
     cenaCamFrame(cenaDistanceForAnimElapsed(cenaCam.elapsedAnim));
+    cenaRearFrame(cenaDistanceForAnimElapsed(cenaCam.rear.elapsedAnim));
     return;
   }
 
@@ -5070,17 +5140,22 @@ function initCenaCameraForCurrentState() {
     playing: false, elapsedAnim: 0, lastTs: null, rafId: null,
     outOfViewFlagged: false,
     passed: {},
+    // Vista traseira com linha do tempo PROPRIA (botoes e checkpoints independentes da lateral); so le os numeros de 'comp'.
+    rear: { playing: false, elapsedAnim: 0, lastTs: null, rafId: null, outOfViewFlagged: false, passed: {} },
     ctxLat: setupCenaCrispCanvas(canvasLat, 620, 230),
     ctxRear: setupCenaCrispCanvas(canvasRear, 320, 320)
   };
-  CHECKPOINTS.forEach(cp => cenaCam.passed[cp] = false);
+  CHECKPOINTS.forEach(cp => { cenaCam.passed[cp] = false; cenaCam.rear.passed[cp] = false; });
 
   const playBtn = document.getElementById('cenaCamPlayBtn');
   if (playBtn) playBtn.textContent = '▶ Reproduzir';
+  const rearBtn = document.getElementById('cenaRearPlayBtn');
+  if (rearBtn) rearBtn.textContent = '▶ Reproduzir';
   const outNote = document.getElementById('cenaCamOutOfView');
   if (outNote) outNote.style.display = 'none';
 
   cenaCamFrame(0);
+  cenaRearFrame(0);
 }
 
 // Distância cujo tempo de voo real bate com "realElapsedS" (bisseção —
@@ -5275,8 +5350,8 @@ function drawCenaRear(d) {
   ctx.fillStyle = danger; ctx.fill();
   ctx.strokeStyle = outNow ? warnColor : '#fff'; ctx.lineWidth = outNow ? 2.2 : 1.2; ctx.stroke();
 
-  if (outNow && !c.outOfViewFlagged) {
-    c.outOfViewFlagged = true;
+  if (outNow && !c.rear.outOfViewFlagged) {
+    c.rear.outOfViewFlagged = true;
     const note = document.getElementById('cenaCamOutOfView');
     if (note) note.style.display = 'block';
   }
@@ -5294,7 +5369,6 @@ function cenaCheckpointPhaseColor(c, cp) {
 function cenaRenderCheckpoints() {
   const c = cenaCam;
   const latBox = document.getElementById('cenaCpLateral');
-  const rearBox = document.getElementById('cenaCpTraseira');
   // Elevação: quanto de MRAD seria preciso pra zerar EXATAMENTE nesse
   // checkpoint (não o valor fixo de 4,77 MRAD dialado pro alvo a 600m) —
   // mostra como a correção necessária cresce ao longo do trajeto. Queda:
@@ -5317,9 +5391,15 @@ function cenaRenderCheckpoints() {
       return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
     }).join('');
   }
+}
+
+function cenaRenderRearCheckpoints() {
+  const c = cenaCam;
+  if (!c) return;
+  const rearBox = document.getElementById('cenaCpTraseira');
   if (rearBox) {
     rearBox.innerHTML = c.CHECKPOINTS.map(cp => {
-      const on = c.passed[cp];
+      const on = c.rear.passed[cp];
       const t = flightTimeS(cp, c.fps, c.bcVal);
       const drift = windDriftCm(cp, c.windClock, c.windSpeed, c.fps, c.bcVal);
       const drop = trajectoryHeightCm(cp, c.zeroDist, c.fps, c.bcVal, c.scopeH_m);
@@ -5332,7 +5412,7 @@ function cenaRenderCheckpoints() {
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
       const arrow = on ? phase.arrow + ' ' : '';
-      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
+      return `<span onclick="seekCenaRearToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
     }).join('');
   }
 }
@@ -5349,10 +5429,106 @@ function cenaCamFrame(d) {
   const c = cenaCam;
   if (!c) return;
   drawCenaLateral(d);
-  drawCenaRear(d);
   cenaCamUpdateReadout(d);
   c.CHECKPOINTS.forEach(cp => { if (!c.passed[cp] && d >= cp) c.passed[cp] = true; });
   cenaRenderCheckpoints();
+}
+
+// ---- Vista traseira: linha do tempo, checkpoints e botoes proprios (independente da lateral) ----
+function cenaRearUpdateReadout(d) {
+  const c = cenaCam;
+  const el = document.getElementById('cenaRearReadout');
+  if (!el || !c) return;
+  const realS = Math.min(c.totalFlightS, flightTimeS(d, c.fps, c.bcVal));
+  el.innerHTML = `t real = <b style="color:var(--ink);">${realS.toFixed(3)}s</b> · distância <b style="color:var(--ink);">${d.toFixed(0)}m</b>`;
+}
+
+function cenaRearFrame(d) {
+  const c = cenaCam;
+  if (!c) return;
+  drawCenaRear(d);
+  cenaRearUpdateReadout(d);
+  c.CHECKPOINTS.forEach(cp => { if (!c.rear.passed[cp] && d >= cp) c.rear.passed[cp] = true; });
+  cenaRenderRearCheckpoints();
+}
+
+function resetCenaRearAnim() {
+  const c = cenaCam;
+  if (!c) return;
+  const r = c.rear;
+  r.playing = false;
+  if (r.rafId) cancelAnimationFrame(r.rafId);
+  r.elapsedAnim = 0; r.lastTs = null; r.outOfViewFlagged = false;
+  c.CHECKPOINTS.forEach(cp => r.passed[cp] = false);
+  const note = document.getElementById('cenaCamOutOfView');
+  if (note) note.style.display = 'none';
+  const btn = document.getElementById('cenaRearPlayBtn');
+  if (btn) btn.textContent = '▶ Reproduzir';
+  cenaRearFrame(0);
+}
+
+function cenaRearTick(ts) {
+  const c = cenaCam;
+  if (!c || !c.rear.playing) return;
+  const r = c.rear;
+  if (r.lastTs == null) r.lastTs = ts;
+  const dt = (ts - r.lastTs) / 1000;
+  r.lastTs = ts;
+  r.elapsedAnim = Math.min(c.ANIM_DURATION_S, r.elapsedAnim + dt);
+  cenaRearFrame(cenaDistanceForAnimElapsed(r.elapsedAnim));
+  if (r.elapsedAnim < c.ANIM_DURATION_S) {
+    r.rafId = requestAnimationFrame(cenaRearTick);
+  } else {
+    r.playing = false;
+    const btn = document.getElementById('cenaRearPlayBtn');
+    if (btn) btn.textContent = '▶ Reproduzir';
+  }
+}
+
+function toggleCenaRearPlay() {
+  const c = cenaCam;
+  if (!c) return;
+  const r = c.rear;
+  const btn = document.getElementById('cenaRearPlayBtn');
+  if (r.playing) {
+    r.playing = false;
+    if (r.rafId) cancelAnimationFrame(r.rafId);
+    if (btn) btn.textContent = '▶ Reproduzir';
+    return;
+  }
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) {
+    r.elapsedAnim = c.ANIM_DURATION_S;
+    cenaRearFrame(cenaDistanceForAnimElapsed(r.elapsedAnim));
+    return;
+  }
+  r.playing = true;
+  r.lastTs = null;
+  if (btn) btn.textContent = '⏸ Pausar';
+  r.rafId = requestAnimationFrame(cenaRearTick);
+}
+
+function seekCenaRearToCheckpoint(cp) {
+  const c = cenaCam;
+  if (!c) return;
+  const r = c.rear;
+  r.playing = false;
+  r.lastTs = null;
+  if (r.rafId) cancelAnimationFrame(r.rafId);
+  const btn = document.getElementById('cenaRearPlayBtn');
+  if (btn) btn.textContent = '▶ Reproduzir';
+  r.elapsedAnim = cenaAnimElapsedForDistance(cp);
+  cenaRearFrame(cp);
+}
+
+function pauseCenaRearIfPlaying() {
+  const c = cenaCam;
+  if (c && c.rear && c.rear.playing) {
+    c.rear.playing = false;
+    if (c.rear.rafId) cancelAnimationFrame(c.rear.rafId);
+    const btn = document.getElementById('cenaRearPlayBtn');
+    if (btn) btn.textContent = '▶ Reproduzir';
+  }
 }
 
 function resetCenaCameraAnim() {
@@ -5363,8 +5539,6 @@ function resetCenaCameraAnim() {
   cenaCam.lastTs = null;
   cenaCam.outOfViewFlagged = false;
   cenaCam.CHECKPOINTS.forEach(cp => cenaCam.passed[cp] = false);
-  const note = document.getElementById('cenaCamOutOfView');
-  if (note) note.style.display = 'none';
   const playBtn = document.getElementById('cenaCamPlayBtn');
   if (playBtn) playBtn.textContent = '▶ Reproduzir';
   cenaCamFrame(0);
@@ -5428,6 +5602,7 @@ function seekCenaCameraToCheckpoint(cp) {
 // Chamado ao sair da aba Perfis — evita gastar CPU/bateria com a
 // animação rodando fora de tela (mesmo padrão das bússolas contínuas).
 function pauseCenaCameraIfPlaying() {
+  pauseCenaRearIfPlaying();
   if (cenaCam && cenaCam.playing) {
     cenaCam.playing = false;
     if (cenaCam.rafId) cancelAnimationFrame(cenaCam.rafId);
