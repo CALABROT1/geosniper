@@ -1255,6 +1255,31 @@ body.nvg-red-mode .leaflet-tile-container img {
 }
 .cd2-shuffle-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* arrastar alvos: área de agarre (transparente) e alça de velocidade */
+.cd2-drag-hit { cursor: grab; touch-action: none; }
+.cd2-drag-hit:hover { fill: rgba(255,255,255,0.09); }
+.cd2-dragging, .cd2-dragging .cd2-drag-hit { cursor: grabbing; }
+.cd2-badge-hit { cursor: pointer; }
+/* só as áreas de agarre e as alças recebem toque/clique; o resto do desenho (régua, linha de visada, rótulos) nunca fica na frente */
+#cd2CorridorSvg *, #cd2CompSvg * { pointer-events: none; }
+#cd2CorridorSvg:not(.cd2-locked) .cd2-drag-hit, #cd2CorridorSvg:not(.cd2-locked) .cd2-badge-hit,
+#cd2CompSvg:not(.cd2-locked) .cd2-drag-hit, #cd2CompSvg:not(.cd2-locked) .cd2-badge-hit { pointer-events: all; }
+.cd2-speed-menu {
+  position: fixed; z-index: 10600; min-width: 210px; padding: 6px; box-sizing: border-box;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+}
+.cd2-speed-menu .cd2-sm-title { padding: 4px 8px 6px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+.cd2-speed-menu .cd2-sm-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; min-height: 42px; box-sizing: border-box;
+  background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 6px 10px;
+  color: var(--ink); font-family: inherit; font-size: 14px; cursor: pointer; text-align: left;
+}
+.cd2-speed-menu .cd2-sm-opt b { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-weight: 600; }
+.cd2-speed-menu .cd2-sm-opt:hover { background: var(--surface-2); }
+.cd2-speed-menu .cd2-sm-opt.cd2-active { border-color: var(--accent); color: var(--accent); }
+.cd2-speed-menu .cd2-sm-opt.cd2-active b { color: var(--accent); }
+
 .cd2-alert-banner {
   display: flex; align-items: center; gap: 12px;
   background: rgba(76,175,107,0.12); border: 1px solid #4caf6b;
@@ -2388,9 +2413,12 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
       <div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor de interceptação (visão superior)</div>
-      <button class="cd2-shuffle-btn" type="button" onclick="cd2ShuffleScenario()">🎲 Novo cenário de alvos</button>
+      <span style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="cd2-shuffle-btn" type="button" onclick="cd2ShuffleScenario()">🎲 Novo cenário de alvos</button>
+        <button class="cd2-shuffle-btn cd2-reset-scn-btn" type="button" onclick="cd2ResetScenario()" title="Volta aos alvos de abertura (a cada 50m)">↺ Restaurar padrão</button>
+      </span>
     </div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.45;">Cruza a trajetória real (balística + vento), o deslocamento de cada alvo de treinamento móvel (esteira/trilho — nunca pessoas) e o sincronismo entre os dois, checkpoint por checkpoint, usando os mesmos campos de zeragem/distância/vento acima.</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.45;">Cruza a trajetória real (balística + vento), o deslocamento de cada alvo de treinamento móvel (esteira/trilho — nunca pessoas) e o sincronismo entre os dois, alvo por alvo, usando os mesmos campos de zeragem/distância/vento acima. <b style="color:var(--ink);">Monte o cenário no próprio diagrama:</b> arraste um alvo pra frente e pra trás (distância) e pra cima e pra baixo (deslocamento até a linha de tiro); toque no quadradinho acima dele pra escolher a velocidade. A tabela abaixo acompanha, e o que você digitar nela também move o alvo.</div>
   </div>
 
   <div id="cd2AlertBanner" class="cd2-alert-banner"></div>
@@ -2425,20 +2453,20 @@ body.nvg-red-mode .leaflet-tile-container img {
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div style="font-weight:700; color:var(--ink); margin-bottom:6px; font-size:14px;">Como o risco é calculado</div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.55;">Mesma física de queda e deriva de vento das outras abas. Cada checkpoint (100m e depois a cada 50m até a distância do alvo) tem um alvo de treinamento móvel se deslocando lateralmente numa das duas velocidades do trilho — 🎯 lento (1,4 m/s) ou 🎯 rápido (3,8 m/s) — a partir do instante do disparo. Quanto mais perto o alvo passa do caminho real do projétil no instante em que ele chega, maior o risco (acima de 65% é sinalizado como crítico).</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.55;">Mesma física de queda e deriva de vento das outras abas. O cenário abre com um alvo de treinamento móvel a cada 50m (de 100m até a distância do alvo), mas você pode arrastar, mudar a distância na tabela ou desligar qualquer um. Cada alvo se desloca lateralmente numa de três velocidades do trilho — 🎯 lento (1,4 m/s), 🎯 andando rápido (2,5 m/s) ou 🎯 correndo (3,8 m/s) — a partir do instante do disparo. Quanto mais perto o alvo passa do caminho real do projétil no instante em que ele chega, maior o risco (acima de 65% é sinalizado como crítico).</div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="font-weight:700; color:var(--ink); margin-bottom:2px; font-size:14px;">Cenário editável por checkpoint</div>
-    <div style="font-size:12px; color:var(--muted);">Ajuste modo e deslocamento inicial de cada alvo móvel · desmarque "Ativo" pra tirar um alvo dos diagramas</div>
+    <div style="font-weight:700; color:var(--ink); margin-bottom:2px; font-size:14px;">Cenário editável por alvo</div>
+    <div style="font-size:12px; color:var(--muted);">Ajuste distância, velocidade e deslocamento inicial de cada alvo móvel (ou arraste no diagrama — os dois andam juntos) · desmarque "Ativo" pra tirar um alvo dos diagramas</div>
     <div class="cd2-table-layout">
     <div class="cd2-table-scroll">
       <table>
         <thead>
           <tr>
             <th>Ativo</th>
-            <th>Checkpoint</th>
-            <th>Modo</th>
+            <th>Distância</th>
+            <th>Velocidade</th>
             <th>Deslocamento inicial</th>
             <th>Dist. até linha de tiro</th>
             <th>T. de voo</th>
@@ -3726,6 +3754,7 @@ function applyDiagFontScale(svg) {
   if (!svg) return;
   const k = diagFontK(svg);
   svg.querySelectorAll('text').forEach(t => {
+    if (t.hasAttribute('data-nofs')) return; // texto dentro de grupo já escalado (quadradinho de velocidade, etiqueta de arraste)
     let b = t.getAttribute('data-fs');
     if (!b) { b = parseFloat(t.getAttribute('font-size')) || 14; t.setAttribute('data-fs', b); }
     t.style.fontSize = (b * k) + 'px';
@@ -4155,7 +4184,17 @@ function renderCompensatedProfilePair() {
 // com nada do resto do app.
 // ============================================================
 
-const CD2_WALK_SPEED = 1.4, CD2_RUN_SPEED = 3.8;
+const CD2_WALK_SPEED = 1.4, CD2_FAST_WALK_SPEED = 2.5, CD2_RUN_SPEED = 3.8;
+// Três velocidades do alvo: a chave é o que fica guardado em cada alvo ('rapido' antigo = correndo).
+const CD2_MODES = {
+  lento:    { speed: CD2_WALK_SPEED,      label: 'Lento',          short: 'lento' },
+  andando:  { speed: CD2_FAST_WALK_SPEED, label: 'Andando rápido', short: 'andando rápido' },
+  correndo: { speed: CD2_RUN_SPEED,       label: 'Correndo',       short: 'correndo' }
+};
+const CD2_MODE_ORDER = ['lento', 'andando', 'correndo'];
+function cd2ModeInfo(mode) { return CD2_MODES[mode === 'rapido' ? 'correndo' : mode] || CD2_MODES.lento; }
+// Arrastar: distância em passos de 10 m, deslocamento lateral em 0,1 m (dentro da escala do diagrama).
+const CD2_DRAG_STEP_M = 10, CD2_MIN_DIST_M = 10, CD2_MAX_OFFSET_M = 4.5;
 const CD2_RISK_SIGMA = 1.2;
 const CD2_RISK_CRITICAL = 65, CD2_RISK_WARN = 30;
 const CD2_ANIM_DURATION_S = 10; // duração visual — o tempo real de voo é bem menor
@@ -4170,14 +4209,21 @@ function cd2SeededRand(seed) {
   return x - Math.floor(x);
 }
 
-// targets: dist -> {mode, offset} — alvo de treinamento móvel por checkpoint.
+// Alvos de treinamento móveis: lista de {id, d, mode, offset, enabled, auto}.
+// Cada alvo tem identidade própria (id); a distância (d) é um dado dele e pode
+// ser editada na tabela ou arrastada no diagrama. `auto` = ainda na posição
+// semeada (ao mudar a distância do cenário, os automáticos acompanham a grade
+// de 50m; os que o operador mexeu ficam onde ele colocou). `seeded` guarda
+// quais distâncias da grade já geraram alvo, pra não recriar um que foi movido.
 // Semeia o checkpoint de 300m com um exemplo de risco crítico (mesmo ritmo
 // de deslocamento que sincroniza com a chegada do projétil), assim a
 // primeira visualização já mostra o alerta, sem precisar clicar em
 // "novo cenário" primeiro.
 let cd2State = {
-  targets: { 300: { mode: 'lento', offset: 0.55 } },
-  selectedTarget: 300
+  targets: [{ id: 1, d: 300, mode: 'lento', offset: 0.55, enabled: true, auto: true }],
+  nextId: 2,
+  seeded: { 300: true },
+  selectedTarget: 1
 };
 
 let cd2Draw = null;
@@ -4191,40 +4237,90 @@ function cd2CheckpointsFor(targetDistM) {
   return cps;
 }
 
+function cd2TargetById(id) {
+  return cd2State.targets.find(t => t.id === id) || null;
+}
+
+function cd2MaxDist(targetDistM) {
+  return Math.max(CD2_MIN_DIST_M, Math.floor(targetDistM / CD2_DRAG_STEP_M) * CD2_DRAG_STEP_M);
+}
+
+// Distância livre mais próxima de `d` (dois alvos não ficam na mesma distância); ignora o próprio alvo.
+function cd2FreeDistance(d, excludeId, maxD, step) {
+  step = step || CD2_DRAG_STEP_M;
+  const taken = new Set(cd2State.targets.filter(t => t.id !== excludeId).map(t => t.d));
+  const lo = CD2_MIN_DIST_M, hi = Math.max(lo, maxD);
+  d = Math.min(hi, Math.max(lo, Math.round(d / step) * step));
+  if (!taken.has(d)) return d;
+  for (let k = 1; k <= Math.ceil((hi - lo) / step); k++) {
+    const up = d + k * step, dn = d - k * step;
+    if (up <= hi && !taken.has(up)) return up;
+    if (dn >= lo && !taken.has(dn)) return dn;
+  }
+  return null;
+}
+
+function cd2SeedTarget(d) {
+  const id = cd2State.nextId++;
+  if (d === 300) return { id, d, mode: 'lento', offset: 0.55, enabled: true, auto: true };
+  const r1 = cd2SeededRand(d + 1);
+  const r2 = cd2SeededRand(d + 2);
+  const mode = r1 > 0.5 ? 'correndo' : 'lento';
+  const sign = r2 > 0.5 ? 1 : -1;
+  const mag = 2.2 + r1 * 1.8; // 2.2m a 4m
+  return { id, d, mode, offset: +(sign * mag).toFixed(1), enabled: true, auto: true };
+}
+
 function cd2EnsureTargets(targetDistM) {
   const cps = cd2CheckpointsFor(targetDistM);
+  const maxD = cd2MaxDist(targetDistM);
+  // limpa os automáticos que passaram do fim do cenário (distância diminuiu) e os devolve à grade;
+  // os que o operador mexeu são puxados pra dentro do cenário.
+  cd2State.targets = cd2State.targets.filter(t => {
+    if (t.d <= maxD) return true;
+    if (t.auto) { delete cd2State.seeded[t.d]; return false; }
+    return true;
+  });
+  cd2State.targets.forEach(t => {
+    if (t.d > maxD) { const f = cd2FreeDistance(t.d, t.id, maxD); if (f !== null) t.d = f; }
+  });
   cps.forEach(d => {
-    if (!cd2State.targets[d]) {
-      const r1 = cd2SeededRand(d + 1);
-      const r2 = cd2SeededRand(d + 2);
-      const mode = r1 > 0.5 ? 'rapido' : 'lento';
-      const sign = r2 > 0.5 ? 1 : -1;
-      const mag = 2.2 + r1 * 1.8; // 2.2m a 4m
-      cd2State.targets[d] = { mode, offset: +(sign * mag).toFixed(1), enabled: true };
-    }
+    if (cd2State.seeded[d]) return;
+    cd2State.seeded[d] = true;
+    if (cd2State.targets.some(t => t.d === d)) return;
+    cd2State.targets.push(cd2SeedTarget(d));
   });
-  // limpa alvos de checkpoints que não existem mais (distância diminuiu)
-  Object.keys(cd2State.targets).forEach(d => {
-    if (!cps.includes(parseInt(d, 10))) delete cd2State.targets[d];
-  });
-  return cps;
+  cd2State.targets.sort((a, b) => a.d - b.d);
+  return cd2State.targets;
 }
 
 function cd2ShuffleScenario() {
   const cps = cd2CheckpointsFor(simState.distance);
+  cd2State.targets = []; cd2State.seeded = {};
   cps.forEach(d => {
     const r1 = Math.random(), r2 = Math.random();
-    const mode = r1 > 0.5 ? 'rapido' : 'lento';
+    const mode = CD2_MODE_ORDER[Math.min(2, Math.floor(r1 * 3))];
     const sign = r2 > 0.5 ? 1 : -1;
     const mag = 1.6 + Math.random() * 2.6;
-    cd2State.targets[d] = { mode, offset: +(sign * mag).toFixed(1), enabled: true };
+    cd2State.targets.push({ id: cd2State.nextId++, d, mode, offset: +(sign * mag).toFixed(1), enabled: true, auto: true });
+    cd2State.seeded[d] = true;
   });
+  cd2State.selectedTarget = null;
   cd2Render();
 }
 
-function cd2ComputeRow(d, fps, bcVal) {
-  const p = cd2State.targets[d];
-  const speed = p.mode === 'rapido' ? CD2_RUN_SPEED : CD2_WALK_SPEED;
+// Volta ao cenário de abertura (alvos a cada 50m, com o exemplo de risco crítico em 300m).
+function cd2ResetScenario() {
+  cd2State.targets = []; cd2State.seeded = {};
+  cd2State.selectedTarget = null;
+  cd2Render();
+  const t300 = cd2State.targets.find(t => t.d === 300);
+  if (t300) { cd2State.selectedTarget = t300.id; cd2Render(); }
+}
+
+function cd2ComputeRow(t, fps, bcVal) {
+  const p = t, d = t.d;
+  const speed = cd2ModeInfo(p.mode).speed;
   const tFlight = flightTimeS(d, fps, bcVal);
   const driftM = windDriftCm(d, simState.windClock, simState.windSpeed, fps, bcVal) / 100;
   const distToLine = Math.abs(p.offset - driftM);
@@ -4232,7 +4328,7 @@ function cd2ComputeRow(d, fps, bcVal) {
   const posAtArrival = p.offset - sgn * speed * tFlight;
   const missDistance = Math.abs(posAtArrival - driftM);
   const risk = 100 * Math.exp(-Math.pow(missDistance / CD2_RISK_SIGMA, 2));
-  return { d, p, speed, tFlight, driftM, distToLine, posAtArrival, missDistance, risk };
+  return { id: t.id, d, p, speed, tFlight, driftM, distToLine, posAtArrival, missDistance, risk };
 }
 
 function cd2RiskTier(risk) {
@@ -4269,6 +4365,37 @@ function cd2TargetIconSvg(ringColor, scale) {
     <circle cx="-4" cy="5.5" r="2.1" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.2"/>
     <circle cx="4" cy="5.5" r="2.1" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.2"/>
   </g></g>`;
+}
+
+// Alça + quadradinho de velocidade, acima do alvo e um pouco pro lado: tocar nele escolhe lento / andando
+// rápido / correndo. Fica numa camada própria (por cima de tudo) e SEPARADA da área de arraste do alvo,
+// pra tocar na velocidade nunca atrapalhar o movimento. `sc` = escala do ícone, `kb` = escala do
+// quadradinho (acompanha a escala das fontes do diagrama, pra ficar legível no celular).
+function cd2BadgeSvg(row, sc, kb, selected, idPrefix, x, y, ratio) {
+  const top = -6.2 * sc;
+  const hw = Math.max(34, 30 / (ratio * kb)), hh = Math.max(30, 30 / (ratio * kb));
+  const spd = cd2Fmt(cd2ModeInfo(row.p.mode).speed, 1);
+  const edge = selected ? 'var(--accent)' : 'var(--muted)';
+  return `<g id="${idPrefix}${row.id}" class="cd2-badge" data-tid="${row.id}" transform="translate(${x},${y})">
+    <g transform="translate(0,${top}) scale(${kb})">
+      <line x1="2" y1="0.5" x2="6" y2="-9.5" stroke="${edge}" stroke-width="1.5" stroke-linecap="round"/>
+      <rect x="-5" y="-24.5" width="26" height="15" rx="3.5" fill="var(--surface-2)" stroke="${edge}" stroke-width="${selected ? 1.8 : 1.2}"/>
+      <text x="8" y="-13.4" fill="var(--ink)" font-size="11" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" data-nofs="1">${spd}</text>
+      <rect class="cd2-badge-hit" data-tid="${row.id}" x="${8 - hw / 2}" y="${-17 - hh / 2}" width="${hw}" height="${hh}" fill="transparent"><title>Velocidade do alvo: ${cd2ModeInfo(row.p.mode).label} (${spd} m/s). Toque pra mudar.</title></rect>
+    </g>
+  </g>`;
+}
+
+// Área de arraste do alvo (transparente, maior que o desenho): vai DENTRO do grupo móvel do alvo.
+// No celular o diagrama aparece bem menor que as 640 unidades do desenho; a área cresce pra ficar com ~34px de toque.
+function cd2SvgRatio(svg) {
+  const w = svg.getBoundingClientRect().width || Math.min(window.innerWidth - 40, 760);
+  return Math.max(0.2, w / 640);
+}
+function cd2DragHitSvg(row, sc, kb, ratio) {
+  const k = Math.max(sc, 0.95) * kb;
+  const w = Math.max(24 * k, 34 / ratio), h = Math.max(36 * k, 40 / ratio);
+  return `<rect class="cd2-drag-hit" data-tid="${row.id}" x="${-w / 2}" y="${7 * k - h / 2}" width="${w}" height="${h}" rx="4" fill="transparent"/>`;
 }
 
 // ---- geometria da cena — compartilhada pelos dois diagramas, pra ficarem
@@ -4341,6 +4468,8 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
   const { X, Y, driftAtM, sceneEndM, scaleY, MT, plotH } = geo;
   let s = cd2DrawBaseScene(geo, targetDistM);
 
+  const kb = diagFontK(svg), ratio = cd2SvgRatio(svg), kbB = Math.min(kb, 1.2); // kbB: escala do quadradinho (no celular fica menor pra não cobrir os rótulos dos vizinhos)
+  let badges = '';
   rows.forEach(row => {
     const tier = cd2RiskTier(row.risk);
     const color = cd2RiskColor(tier);
@@ -4348,28 +4477,38 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
     const yStart = Y(row.p.offset);
     const yArrive = Y(row.posAtArrival);
     const yBullet = Y(row.driftM);
-    const upperHalf = row.posAtArrival < 0;
+    const upperHalf = row.p.offset < 0;
 
-    s += `<rect id="cd2-halo-${row.d}" x="${xC-5}" y="${yBullet - CD2_RISK_SIGMA*scaleY}" width="10" height="${CD2_RISK_SIGMA*2*scaleY}" rx="5" fill="${color}" opacity="0.13"/>`;
-    s += `<line id="cd2-trail-${row.d}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="1.6" stroke-dasharray="3 3" opacity="0.75"/>`;
-    s += `<circle cx="${xC}" cy="${yStart}" r="3" fill="none" stroke="var(--muted)" stroke-width="1.3"/>`;
+    // O alvo aparece na posição de PARTIDA (é nela que o operador o agarra e arrasta); o anel marca onde ele
+    // estará quando o projétil chegar, e a animação leva o alvo de uma ao outro.
+    s += `<g data-aux="${row.id}">`;
+    s += `<rect id="cd2-halo-${row.id}" x="${xC-5}" y="${yBullet - CD2_RISK_SIGMA*scaleY}" width="10" height="${CD2_RISK_SIGMA*2*scaleY}" rx="5" fill="${color}" opacity="0.13"/>`;
+    s += `<line id="cd2-trail-${row.id}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="1.6" stroke-dasharray="3 3" opacity="0.75"/>`;
+    s += `<circle cx="${xC}" cy="${yArrive}" r="3" fill="none" stroke="var(--muted)" stroke-width="1.3"/>`;
+    s += `</g>`;
 
-    s += `<g id="cd2-mover-${row.d}" transform="translate(${xC},${yArrive})">`;
+    s += `<g id="cd2-mover-${row.id}" transform="translate(${xC},${yStart})">`;
     s += cd2TargetIconSvg(color, 1);
+    s += cd2DragHitSvg(row, 1, kb, ratio);
     s += `</g>`;
 
     // Rotulos ficam do lado de FORA do alvo (longe da linha central), pra nao se enfiarem entre o alvo e a trajetoria.
-    // Se nao couber no grafico, volta pro lado de dentro.
+    // Em cima, ficam acima do quadradinho de velocidade. Se nao couber no grafico, volta pro lado de dentro.
     const L = 17;
+    const topClear = 6.2 + 25 * kbB + 6;
     let above = upperHalf;
-    if (above && yArrive - 12 - L < MT + 12) above = false;
-    if (!above && yArrive + 37 + L > MT + plotH - 2) above = true;
+    if (above && yStart - topClear - L < MT + 12) above = false;
+    if (!above && yStart + 37 + L > MT + plotH - 2) above = true;
     const halo = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="3" stroke-linejoin="round"';
-    // Duas linhas (distancia e risco): a velocidade fica na legenda e na tabela. Com 3 linhas os rotulos de alvos vizinhos (~40px de distancia) se sobrepunham.
-    const yTop = above ? yArrive - 12 - L : yArrive + 37;
+    // Duas linhas (distancia e risco): a velocidade fica no quadradinho e na tabela. Com 3 linhas os rotulos de alvos vizinhos (~40px de distancia) se sobrepunham.
+    const yTop = above ? yStart - topClear - L : yStart + 37;
+    s += `<g data-aux="${row.id}">`;
     s += `<text x="${xC}" y="${yTop}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.d}m</text>`;
     s += `<text x="${xC}" y="${yTop + L}" fill="${color}" font-size="12.5" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${Math.round(row.risk)}%</text>`;
+    s += `</g>`;
+    badges += cd2BadgeSvg(row, 1, kbB, false, 'cd2-badge-', xC, yStart, ratio);
   });
+  s += badges;
 
   s += `<g id="cd2BulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
   s += `<circle class="cd2-trail" cx="-14" cy="0" r="3" opacity="0.18"/>`;
@@ -4382,13 +4521,15 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
 
   applyDiagFontScale(svg);
 
-  cd2Draw = { X, Y, driftAtM, rows, targetDistM, sceneEndM, fps, bcVal };
+  cd2Draw = { X, Y, driftAtM, rows, targetDistM, sceneEndM, fps, bcVal, geo };
+  cd2BindDrag(svg);
 
   const legend = document.getElementById('cd2CorridorLegend');
   if (legend) legend.innerHTML = `
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--muted);"></span>linha de mira (reta)</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--action);"></span>trajetória real (com deriva de vento)</span>
-    <span class="cd2-sw">🎯 lento (1,4 m/s) · 🎯 rápido (3,8 m/s)</span>
+    <span class="cd2-sw">arraste o alvo: ◄► muda a distância, ▲▼ muda o deslocamento · quadradinho = velocidade (toque pra trocar)</span>
+    <span class="cd2-sw">velocidades: lento 1,4 · andando rápido 2,5 · correndo 3,8 m/s</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_GOOD};"></span>risco baixo</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_WARN};"></span>risco moderado</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_CRITICAL};"></span>risco crítico de interceptação</span>
@@ -4420,8 +4561,9 @@ function cd2ComputeCompensation(row) {
 }
 
 function cd2DefaultCompAnimText() {
-  return cd2State.selectedTarget !== null
-    ? `Pronto pra animar — compensação já calculada para o alvo de ${cd2State.selectedTarget}m.`
+  const selT = cd2State.selectedTarget !== null ? cd2TargetById(cd2State.selectedTarget) : null;
+  return selT
+    ? `Pronto pra animar — compensação já calculada para o alvo de ${selT.d}m.`
     : 'Selecione um alvo móvel acima pra calcular a compensação — a animação mostra o mesmo deslocamento em tempo real.';
 }
 
@@ -4429,34 +4571,33 @@ function cd2RenderTargetSelector(rows) {
   const el = document.getElementById('cd2TargetSelect');
   if (!el) return;
   const noneActive = cd2State.selectedTarget === null;
-  let html = `<button type="button" class="cd2-chip cd2-target-chip ${noneActive?'cd2-active':''}" data-d="">Nenhum alvo</button>`;
+  let html = `<button type="button" class="cd2-chip cd2-target-chip ${noneActive?'cd2-active':''}" data-id="">Nenhum alvo</button>`;
   rows.forEach(row => {
     const tier = cd2RiskTier(row.risk);
-    const active = cd2State.selectedTarget === row.d;
+    const active = cd2State.selectedTarget === row.id;
     const flag = tier === 'critical' ? ' 🚨' : (tier === 'warn' ? ' ⚠️' : '');
-    html += `<button type="button" class="cd2-chip cd2-target-chip ${active?'cd2-active':''}" data-d="${row.d}">${row.d}m${flag}</button>`;
+    html += `<button type="button" class="cd2-chip cd2-target-chip ${active?'cd2-active':''}" data-id="${row.id}">${row.d}m${flag}</button>`;
   });
   el.innerHTML = html;
   el.querySelectorAll('.cd2-target-chip').forEach(btn => {
     btn.addEventListener('click', () => {
-      const dAttr = btn.getAttribute('data-d');
-      cd2State.selectedTarget = dAttr === '' ? null : parseInt(dAttr, 10);
+      const idAttr = btn.getAttribute('data-id');
+      cd2State.selectedTarget = idAttr === null || idAttr === '' ? null : parseInt(idAttr, 10);
       cd2RefreshComp();
     });
   });
-  // Velocidade de TODOS os alvos de uma vez: pra comparar distâncias com a mesma velocidade (a tabela de cenário continua editando alvo a alvo).
+  // Velocidade de TODOS os alvos de uma vez: pra comparar distâncias com a mesma velocidade (a tabela e o quadradinho de cada alvo continuam editando alvo a alvo).
   const sp = document.getElementById('cd2SpeedAll');
   if (sp) {
-    const modes = rows.map(r => r.p.mode);
-    const cur = modes.every(m => m === 'lento') ? 'lento' : (modes.every(m => m === 'rapido') ? 'rapido' : 'misto');
-    sp.innerHTML = `<span class="cd2-speed-label">Velocidade dos alvos</span>
-      <button type="button" class="cd2-chip cd2-speed-btn ${cur === 'lento' ? 'cd2-active' : ''}" data-mode="lento">Lento 1,4 m/s</button>
-      <button type="button" class="cd2-chip cd2-speed-btn ${cur === 'rapido' ? 'cd2-active' : ''}" data-mode="rapido">Rápido 3,8 m/s</button>
-      ${cur === 'misto' ? '<span class="cd2-speed-mixed">cenário misto</span>' : ''}`;
+    const modes = rows.map(r => cd2ModeInfo(r.p.mode) === CD2_MODES.correndo ? 'correndo' : r.p.mode);
+    const cur = modes.length && modes.every(m => m === modes[0]) ? modes[0] : 'misto';
+    sp.innerHTML = `<span class="cd2-speed-label">Velocidade dos alvos</span>` +
+      CD2_MODE_ORDER.map(m => `<button type="button" class="cd2-chip cd2-speed-btn ${cur === m ? 'cd2-active' : ''}" data-mode="${m}">${CD2_MODES[m].label} ${cd2Fmt(CD2_MODES[m].speed, 1)} m/s</button>`).join('') +
+      (cur === 'misto' ? '<span class="cd2-speed-mixed">cenário misto</span>' : '');
     sp.querySelectorAll('.cd2-speed-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.getAttribute('data-mode');
-        Object.keys(cd2State.targets).forEach(k => { cd2State.targets[k].mode = mode; });
+        cd2State.targets.forEach(t => { t.mode = mode; });
         cd2Render();
       });
     });
@@ -4472,15 +4613,17 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
   const zeroDist = simState.zeroDist;
   let s = cd2DrawBaseScene(geo, targetDistM);
 
-  const selRow = cd2State.selectedTarget !== null ? rows.find(r => r.d === cd2State.selectedTarget) : null;
+  const selRow = cd2State.selectedTarget !== null ? rows.find(r => r.id === cd2State.selectedTarget) : null;
   const comp = selRow ? cd2ComputeCompensation(selRow) : null;
+  const kb = diagFontK(svg), ratio = cd2SvgRatio(svg), kbB = Math.min(kb, 1.2); // kbB: escala do quadradinho (no celular fica menor pra não cobrir os rótulos dos vizinhos)
+  let badges = '';
 
   // alvos móveis: o glifo em destaque fica na posição de REPOUSO (onde o
   // atirador já está mirando, coincidindo com o zero do retículo). O
   // fantasma tênue marca pra onde ele vai, no instante em que o projétil
   // chega — o oposto do corredor acima, que destaca a posição de chegada.
   rows.forEach(row => {
-    const isSel = !!(selRow && row.d === selRow.d);
+    const isSel = !!(selRow && row.id === selRow.id);
     const xC = X(row.d);
     const yStart = Y(row.p.offset);
     const yArrive = Y(row.posAtArrival);
@@ -4489,16 +4632,21 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
 
     if (isSel) {
       const yBullet = Y(row.driftM);
-      s += `<rect id="cd2-comp-halo-${row.d}" x="${xC-5}" y="${yBullet - CD2_RISK_SIGMA*scaleY}" width="10" height="${CD2_RISK_SIGMA*2*scaleY}" rx="5" fill="${color}" opacity="0.13"/>`;
+      s += `<rect id="cd2-comp-halo-${row.id}" x="${xC-5}" y="${yBullet - CD2_RISK_SIGMA*scaleY}" width="10" height="${CD2_RISK_SIGMA*2*scaleY}" rx="5" fill="${color}" opacity="0.13"/>`;
       // brilho suave atrás do alvo selecionado, pra ele saltar aos olhos mesmo
       // num glifo pequeno — só no selecionado, pra não poluir os demais.
       s += `<circle cx="${xC}" cy="${yStart}" r="15" fill="${color}" opacity="0.16"/>`;
     }
-    s += `<line id="cd2-comp-trail-${row.d}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="${isSel ? 2.1 : 1.6}" stroke-dasharray="3 3" opacity="${isSel ? 0.85 : 0.42}"/>`;
+    s += `<g data-aux="${row.id}">`;
+    s += `<line id="cd2-comp-trail-${row.id}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="${isSel ? 2.1 : 1.6}" stroke-dasharray="3 3" opacity="${isSel ? 0.85 : 0.42}"/>`;
     s += `<circle cx="${xC}" cy="${yArrive}" r="${isSel ? 3.6 : 3}" fill="none" stroke="${isSel ? 'var(--muted)' : 'var(--line)'}" stroke-width="1.3"/>`;
-    s += `<g id="cd2-comp-mover-${row.d}" transform="translate(${xC},${yStart})" opacity="${isSel ? 1 : 0.62}">`;
-    s += cd2TargetIconSvg(color, isSel ? 1.45 : 0.95);
     s += `</g>`;
+    const scIcon = isSel ? 1.45 : 0.95;
+    s += `<g id="cd2-comp-mover-${row.id}" transform="translate(${xC},${yStart})">`;
+    s += `<g opacity="${isSel ? 1 : 0.62}">${cd2TargetIconSvg(color, scIcon)}</g>`;
+    s += cd2DragHitSvg(row, scIcon, kb, ratio);
+    s += `</g>`;
+    badges += cd2BadgeSvg(row, scIcon, kbB, isSel, 'cd2-comp-badge-', xC, yStart, ratio);
   });
 
   // linha de visada — pontilhada amarela, sai do atirador (0,0) até o zero
@@ -4595,11 +4743,13 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     const latDirShort = comp.dir === 'centro' ? '' : (comp.dir === 'direita' ? ' ► dir' : ' ◄ esq');
     // Texto de cliques fora do grafico (HTML acima dele, centralizado): nao disputa espaco com alvos nem trajetoria.
     const clicksEl = document.getElementById('cd2CompClicks');
-    if (clicksEl) clicksEl.innerHTML = `<div>⬆ elevação: ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</div><div>↔ avanço: ${latClicks} cliques${latDirShort}</div><div class="cd2-clicks-sub">${cd2Fmt(Math.abs(comp.mrad), 2)} MRAD · ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m · ${selRow.p.mode === 'rapido' ? 'rápido' : 'lento'} ${cd2Fmt(selRow.speed, 1)} m/s</div>`;
+    if (clicksEl) clicksEl.innerHTML = `<div>⬆ elevação: ${elevClicks} cliques (${cd2Fmt(elevInTurretUnit, 2)} ${turretInfo.unit})</div><div>↔ avanço: ${latClicks} cliques${latDirShort}</div><div class="cd2-clicks-sub">${cd2Fmt(Math.abs(comp.mrad), 2)} MRAD · ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m · ${cd2ModeInfo(selRow.p.mode).short} ${cd2Fmt(selRow.speed, 1)} m/s</div>`;
   } else {
     const clicksEl0 = document.getElementById('cd2CompClicks');
     if (clicksEl0) clicksEl0.innerHTML = '';
   }
+
+  s += badges;
 
   s += `<g id="cd2CompBulletMover" class="cd2-bullet" transform="translate(${X(0)},${Y(0)})" opacity="0">`;
   s += `<circle class="cd2-trail" cx="-14" cy="0" r="3" opacity="0.18"/>`;
@@ -4612,13 +4762,15 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
 
   applyDiagFontScale(svg);
 
-  cd2DrawB = { X, Y, driftAtM, rows, targetDistM, sceneEndM, scaleY, selRow, zeroLat, reticleD, fps, bcVal };
+  cd2DrawB = { X, Y, driftAtM, rows, targetDistM, sceneEndM, scaleY, selRow, zeroLat, reticleD, fps, bcVal, geo };
+  cd2BindDrag(svg);
 
   const turretInfo = cd2TurretInfo();
   const legend = document.getElementById('cd2CompLegend');
   if (legend) legend.innerHTML = `
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--muted);"></span>alvos móveis não selecionados</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_SIGHT_YELLOW};"></span>linha de visada — sai do atirador direto pro ponto de encontro</span>
+    <span class="cd2-sw">arraste o alvo pra mudar distância e deslocamento · quadradinho = velocidade (toque pra trocar e selecionar o alvo)</span>
     <span class="cd2-sw">🔴 zero do retículo = ponto de encontro (onde o projétil e o alvo vão coincidir)</span>
     <span class="cd2-sw">MRAD/MOA de compensação aparecem junto ao alvo, na posição de repouso dele</span>
     <span class="cd2-sw">régua em MRAD · torre configurada na aba Equipamento: ${turretInfo.unit}, cliques de ${cd2Fmt(turretInfo.val, turretInfo.unit==='MOA'?3:2)} ${turretInfo.unit}</span>
@@ -4628,7 +4780,7 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
 function cd2RenderCompReadout(rows) {
   const el = document.getElementById('cd2CompReadout');
   if (!el) return;
-  const selRow = cd2State.selectedTarget !== null ? rows.find(r => r.d === cd2State.selectedTarget) : null;
+  const selRow = cd2State.selectedTarget !== null ? rows.find(r => r.id === cd2State.selectedTarget) : null;
   if (!selRow) {
     el.className = 'cd2-comp-readout';
     el.innerHTML = `
@@ -4651,11 +4803,11 @@ function cd2RenderCompReadout(rows) {
       <div class="cd2-cr-label">Compensação necessária — alvo ${selRow.d}m</div>
       <div class="cd2-cr-value cd2-hostile">${fmtMradMoa(comp.mrad)}</div>
       <div class="cd2-cr-sub">${clicks} cliques de ${cd2Fmt(turretInfo.val, turretInfo.unit==='MOA'?3:2)} ${turretInfo.unit} · ${dirLabel}, do ponto de encontro (zero) até a posição de repouso do alvo</div>
-      <div class="cd2-cr-sub">Avanço de ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m = ${cd2Fmt(selRow.speed, 1)} m/s × ${cd2Fmt(selRow.tFlight, 2)} s${simState.windSpeed > 0 ? ' (mais a deriva do vento)' : ''}. Em metros o avanço cresce com o tempo de voo. Em MRAD, que é o que o retículo mede, ele quase não muda com a distância e depende da velocidade do alvo (rápido 3,8 m/s, lento 1,4 m/s). Para comparar distâncias, use o mesmo modo em todos os alvos.</div>
+      <div class="cd2-cr-sub">Avanço de ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m = ${cd2Fmt(selRow.speed, 1)} m/s × ${cd2Fmt(selRow.tFlight, 2)} s${simState.windSpeed > 0 ? ' (mais a deriva do vento)' : ''}. Em metros o avanço cresce com o tempo de voo. Em MRAD, que é o que o retículo mede, ele quase não muda com a distância e depende da velocidade do alvo (correndo 3,8 m/s, andando rápido 2,5 m/s, lento 1,4 m/s). Para comparar distâncias, use a mesma velocidade em todos os alvos.</div>
     </div>
     <div>
       <div class="cd2-cr-label">Alvo selecionado</div>
-      <div class="cd2-cr-value" style="font-size:14px;">${selRow.p.mode === 'rapido' ? 'rápido' : 'lento'} · ${selRow.speed.toFixed(1).replace('.', ',')} m/s</div>
+      <div class="cd2-cr-value" style="font-size:14px;">${cd2ModeInfo(selRow.p.mode).short} · ${selRow.speed.toFixed(1).replace('.', ',')} m/s</div>
       <div class="cd2-cr-sub">tempo de voo do projétil até lá: ${cd2Fmt(selRow.tFlight,2)}s</div>
     </div>
   `;
@@ -4694,11 +4846,189 @@ function cd2TargetPosAt(row, realS) {
 }
 
 function cd2SetControlsDisabled(disabled) {
-  document.querySelectorAll('.cd2-ctl-mode, .cd2-ctl-offset, .cd2-target-chip, .cd2-shuffle-btn').forEach(el => { el.disabled = disabled; });
+  document.querySelectorAll('.cd2-ctl-mode, .cd2-ctl-offset, .cd2-ctl-dist, .cd2-target-chip, .cd2-shuffle-btn, .cd2-reset-scn-btn').forEach(el => { el.disabled = disabled; });
+  // durante a animação o alvo não pode ser arrastado nem trocar de velocidade
+  ['cd2CorridorSvg', 'cd2CompSvg'].forEach(id => { const sv = document.getElementById(id); if (sv) sv.classList.toggle('cd2-locked', !!disabled); });
+  if (disabled) cd2CloseSpeedMenu();
 }
 
-function cd2FlashCheckpoint(d) {
-  const halo = document.getElementById('cd2-halo-' + d);
+// ---- arrastar e soltar os alvos + menu de velocidade (alça com quadradinho) ----
+// Arrastar o corpo do alvo: ◄► muda a distância até o atirador (passos de 10 m), ▲▼ muda o deslocamento
+// até a linha de tiro (0,1 m). Ao soltar, grava no alvo e redesenha tudo (tabela, risco, compensação,
+// animações). A tabela do cenário lê e escreve os mesmos dados: as duas vias ficam sempre iguais.
+// Tocar no quadradinho da alça abre o menu de velocidade (não mexe na posição). Funciona nos dois
+// diagramas (corredor e compensação) e dentro da janela, com ou sem zoom.
+let cd2Drag = null;
+
+function cd2SvgPoint(svg, e) {
+  const m = svg.getScreenCTM();
+  if (!m) return null;
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(m.inverse());
+  return { x: p.x, y: p.y };
+}
+
+function cd2DragPrefix(svg) { return svg.id === 'cd2CompSvg' ? 'cd2-comp-' : 'cd2-'; }
+
+function cd2DragTagUpdate(svg, geo, d, lat, kb) {
+  let g = svg.querySelector('#cd2DragTag');
+  if (!g) {
+    g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('id', 'cd2DragTag');
+    g.setAttribute('pointer-events', 'none');
+    g.innerHTML = '<rect x="-52" y="-10" width="104" height="20" rx="5" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.2"/><text x="0" y="4.5" fill="var(--ink)" font-size="12" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" data-nofs="1"></text>';
+    svg.appendChild(g);
+  }
+  g.querySelector('text').textContent = `${d} m · ${lat > 0 ? '+' : ''}${cd2Fmt(lat, 1)} m`;
+  const x = Math.max(geo.ML + 52 * kb, Math.min(geo.W - 52 * kb, geo.X(d)));
+  const yT = geo.Y(lat);
+  const above = yT > geo.MT + 90 * kb;
+  const y = above ? yT - (32 + 25 * kb) : yT + 34 * kb;
+  g.setAttribute('transform', `translate(${x},${y}) scale(${kb})`);
+}
+
+function cd2BindDrag(svg) {
+  if (!svg || svg._cd2Bound) return;
+  svg._cd2Bound = true;
+  const locked = () => svg.classList.contains('cd2-locked');
+
+  svg.addEventListener('touchstart', (e) => {
+    if (!locked() && e.target.closest && e.target.closest('.cd2-drag-hit')) e.preventDefault();
+  }, { passive: false });
+
+  svg.addEventListener('pointerdown', (e) => {
+    let hit = e.target.closest && e.target.closest('.cd2-drag-hit');
+    if (!hit || locked() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    // áreas de agarre vizinhas podem se sobrepor no celular: vale a mais próxima do toque
+    let best = Infinity;
+    svg.querySelectorAll('.cd2-drag-hit').forEach(h => {
+      const r = h.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      const dd = Math.hypot(e.clientX - (r.left + r.right) / 2, e.clientY - (r.top + r.bottom) / 2);
+      if (dd < best) { best = dd; hit = h; }
+    });
+    const d0 = svg.id === 'cd2CompSvg' ? cd2DrawB : cd2Draw;
+    if (!d0 || !d0.geo) return;
+    const id = parseInt(hit.getAttribute('data-tid'), 10);
+    const row = d0.rows.find(r => r.id === id);
+    const mover = svg.querySelector('#' + cd2DragPrefix(svg) + 'mover-' + id);
+    const p = cd2SvgPoint(svg, e);
+    if (!row || !mover || !p) return;
+    const m = /translate\(\s*([-\d.eE]+)[ ,]+([-\d.eE]+)\s*\)/.exec(mover.getAttribute('transform') || '');
+    const mx = m ? parseFloat(m[1]) : d0.geo.X(row.d), my = m ? parseFloat(m[2]) : d0.geo.Y(row.p.offset);
+    cd2Drag = { svg, id, pointerId: e.pointerId, cx: e.clientX, cy: e.clientY, grabX: p.x - mx, grabY: p.y - my,
+                moved: false, d: row.d, offset: row.p.offset, geo: d0.geo, targetDistM: d0.targetDistM };
+    try { svg.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+
+  svg.addEventListener('pointermove', (e) => {
+    const dr = cd2Drag;
+    if (!dr || dr.svg !== svg || e.pointerId !== dr.pointerId) return;
+    if (!dr.moved) {
+      if (Math.hypot(e.clientX - dr.cx, e.clientY - dr.cy) < 5) return;
+      dr.moved = true;
+      cd2CloseSpeedMenu();
+      // se a animação já andou, volta tudo ao repouso antes de mover (o alvo é arrastado pela posição de partida)
+      if ((cd2Anim && cd2Anim.elapsedAnim > 0) || (cd2AnimB && cd2AnimB.elapsedAnim > 0)) { cd2ResetAnim(); cd2ResetAnimB(); }
+      svg.classList.add('cd2-dragging');
+      svg.querySelectorAll('[data-aux="' + dr.id + '"]').forEach(g => { g.style.display = 'none'; });
+    }
+    const p = cd2SvgPoint(svg, e);
+    if (!p) return;
+    const geo = dr.geo;
+    const dRaw = (p.x - dr.grabX - geo.ML) / geo.scaleX;
+    const latRaw = (p.y - dr.grabY - geo.cy) / geo.scaleY;
+    const free = cd2FreeDistance(dRaw, dr.id, cd2MaxDist(dr.targetDistM));
+    if (free !== null) dr.d = free;
+    dr.offset = Math.max(-CD2_MAX_OFFSET_M, Math.min(CD2_MAX_OFFSET_M, Math.round(latRaw * 10) / 10));
+    const pref = cd2DragPrefix(svg);
+    const tr = `translate(${geo.X(dr.d)},${geo.Y(dr.offset)})`;
+    const mover = svg.querySelector('#' + pref + 'mover-' + dr.id);
+    if (mover) mover.setAttribute('transform', tr);
+    const badge = svg.querySelector('#' + pref + 'badge-' + dr.id);
+    if (badge) badge.setAttribute('transform', tr);
+    cd2DragTagUpdate(svg, geo, dr.d, dr.offset, diagFontK(svg));
+    e.preventDefault();
+  });
+
+  const finish = (e, cancel) => {
+    const dr = cd2Drag;
+    if (!dr || dr.svg !== svg || e.pointerId !== dr.pointerId) return;
+    cd2Drag = null;
+    try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
+    svg.classList.remove('cd2-dragging');
+    if (dr.moved) {
+      const t = cd2TargetById(dr.id);
+      if (t && !cancel) { t.d = dr.d; t.offset = dr.offset; t.auto = false; }
+      cd2Render();
+    }
+  };
+  svg.addEventListener('pointerup', (e) => finish(e, false));
+  svg.addEventListener('pointercancel', (e) => finish(e, true));
+
+  svg.addEventListener('click', (e) => {
+    const bh = e.target.closest && e.target.closest('.cd2-badge-hit');
+    if (!bh || locked()) return;
+    cd2OpenSpeedMenu(parseInt(bh.getAttribute('data-tid'), 10), bh);
+  });
+}
+
+function cd2CloseSpeedMenu() {
+  const m = document.getElementById('cd2SpeedMenu');
+  if (m) m.remove();
+  document.removeEventListener('pointerdown', cd2SpeedMenuOutside, true);
+  document.removeEventListener('keydown', cd2SpeedMenuKey, true);
+  window.removeEventListener('resize', cd2CloseSpeedMenu);
+}
+function cd2SpeedMenuOutside(e) {
+  const m = document.getElementById('cd2SpeedMenu');
+  if (m && !m.contains(e.target)) cd2CloseSpeedMenu();
+}
+function cd2SpeedMenuKey(e) {
+  if (e.key === 'Escape') { e.stopPropagation(); cd2CloseSpeedMenu(); }
+}
+
+function cd2OpenSpeedMenu(id, anchor) {
+  const t = cd2TargetById(id);
+  if (!t) return;
+  cd2CloseSpeedMenu();
+  const r = anchor.getBoundingClientRect();
+  const cur = cd2ModeInfo(t.mode);
+  const icons = { lento: '🚶', andando: '🚶💨', correndo: '🏃' };
+  const menu = document.createElement('div');
+  menu.id = 'cd2SpeedMenu';
+  menu.className = 'cd2-speed-menu';
+  menu.setAttribute('role', 'menu');
+  menu.innerHTML = `<div class="cd2-sm-title">Alvo a ${t.d} m · velocidade</div>` +
+    CD2_MODE_ORDER.map(m => `<button type="button" role="menuitemradio" class="cd2-sm-opt ${cur === CD2_MODES[m] ? 'cd2-active' : ''}" data-mode="${m}"><span>${icons[m]} ${CD2_MODES[m].label}</span><b>${cd2Fmt(CD2_MODES[m].speed, 1)} m/s</b></button>`).join('');
+  document.body.appendChild(menu);
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  let left = r.right + 8, top = r.top - 6;
+  if (left + w > window.innerWidth - 8) left = Math.max(8, r.left - w - 8);
+  if (top + h > window.innerHeight - 8) top = Math.max(8, window.innerHeight - h - 8);
+  menu.style.left = left + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+  menu.querySelectorAll('.cd2-sm-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      t.mode = btn.getAttribute('data-mode');
+      cd2CloseSpeedMenu();
+      cd2Render();
+    });
+  });
+  document.addEventListener('pointerdown', cd2SpeedMenuOutside, true);
+  document.addEventListener('keydown', cd2SpeedMenuKey, true);
+  window.addEventListener('resize', cd2CloseSpeedMenu);
+  // tocar na alça também seleciona o alvo (é o alvo da compensação), sem mexer na posição
+  if (cd2State.selectedTarget !== id && !(cd2Anim && cd2Anim.playing) && !(cd2AnimB && cd2AnimB.playing)) {
+    cd2State.selectedTarget = id;
+    cd2RefreshComp();
+  }
+}
+
+function cd2FlashCheckpoint(id) {
+  const halo = document.getElementById('cd2-halo-' + id);
   if (!halo) return;
   halo.classList.remove('cd2-halo-flash');
   void halo.getBoundingClientRect();
@@ -4718,13 +5048,15 @@ function cd2RenderAnimFrame(realS) {
   d0.rows.forEach(row => {
     const pos = cd2TargetPosAt(row, realS);
     const y = d0.Y(pos);
-    const mover = document.getElementById('cd2-mover-' + row.d);
+    const mover = document.getElementById('cd2-mover-' + row.id);
     if (mover) mover.setAttribute('transform', `translate(${d0.X(row.d)},${y})`);
-    const trail = document.getElementById('cd2-trail-' + row.d);
+    const badge = document.getElementById('cd2-badge-' + row.id);
+    if (badge) badge.setAttribute('transform', `translate(${d0.X(row.d)},${y})`);
+    const trail = document.getElementById('cd2-trail-' + row.id);
     if (trail) trail.setAttribute('y2', y);
-    if (bulletD >= row.d && !a.passed.has(row.d)) {
-      a.passed.add(row.d);
-      cd2FlashCheckpoint(row.d);
+    if (bulletD >= row.d && !a.passed.has(row.id)) {
+      a.passed.add(row.id);
+      cd2FlashCheckpoint(row.id);
     }
   });
   const el = document.getElementById('cd2AnimReadout');
@@ -4830,9 +5162,11 @@ function cd2RenderCompAnimFrame(realS) {
   d0.rows.forEach(row => {
     const pos = cd2TargetPosAt(row, realS);
     const y = d0.Y(pos);
-    const mover = document.getElementById('cd2-comp-mover-' + row.d);
+    const mover = document.getElementById('cd2-comp-mover-' + row.id);
     if (mover) mover.setAttribute('transform', `translate(${d0.X(row.d)},${y})`);
-    const trail = document.getElementById('cd2-comp-trail-' + row.d);
+    const badge = document.getElementById('cd2-comp-badge-' + row.id);
+    if (badge) badge.setAttribute('transform', `translate(${d0.X(row.d)},${y})`);
+    const trail = document.getElementById('cd2-comp-trail-' + row.id);
     if (trail) trail.setAttribute('y2', y);
   });
   // retículo (zero, graduação, linha de visada) fica ESTÁTICO durante toda
@@ -4945,8 +5279,8 @@ function cd2RenderBanner(rows) {
   const tier = cd2RiskTier(worst.risk);
   banner.className = 'cd2-alert-banner' + (tier === 'critical' ? ' cd2-alert-critical' : '');
   const icon = tier === 'critical' ? '🚨' : '⚠️';
-  const modeTxt = worst.p.mode === 'rapido' ? 'rápido' : 'lento';
-  banner.innerHTML = `<span class="cd2-icon">${icon}</span><span class="cd2-txt"><b>${tier === 'critical' ? 'RISCO CRÍTICO DE INTERCEPÇÃO' : 'Risco moderado de interceptação'}</b> — alvo móvel em modo ${modeTxt} no checkpoint de ${worst.d}m, risco estimado de <b>${Math.round(worst.risk)}%</b> (distância mínima ao projétil ≈ ${cd2Fmt(worst.missDistance,1)}m no instante da passagem).</span>`;
+  const modeTxt = cd2ModeInfo(worst.p.mode).short;
+  banner.innerHTML = `<span class="cd2-icon">${icon}</span><span class="cd2-txt"><b>${tier === 'critical' ? 'RISCO CRÍTICO DE INTERCEPÇÃO' : 'Risco moderado de interceptação'}</b> — alvo móvel (${modeTxt}) a ${worst.d}m, risco estimado de <b>${Math.round(worst.risk)}%</b> (distância mínima ao projétil ≈ ${cd2Fmt(worst.missDistance,1)}m no instante da passagem).</span>`;
 }
 
 function cd2RenderStats(rows, targetDistM) {
@@ -4959,15 +5293,15 @@ function cd2RenderStats(rows, targetDistM) {
     <div class="cd2-stat-tile ${tier !== 'low' ? 'cd2-stat-' + tier : ''}">
       <div class="cd2-lbl">Risco máximo do cenário</div>
       <div class="cd2-big">${worst ? Math.round(worst.risk) : 0}%</div>
-      <div class="cd2-sub">checkpoint ${worst ? worst.d : '—'}m</div>
+      <div class="cd2-sub">alvo a ${worst ? worst.d : '—'}m</div>
     </div>
     <div class="cd2-stat-tile">
-      <div class="cd2-lbl">Checkpoints monitorados</div>
+      <div class="cd2-lbl">Alvos monitorados</div>
       <div class="cd2-big">${rows.length}</div>
-      <div class="cd2-sub">100m até ${targetDistM}m, a cada 50m</div>
+      <div class="cd2-sub">${rows.length ? 'de ' + Math.min(...rows.map(r => r.d)) + 'm a ' + Math.max(...rows.map(r => r.d)) + 'm' : 'nenhum alvo ativo'}</div>
     </div>
     <div class="cd2-stat-tile ${critCount > 0 ? 'cd2-stat-critical' : ''}">
-      <div class="cd2-lbl">Checkpoints em risco crítico</div>
+      <div class="cd2-lbl">Alvos em risco crítico</div>
       <div class="cd2-big">${critCount}</div>
       <div class="cd2-sub">risco ≥ ${CD2_RISK_CRITICAL}%</div>
     </div>
@@ -4983,15 +5317,14 @@ function cd2RenderTable(rows) {
     const rowStyle = enabled ? '' : ' style="opacity:0.45;"';
     return `
       <tr${rowStyle}>
-        <td data-label="Ativo"><input type="checkbox" ${enabled ? 'checked' : ''} data-d="${row.d}" class="cd2-ctl-enabled" title="Desligar esse alvo — some dos diagramas e das estatísticas de risco"></td>
-        <td data-label="Checkpoint">${row.d}m</td>
+        <td data-label="Ativo"><input type="checkbox" ${enabled ? 'checked' : ''} data-id="${row.id}" class="cd2-ctl-enabled" title="Desligar esse alvo — some dos diagramas e das estatísticas de risco"></td>
+        <td data-label="Distância"><input type="number" step="10" min="${CD2_MIN_DIST_M}" max="${cd2MaxDist(simState.distance)}" value="${row.d}" data-id="${row.id}" class="cd2-ctl-dist" title="Distância do alvo até o atirador. No diagrama, arraste o alvo pra frente e pra trás."> m</td>
         <td data-label="Modo">
-          <select data-d="${row.d}" data-field="mode" class="cd2-ctl-mode">
-            <option value="lento" ${row.p.mode==='lento'?'selected':''}>🎯 Lento</option>
-            <option value="rapido" ${row.p.mode==='rapido'?'selected':''}>🎯 Rápido</option>
+          <select data-id="${row.id}" data-field="mode" class="cd2-ctl-mode">
+            ${CD2_MODE_ORDER.map(m => `<option value="${m}" ${cd2ModeInfo(row.p.mode) === CD2_MODES[m] ? 'selected' : ''}>🎯 ${CD2_MODES[m].label} · ${cd2Fmt(CD2_MODES[m].speed, 1)} m/s</option>`).join('')}
           </select>
         </td>
-        <td data-label="Deslocamento inicial"><input type="number" step="0.1" min="-4.5" max="4.5" value="${row.p.offset}" data-d="${row.d}" data-field="offset" class="cd2-ctl-offset"> m</td>
+        <td data-label="Deslocamento inicial"><input type="number" step="0.1" min="-${CD2_MAX_OFFSET_M}" max="${CD2_MAX_OFFSET_M}" value="${row.p.offset}" data-id="${row.id}" data-field="offset" class="cd2-ctl-offset"> m</td>
         <td data-label="Dist. até linha de tiro">${cd2Fmt(row.distToLine,1)} m</td>
         <td data-label="T. de voo">${cd2Fmt(row.tFlight,2)} s</td>
         <td data-label="Risco"><span class="cd2-risk-badge cd2-${tier}">${Math.round(row.risk)}%</span></td>
@@ -4999,25 +5332,39 @@ function cd2RenderTable(rows) {
     `;
   }).join('');
 
+  const tgt = el => cd2TargetById(parseInt(el.getAttribute('data-id'), 10));
   tbody.querySelectorAll('.cd2-ctl-enabled').forEach(el => {
     el.addEventListener('change', () => {
-      const d = el.getAttribute('data-d');
-      cd2State.targets[d].enabled = el.checked;
+      const t = tgt(el); if (!t) return;
+      t.enabled = el.checked;
+      cd2Render();
+    });
+  });
+  tbody.querySelectorAll('.cd2-ctl-dist').forEach(el => {
+    el.addEventListener('change', () => {
+      const t = tgt(el); if (!t) return;
+      const v = parseFloat(el.value);
+      if (!isNaN(v)) {
+        // dois alvos não ficam na mesma distância: se já houver um ali, vai pra mais próxima livre (de 1 em 1 m)
+        const f = cd2FreeDistance(v, t.id, cd2MaxDist(simState.distance), 1);
+        if (f !== null) { t.d = f; t.auto = false; }
+      }
       cd2Render();
     });
   });
   tbody.querySelectorAll('.cd2-ctl-mode').forEach(el => {
     el.addEventListener('change', () => {
-      const d = el.getAttribute('data-d');
-      cd2State.targets[d].mode = el.value;
+      const t = tgt(el); if (!t) return;
+      t.mode = el.value;
       cd2Render();
     });
   });
   tbody.querySelectorAll('.cd2-ctl-offset').forEach(el => {
     el.addEventListener('change', () => {
-      const d = el.getAttribute('data-d');
+      const t = tgt(el); if (!t) return;
       const v = parseFloat(el.value);
-      cd2State.targets[d].offset = isNaN(v) ? 0 : v;
+      t.offset = isNaN(v) ? 0 : Math.max(-CD2_MAX_OFFSET_M, Math.min(CD2_MAX_OFFSET_M, v));
+      t.auto = false;
       cd2Render();
     });
   });
@@ -5029,8 +5376,7 @@ function cd2Render() {
   const fps = parseFloat(document.getElementById('eqFps')?.value) || 2680;
   const bcVal = parseFloat(document.getElementById('eqBC')?.value) || 0.447;
   const targetDistM = simState.distance;
-  const cps = cd2EnsureTargets(targetDistM);
-  const rows = cps.map(d => cd2ComputeRow(d, fps, bcVal));
+  const rows = cd2EnsureTargets(targetDistM).map(t => cd2ComputeRow(t, fps, bcVal));
   // Alvo desligado pelo checkbox da tabela: some dos dois diagramas, do
   // seletor de alvo e das estatísticas de risco — mas continua na tabela
   // (esmaecido), pra poder ligar de volta. `enabled` ausente = ligado
@@ -5040,7 +5386,7 @@ function cd2Render() {
   cd2RenderBanner(visibleRows);
   cd2RenderStats(visibleRows, targetDistM);
   cd2RenderTable(rows);
-  if (cd2State.selectedTarget !== null && !visibleRows.some(r => r.d === cd2State.selectedTarget)) {
+  if (cd2State.selectedTarget !== null && !visibleRows.some(r => r.id === cd2State.selectedTarget)) {
     cd2State.selectedTarget = null;
   }
   cd2RefreshComp();
