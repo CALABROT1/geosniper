@@ -1795,10 +1795,17 @@ body.nvg-red-mode .leaflet-tile-container img {
             <option value="nf_milxt">Nightforce MIL-XT</option>
             <option value="leupold_tmr">Leupold TMR</option>
             <option value="vortex_ebr7c">Vortex EBR-7C (MRAD)</option>
+            <option value="vortex_ebr1">Vortex EBR-1 (MOA)</option>
             <option value="sb_gr2id">Schmidt &amp; Bender GR²ID</option>
             <option value="kahles_skmr4">Kahles SKMR4</option>
                 <option value="vortex_deadholdbdc">Vortex Dead-Hold BDC (MOA)</option>
                 <option value="vortex_vmr1moa">Vortex VMR-1 (MOA)</option>
+                <option value="vortex_vmr2moa">Vortex VMR-2 (MOA)</option>
+                <option value="vortex_vmr2mrad">Vortex VMR-2 (MRAD)</option>
+                <option value="vortex_hsr5i_moa">Vortex HSR-5i (MOA)</option>
+                <option value="vortex_hsr5i_mrad">Vortex HSR-5i (MRAD)</option>
+                <option value="vortex_ebr2c_moa">Vortex EBR-2C (MOA)</option>
+                <option value="vortex_ebr2c_mrad">Vortex EBR-2C (MRAD)</option>
           </optgroup>
         </select>
       </div>
@@ -2184,10 +2191,17 @@ body.nvg-red-mode .leaflet-tile-container img {
                 <option value="nf_milxt">Nightforce MIL-XT</option>
                 <option value="leupold_tmr">Leupold TMR</option>
                 <option value="vortex_ebr7c">Vortex EBR-7C (MRAD)</option>
+                <option value="vortex_ebr1">Vortex EBR-1 (MOA)</option>
                 <option value="sb_gr2id">Schmidt &amp; Bender GR²ID</option>
                 <option value="kahles_skmr4">Kahles SKMR4</option>
                 <option value="vortex_deadholdbdc">Vortex Dead-Hold BDC (MOA)</option>
                 <option value="vortex_vmr1moa">Vortex VMR-1 (MOA)</option>
+                <option value="vortex_vmr2moa">Vortex VMR-2 (MOA)</option>
+                <option value="vortex_vmr2mrad">Vortex VMR-2 (MRAD)</option>
+                <option value="vortex_hsr5i_moa">Vortex HSR-5i (MOA)</option>
+                <option value="vortex_hsr5i_mrad">Vortex HSR-5i (MRAD)</option>
+                <option value="vortex_ebr2c_moa">Vortex EBR-2C (MOA)</option>
+                <option value="vortex_ebr2c_mrad">Vortex EBR-2C (MRAD)</option>
               </optgroup>
             </select>
           </div>
@@ -9697,6 +9711,37 @@ function renderReticuleMoaCorner(ctx, cx, cy, radius, mradElev, mradWind, pxPerM
   ctx.restore();
 }
 
+// Auxiliares dos retículos desenhados a partir de tabelas medidas nos manuais oficiais da Vortex.
+// (dx, dy) é a direção do braço (1,0 direita; -1,0 esquerda; 0,1 baixo; 0,-1 cima); as medidas vêm já em pixels.
+function reticleMark(ctx, cx, cy, ok, dx, dy, distPx, lenPx, lw) {
+  const px = cx + dx * distPx, py = cy + dy * distPx;
+  if (!ok(px, py)) return;
+  const half = lenPx / 2;
+  ctx.lineWidth = lw || 1.2;
+  ctx.beginPath();
+  if (dx !== 0) { ctx.moveTo(px, py - half); ctx.lineTo(px, py + half); }
+  else { ctx.moveTo(px - half, py); ctx.lineTo(px + half, py); }
+  ctx.stroke();
+}
+function reticleDot(ctx, ok, x, y, rPx) {
+  if (!ok(x, y)) return;
+  ctx.beginPath(); ctx.arc(x, y, Math.max(0.9, rPx), 0, Math.PI * 2); ctx.fill();
+}
+// Poste grosso a partir de startPx até a borda; tipPx > 0 desenha a ponta afilada (como nos manuais da série HSR/EBR).
+function reticlePost(ctx, cx, cy, radius, dx, dy, startPx, widthPx, tipPx) {
+  const edge = radius - 8;
+  if (startPx >= edge) return;
+  const tip = Math.min(tipPx || 0, edge - startPx), nx = -dy, ny = dx, w2 = widthPx / 2;
+  const P = (d, off) => [cx + dx * d + nx * off, cy + dy * d + ny * off];
+  ctx.beginPath();
+  let p = P(startPx, 0); ctx.moveTo(p[0], p[1]);
+  if (tip > 0) { p = P(startPx + tip, w2); ctx.lineTo(p[0], p[1]); } else { p = P(startPx, w2); ctx.lineTo(p[0], p[1]); }
+  p = P(edge, w2); ctx.lineTo(p[0], p[1]);
+  p = P(edge, -w2); ctx.lineTo(p[0], p[1]);
+  if (tip > 0) { p = P(startPx + tip, -w2); ctx.lineTo(p[0], p[1]); } else { p = P(startPx, -w2); ctx.lineTo(p[0], p[1]); }
+  ctx.closePath(); ctx.fill();
+}
+
 function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
   ctx.save();
   ctx.font = `700 12px ${RETICLE_MONO}`;
@@ -10039,6 +10084,205 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
     drawArm(-1, 0, 16, 18);  // esquerda (vento)
     drawArm(0, 1, 28, 30);   // baixo (queda — poste comeca mais longe)
 
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_ebr1') {
+    // Vortex EBR-1 MOA (Razor HD 5-20x50, FFP): posições e tamanhos MEDIDOS no desenho do manual oficial
+    // (VTX M-00044-0, RZR HD EBR-1 MOA): traços de 2 MOA (2, 4, 6, 8), marcas de 5 MOA (15 e 25) do mesmo
+    // tamanho curto, e traços longos em 10, 20 e no fim da escala (30 MOA). Vertical: em cima só
+    // 2 a 8 MOA + o longo de 10; embaixo traços a cada 2 MOA até 28 (longos em 10 e 20). Cruz fina de
+    // 0,2 MOA e seção pesada de 5 MOA na borda do campo (fora da área visível aqui). Convertido pra
+    // MRAD-equivalente (/3,4377), igual ao Dead-Hold BDC e ao VMR-1.
+    const MOA_PER_MRAD = 3.4377;
+    const moaToPx = moa => (moa / MOA_PER_MRAD) * pxPerMrad;
+    const shortHalf = Math.max(2.5, moaToPx(0.42)), longHalf = moaToPx(1.5);
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#5b6472';
+    ctx.font = `700 9px ${RETICLE_MONO}`;
+    const tick = (dx, dy, moa, long, label) => {
+      const dist = moaToPx(moa);
+      const px = cx + dx * dist, py = cy + dy * dist;
+      if (!withinGlass(px, py)) return;
+      const half = long ? longHalf : shortHalf;
+      ctx.lineWidth = long ? 1.4 : 1.1;
+      ctx.beginPath();
+      if (dx !== 0) { ctx.moveTo(px, py - half); ctx.lineTo(px, py + half); }
+      else { ctx.moveTo(px - half, py); ctx.lineTo(px + half, py); }
+      ctx.stroke();
+      if (label) {
+        ctx.textAlign = dx !== 0 ? 'center' : 'left';
+        if (dx !== 0) ctx.fillText(`${moa}`, px, py - half - 3);
+        else ctx.fillText(`${moa}`, px + half + 3, py + 3);
+      }
+    };
+    [1, -1].forEach(sx => {   // horizontal (vento): igual nos dois lados
+      [2, 4, 6, 8, 15, 25].forEach(m => tick(sx, 0, m, false));
+      [10, 20, 30].forEach(m => tick(sx, 0, m, true, m < 30));
+    });
+    [2, 4, 6, 8].forEach(m => tick(0, -1, m, false));   // vertical, para cima
+    tick(0, -1, 10, true, true); tick(0, -1, 30, true, false);
+    for (let m = 2; m <= 28; m += 2) tick(0, 1, m, m % 10 === 0, m % 10 === 0);   // vertical, para baixo
+    tick(0, 1, 30, true, false);
+    ctx.textAlign = 'start';
+    ctx.font = `700 12px ${RETICLE_MONO}`;
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_vmr2moa' || style === 'vortex_vmr2mrad') {
+    // Vortex VMR-2 (SFP, ex.: Viper PST Gen II 1-6x24), MOA e MRAD: posições e tamanhos MEDIDOS no desenho
+    // do manual oficial (VTX M-00367-0). MOA: traços a cada 4 MOA nos lados (4, 8, 12, 16 — alternando
+    // 1,5 e 3 MOA de comprimento) e embaixo (4 a 24), linha de 0,5 MOA, poste de 1,75 MOA a partir de
+    // 35 MOA nos lados e 45 MOA embaixo; ponto central de 0,5 MOA. MRAD: traços a cada 1 MRAD (0,65 e 1
+    // MRAD alternando) — 1 a 4 nos lados, 1 a 7 embaixo —, linha de 0,15 MRAD, poste de 0,5 MRAD a partir de
+    // 11 MRAD; ponto central de 0,15 MRAD. Em cima não há marcas nem poste. As subtensões valem na
+    // ampliação máxima da luneta (SFP). MOA convertido pra MRAD-equivalente (/3,4377) como nos demais.
+    const isMoa = style === 'vortex_vmr2moa';
+    const unitPx = isMoa ? pxPerMrad / 3.4377 : pxPerMrad;
+    const cfg = isMoa
+      ? { side: [[4, 1.5], [8, 3], [12, 1.5], [16, 3]], down: [[4, 1.5], [8, 3], [12, 1.5], [16, 3], [20, 1.5], [24, 3]], postSide: 35, postDown: 45, postW: 1.75, dot: 0.5 }
+      : { side: [[1, 0.65], [2, 1], [3, 0.65], [4, 1]], down: [[1, 0.65], [2, 1], [3, 0.65], [4, 1], [5, 0.65], [6, 1], [7, 0.65]], postSide: 11, postDown: 11, postW: 0.5, dot: 0.15 };
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+    const edgePx = radius - 8;
+    const arm = (dx, dy, ticks, postStart) => {
+      ticks.forEach(([pos, len]) => {
+        const px = cx + dx * pos * unitPx, py = cy + dy * pos * unitPx;
+        if (!withinGlass(px, py)) return;
+        const half = (len * unitPx) / 2;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        if (dx !== 0) { ctx.moveTo(px, py - half); ctx.lineTo(px, py + half); }
+        else { ctx.moveTo(px - half, py); ctx.lineTo(px + half, py); }
+        ctx.stroke();
+      });
+      const startPx = postStart * unitPx;
+      if (startPx < edgePx) {
+        ctx.lineWidth = cfg.postW * unitPx;
+        ctx.beginPath();
+        ctx.moveTo(cx + dx * startPx, cy + dy * startPx);
+        ctx.lineTo(cx + dx * edgePx, cy + dy * edgePx);
+        ctx.stroke();
+      }
+    };
+    arm(1, 0, cfg.side, cfg.postSide);
+    arm(-1, 0, cfg.side, cfg.postSide);
+    arm(0, 1, cfg.down, cfg.postDown);
+    ctx.beginPath(); ctx.arc(cx, cy, Math.max(1.4, (cfg.dot * unitPx) / 2), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_hsr5i_moa' || style === 'vortex_hsr5i_mrad') {
+    // Vortex HSR-5i (SFP, Razor HD LHT 3-15x42), MOA e MRAD: posições e tamanhos MEDIDOS no desenho do manual
+    // oficial (VTX M-00265-0). Valem na ampliação calibrada (15x). MOA: laterais com traços a cada 2 MOA
+    // (1 MOA de comprimento em 2, 6, 10; 2 MOA em 4, 8, 12), poste de 1,5 MOA com ponta afilada a partir de
+    // 13 MOA; embaixo traços a cada 2 MOA até 32 (1 MOA em 2; 4 MOA nos múltiplos de 4; 2 MOA nos demais),
+    // ponto central de 0,35 MOA. MRAD: laterais a cada 0,5 MRAD até 4 (0,3 e 0,6 de comprimento), poste de
+    // 0,4 com ponta a partir de 4,25; embaixo a cada 0,5 MRAD até 10 (0,5 no primeiro, 0,6 nos meios, 1 nos
+    // inteiros), ponto central de 0,1. Em cima só a linha fina. MOA convertido pra MRAD-equivalente (/3,4377).
+    const isMoa = style === 'vortex_hsr5i_moa';
+    const u = isMoa ? pxPerMrad / 3.4377 : pxPerMrad;
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+    const label = (txt, x, y, align) => {
+      if (!withinGlass(x, y)) return;
+      ctx.save(); ctx.fillStyle = '#5b6472'; ctx.font = `700 9px ${RETICLE_MONO}`; ctx.textAlign = align; ctx.fillText(txt, x, y); ctx.restore();
+    };
+    const mk = (dx, dy, pos, len) => reticleMark(ctx, cx, cy, withinGlass, dx, dy, pos * u, len * u, 1.2);
+    if (isMoa) {
+      for (let m = 2; m <= 12; m += 2) {
+        const len = (m % 4 === 0) ? 2 : 1;
+        mk(1, 0, m, len); mk(-1, 0, m, len);
+        if (m % 4 === 0) { label(`${m}`, cx + m * u, cy + 12, 'center'); label(`${m}`, cx - m * u, cy + 12, 'center'); }
+      }
+      for (let m = 2; m <= 32; m += 2) {
+        mk(0, 1, m, m === 2 ? 1 : (m % 4 === 0 ? 4 : 2));
+        if (m % 8 === 0) label(`${m}`, cx + 2.4 * u + 3, cy + m * u + 3, 'left');
+      }
+      [1, -1].forEach(s => reticlePost(ctx, cx, cy, radius, s, 0, 13 * u, 1.5 * u, 0.9 * u));
+      reticleDot(ctx, withinGlass, cx, cy, 0.175 * u);
+    } else {
+      for (let m = 0.5; m <= 4.001; m += 0.5) {
+        const whole = Math.abs(m - Math.round(m)) < 0.001;
+        const len = whole ? 0.6 : 0.3;
+        mk(1, 0, m, len); mk(-1, 0, m, len);
+        if (whole && m % 2 === 0) { label(`${m}`, cx + m * u, cy + 12, 'center'); label(`${m}`, cx - m * u, cy + 12, 'center'); }
+      }
+      for (let m = 0.5; m <= 10.001; m += 0.5) {
+        const whole = Math.abs(m - Math.round(m)) < 0.001;
+        mk(0, 1, m, m === 0.5 ? 0.5 : (whole ? 1 : 0.6));
+        if (whole && m % 2 === 0) label(`${m}`, cx + 0.6 * u + 3, cy + m * u + 3, 'left');
+      }
+      [1, -1].forEach(s => reticlePost(ctx, cx, cy, radius, s, 0, 4.25 * u, 0.4 * u, 0.3 * u));
+      reticleDot(ctx, withinGlass, cx, cy, 0.05 * u);
+    }
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'vortex_ebr2c_moa' || style === 'vortex_ebr2c_mrad') {
+    // Vortex EBR-2C (FFP, ex.: Viper PST Gen II 3-15x44 FFP), MOA e MRAD: posições MEDIDAS nos vetores do manual
+    // oficial (VTX M-00015-0 e manual EBR-2C MRAD). Valem em qualquer ampliação (FFP). Grade "árvore" de holdover
+    // com pontos de vento nas linhas de queda; centro aberto. MOA: traços a cada 2 MOA até 24 (0,75 de
+    // comprimento em 2, 6, 10…; 2 MOA em 4, 8, 12…), depois a cada 0,5 MOA até 36 (2 MOA nos múltiplos de 4);
+    // linhas de pontos a cada 4 MOA de queda (4 a 36), pontos a cada 1 MOA, os de múltiplos de 4 maiores; postes
+    // de 4 MOA a partir de 36,6 (lados) e 38,1 (baixo). MRAD: traços a cada 0,5 MRAD (0,4 nos meios, 0,6 nos
+    // inteiros) e a cada 0,1 de 5 a 7 (0,2 / 0,4 / 0,6); embaixo traços a cada 0,5 até 10 (0,2 / 0,4); linhas de
+    // pontos a cada 1 MRAD (1 a 10) com pontos a cada 0,2 (maiores nos inteiros); postes de 0,5 MRAD a partir de
+    // 9 (lados) e 11,1 (baixo). MOA convertido pra MRAD-equivalente (/3,4377).
+    const isMoa = style === 'vortex_ebr2c_moa';
+    const u = isMoa ? pxPerMrad / 3.4377 : pxPerMrad;
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+    const label = (txt, x, y, align) => {
+      if (!withinGlass(x, y)) return;
+      ctx.save(); ctx.fillStyle = '#5b6472'; ctx.font = `700 8px ${RETICLE_MONO}`; ctx.textAlign = align; ctx.fillText(txt, x, y); ctx.restore();
+    };
+    const mk = (dx, dy, pos, len) => reticleMark(ctx, cx, cy, withinGlass, dx, dy, pos * u, len * u, 1.1);
+    const arms = [[1, 0], [-1, 0], [0, -1], [0, 1]];
+    if (isMoa) {
+      const tickLen = m => (Math.abs(m / 4 - Math.round(m / 4)) < 0.001 ? 2 : 0.75);
+      arms.forEach(([dx, dy]) => {
+        for (let m = 2; m <= 24.001; m += 2) mk(dx, dy, m, tickLen(m));
+        for (let m = 24.5; m <= 36.001; m += 0.5) mk(dx, dy, m, tickLen(m));
+      });
+      for (let m = 8; m <= 32; m += 8) { label(`${m}`, cx + m * u, cy - u - 3, 'center'); label(`${m}`, cx - m * u, cy - u - 3, 'center'); }
+      for (let m = 4; m <= 36; m += 4) { label(`${m}`, cx + 1.4 * u + 2, cy + m * u + 3, 'left'); label(`${m}`, cx + 1.4 * u + 2, cy - m * u + 3, 'left'); }
+      const widths = { 4: 8, 8: 12, 12: 12, 16: 16, 20: 16, 24: 20, 28: 20, 32: 24, 36: 24 };
+      Object.keys(widths).forEach(k => {
+        const y = cy + (+k) * u, W = widths[k];
+        for (let x = -W; x <= W; x++) {
+          if (x >= -1 && x <= 2) continue;         // vão central (a leitura de queda fica livre)
+          reticleDot(ctx, withinGlass, cx + x * u, y, (x % 4 === 0 ? 0.15 : 0.1) * u);
+        }
+      });
+      [1, -1].forEach(s => reticlePost(ctx, cx, cy, radius, s, 0, 36.6 * u, 4 * u, 0));
+      reticlePost(ctx, cx, cy, radius, 0, 1, 38.1 * u, 4 * u, 0);
+    } else {
+      const fine = (m, len5) => (Math.abs(m - Math.round(m)) < 0.001 ? 0.6 : (Math.abs(m * 2 - Math.round(m * 2)) < 0.001 ? 0.4 : len5));
+      [[1, 0], [-1, 0], [0, -1]].forEach(([dx, dy]) => {
+        for (let m = 0.5; m <= 5.001; m += 0.5) mk(dx, dy, m, Math.abs(m - Math.round(m)) < 0.001 ? 0.6 : 0.4);
+        for (let m = 5.1; m <= 7.001; m += 0.1) mk(dx, dy, m, fine(m, 0.2));
+      });
+      for (let m = 0.5; m <= 10.001; m += 0.5) mk(0, 1, m, Math.abs(m - Math.round(m)) < 0.001 ? 0.4 : 0.2);
+      [2, 4, 6].forEach(m => { label(`${m}`, cx + m * u, cy - 0.3 * u - 3, 'center'); label(`${m}`, cx - m * u, cy - 0.3 * u - 3, 'center'); label(`${m}`, cx + 0.45 * u + 2, cy - m * u + 3, 'left'); });
+      for (let m = 1; m <= 9; m++) label(`${m}`, cx + 0.45 * u + 2, cy + m * u + 3, 'left');
+      const widthOf = k => (k <= 2 ? 2 : k <= 4 ? 3 : k <= 6 ? 4 : k <= 8 ? 5 : k === 9 ? 6 : 5.6);
+      for (let k = 1; k <= 10; k++) {
+        const y = cy + k * u, W = widthOf(k);
+        for (let x = -W; x <= W + 0.001; x += 0.2) {
+          const xr = Math.round(x * 5) / 5;
+          const gap = (k === 10) ? Math.abs(xr) < 0.35 : (xr > -0.35 && xr < 0.55);
+          if (gap) continue;
+          reticleDot(ctx, withinGlass, cx + xr * u, y, (Math.abs(xr - Math.round(xr)) < 0.001 ? 0.045 : 0.03) * u);
+        }
+      }
+      [1, -1].forEach(s => reticlePost(ctx, cx, cy, radius, s, 0, 9 * u, 0.5 * u, 0));
+      reticlePost(ctx, cx, cy, radius, 0, 1, 11.1 * u, 0.5 * u, 0);
+    }
     ctx.restore();
     return;
   }
