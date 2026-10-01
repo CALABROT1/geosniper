@@ -674,6 +674,12 @@
     }
     .tactical-draw-dock-colors .tdd-color-label { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-right: 2px; }
     .tdd-swatch { width: 22px; height: 22px; }
+    /* Tela larga (computador): limita o tamanho dos diagramas e os centraliza. No celular/tablet nada muda. */
+    @media (min-width: 900px) {
+      .diag-card .diag-scroll { max-width: 760px; margin-left: auto; margin-right: auto; }
+      #diagWindow .diag-card .diag-scroll { max-width: 960px; }
+    }
+
     /* ===== Diagramas em janela (abrir/minimizar/fechar) ===== */
     .diag-open-btn { background: var(--surface-2); color: var(--accent); border: 1px solid var(--line); border-radius: 8px;
       padding: 6px 11px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
@@ -3641,16 +3647,33 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && DIAG_WIN
 // Fontes dos diagramas: maiores na página (onde ficavam minúsculas no celular) e no tamanho original
 // dentro da janela. Só muda o texto; escala, eixos e geometria do gráfico continuam iguais.
 const DIAG_PAGE_FONT_K = 1.4;
+function diagFontK(el) {
+  if (el.closest('#diagWindow')) return 1;
+  // largura renderizada; se a aba estiver escondida (0), estima pela tela: celular ~320px, computador limitado a 760px
+  const w = el.getBoundingClientRect().width || Math.min(window.innerWidth - 40, 760);
+  return w >= 600 ? 1.1 : DIAG_PAGE_FONT_K;
+}
 function applyDiagFontScale(svg) {
   if (!svg) return;
-  const k = svg.closest('#diagWindow') ? 1 : DIAG_PAGE_FONT_K;
+  const k = diagFontK(svg);
   svg.querySelectorAll('text').forEach(t => {
     let b = t.getAttribute('data-fs');
     if (!b) { b = parseFloat(t.getAttribute('font-size')) || 14; t.setAttribute('data-fs', b); }
     t.style.fontSize = (b * k) + 'px';
   });
 }
-function cenaCanvasFontK(canvas) { return canvas && canvas.closest('#diagWindow') ? 1 : 1.25; }
+function cenaCanvasFontK(canvas) {
+  if (!canvas || canvas.closest('#diagWindow')) return 1;
+  const w = canvas.getBoundingClientRect().width || Math.min(window.innerWidth - 40, 760);
+  return w >= 600 ? 1 : 1.25;
+}
+// Ao redimensionar a janela do navegador, reaplica o tamanho da fonte dos diagramas da página.
+window.addEventListener('resize', () => {
+  clearTimeout(window.__diagFontT);
+  window.__diagFontT = setTimeout(() => {
+    ['cd2CorridorSvg', 'cd2CompSvg', 'trajectoryProfileSvg', 'compensatedProfileStaticSvg'].forEach((id) => applyDiagFontScale(document.getElementById(id)));
+  }, 200);
+});
 
 function renderCenaDisparoVisuals() {
   renderAdjustSummary();
