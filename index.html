@@ -81,16 +81,16 @@
     }
 
     /* Barra de navegação: abas em pílula (mesma linguagem dos cartões do Início), sem barra de rolagem */
-    .tabs { display: flex; align-items: center; gap: 6px; height: 50px; box-sizing: border-box; position: relative; z-index: 5;
+    .tabs { display: flex; align-items: center; gap: 6px; height: 60px; box-sizing: border-box; position: relative; z-index: 5;
       padding: 0 8px 0 0; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none;
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0)), var(--surface);
       border-bottom: 1px solid rgba(255,255,255,0.08); box-shadow: 0 2px 10px rgba(0,0,0,0.35); }
     .tabs::-webkit-scrollbar { display: none; }
-    .tab-btn { flex: 0 0 auto; min-width: 0; height: 34px; padding: 0 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
-      color: var(--muted); background: transparent; border: 1px solid transparent; font-weight: 700; font-size: 13px; letter-spacing: 0.2px;
+    .tab-btn { flex: 0 0 auto; min-width: 0; height: 38px; padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+      color: var(--muted); background: transparent; border: 1px solid transparent; font-weight: 700; font-size: 15px; letter-spacing: 0.2px;
       -webkit-tap-highlight-color: transparent; transition: background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease; }
     .tab-btn { display: inline-flex; align-items: center; gap: 7px; }
-    .tab-ico { width: 22px; height: 22px; object-fit: contain; flex: none; opacity: 0.85; transition: opacity .18s ease, transform .18s ease; }
+    .tab-ico { width: 24px; height: 24px; object-fit: contain; flex: none; opacity: 0.85; transition: opacity .18s ease, transform .18s ease; }
     .tab-btn:hover .tab-ico { opacity: 1; }
     .tab-btn.active .tab-ico { opacity: 1; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
     body.nvg-red-mode .tab-ico, body.nvg-red-mode .tab-btn.active .tab-ico { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-35deg) brightness(0.75); }
@@ -210,7 +210,7 @@
       font-size: 1em; line-height: 1; cursor: pointer; display: flex; align-items: center;
       justify-content: center; padding: 0; border: none;
     }
-    .dist-panel-icon-btn.btn-minimize { right: 0.35em; }
+    .dist-panel-icon-btn.btn-minimize { top: 0.6em; right: 0.6em; z-index: 3; }
     /* Zoom do retículo do balão da aba Medir — mesmo mecanismo do retículo
        expandido da aba Balística: só o canvas escala via CSS transform, o
        resto do balão fica do tamanho normal. Ver adjustDistPanelReticleZoom(). */
@@ -687,7 +687,7 @@
     /* Tela larga (computador): limita o tamanho dos diagramas e os centraliza. No celular/tablet nada muda. */
     @media (min-width: 900px) {
       .diag-card .diag-scroll { max-width: 760px; margin-left: auto; margin-right: auto; }
-      #diagWindow .diag-card .diag-scroll { max-width: 960px; }
+      #diagWindow .diag-card .diag-scroll { max-width: none; }
     }
 
     /* ===== Diagramas em janela (abrir/minimizar/fechar) ===== */
@@ -709,23 +709,58 @@
     #diagWindow.min { inset: auto !important; left: 10px !important; bottom: 66px !important; top: auto !important; width: auto !important; height: auto !important;
       transform: none !important; border-radius: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
     #diagWindow.min .diag-win-body { display: none; }
-    .diag-win-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #171a11; border-bottom: 1px solid var(--line); flex-shrink: 0; }
-    #diagWindow.min .diag-win-head { border-bottom: none; background: transparent; }
+    /* Cabeçalho só na janela minimizada (pílula); aberta, os comandos ficam na coluna lateral. */
+    .diag-win-head { display: none; align-items: center; gap: 8px; padding: 8px 10px; background: #171a11; flex-shrink: 0; }
+    #diagWindow.min .diag-win-head { display: flex; background: transparent; }
     .diag-win-title { flex: 1; font-weight: 800; font-size: 14px; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .diag-win-btn { background: #262b1e; color: #fff; border: 1px solid var(--line); border-radius: 8px; min-width: 38px; height: 34px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .diag-win-btn:active { filter: brightness(1.25); }
     .diag-win-btn.close { background: #7a2b26; border-color: #a5433c; }
-    .diag-win-tools { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #14170f; border-bottom: 1px solid var(--line); flex-shrink: 0; }
-    .diag-win-tools .diag-win-btn { min-width: 38px; height: 32px; font-size: 16px; }
-    .diag-win-tools .diag-zoom-reset { font-size: 12px; padding: 0 8px; }
-    .diag-zoom-label { min-width: 46px; text-align: center; font-weight: 800; font-size: 14px; color: var(--accent); font-variant-numeric: tabular-nums; }
-    .diag-max-btn { display: none; margin-left: auto; }
+    #diagWindow.min .diag-win-main { display: none; }
+    .diag-win-main { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+    .diag-win-main.diag-landscape { flex-direction: row; }
+    /* Coluna de comandos: em tela deitada fica à esquerda (vertical); em tela em pé vira uma faixa compacta no topo. */
+    .diag-rail { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 5px 8px; flex-shrink: 0;
+      background: #14170f; border-bottom: 1px solid var(--line); }
+    .diag-rail-group { display: flex; align-items: center; gap: 6px; }
+    .diag-rail .diag-win-btn { min-width: 0; height: 32px; padding: 0 8px; font-size: 15px; }
+    .diag-zoom-row { display: flex; gap: 4px; }
+    .diag-rail .diag-zoom-reset { font-size: 11px; }
+    .diag-zoom-label { min-width: 44px; text-align: center; font-weight: 800; font-size: 13px; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .diag-win-main.diag-landscape .diag-rail { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; width: 92px; padding: 6px;
+      border-bottom: none; border-right: 1px solid var(--line); overflow-y: auto; overscroll-behavior: contain; }
+    .diag-win-main.diag-landscape .diag-rail-group { flex-direction: column; align-items: stretch; gap: 5px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .diag-win-main.diag-landscape .diag-rail-group:last-child { border-bottom: none; padding-bottom: 0; }
+    .diag-win-main.diag-landscape .diag-rail-win { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .diag-win-main.diag-landscape .diag-zoom-row > .diag-win-btn { flex: 1; }
+    .diag-win-main.diag-landscape .diag-rail-win .diag-win-btn { padding: 0; }
+    .diag-max-btn { display: none; }
     @media (min-width: 700px) { .diag-max-btn { display: inline-block; } }
     #diagWindow.diag-max { inset: 0 !important; border-radius: 0 !important; border: none !important; }
-    #diagWindow.min .diag-win-tools { display: none; }
-    .diag-zoom-sizer { margin: 0 auto; position: relative; }
-    .diag-zoom-inner { transform-origin: 0 0; }
-    .diag-win-body { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px; }
-    .diag-win-body .diag-card { margin: 0 0 10px; }
+    /* Botões de animação que moram no cartão (Animar/Reiniciar, Reproduzir/Reiniciar) são MOVIDOS pra cá enquanto a janela está aberta. */
+    .diag-rail-actions:empty { display: none; }
+    .diag-rail-actions > * { display: flex !important; flex-direction: row !important; gap: 6px !important; margin: 0 !important; }
+    .diag-rail-actions button { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; padding: 7px 8px !important; font-size: 12px !important;
+      line-height: 1.15 !important; border-radius: 8px !important; white-space: normal !important; }
+    .diag-win-main.diag-landscape .diag-rail-actions > * { flex-direction: column !important; width: 100%; }
+    .diag-win-main.diag-landscape .diag-rail-actions button { width: 100% !important; padding: 9px 1px !important; font-size: 11px !important; letter-spacing: -0.1px; }
+    /* Zoom só do diagrama: o cartão não escala; o diagrama cresce a partir da coluna lateral e a área rola. */
+    .diag-zoom-sizer { position: relative; width: 100%; }
+    .diag-zoom-inner { width: 100%; }
+    .diag-win-body { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; scrollbar-gutter: stable; padding: 6px; }
+    #diagWindow .diag-card { margin: 0 !important; padding: 6px 8px !important; display: flex; flex-direction: column; }
+    #diagWindow .diag-card > * { order: 5; }
+    #diagWindow .diag-card > :first-child { order: 0; }
+    #diagWindow .diag-card > .diag-scroll, #diagWindow .diag-card > canvas { order: 1; }
+    /* Tela deitada: o diagrama fica à esquerda (inteiro, sem rolar) e legenda, leituras e seletores ao lado, na direita. */
+    #diagWindow .diag-win-main.diag-landscape .diag-card { display: grid; grid-template-columns: max-content minmax(130px, 1fr);
+      grid-template-rows: auto repeat(10, min-content) 1fr; column-gap: 12px; align-items: start; }
+    #diagWindow .diag-win-main.diag-landscape .diag-card > * { grid-column: 2; order: 0; margin-top: 6px; min-width: 0; }
+    #diagWindow .diag-win-main.diag-landscape .diag-card > :first-child { grid-column: 1 / -1; margin-top: 0; }
+    #diagWindow .diag-win-main.diag-landscape .diag-card > .diag-scroll, #diagWindow .diag-win-main.diag-landscape .diag-card > canvas { grid-column: 1; grid-row: 2 / -1; margin-top: 0; }
+    #diagWindow .diag-head-row { margin-bottom: 4px; }
+    #diagWindow .diag-card .diag-scroll { margin: 0; overflow: visible; }
+    #diagWindow .diag-desc { display: none; }
     .diag-win-body .diag-open-btn { display: none; }
     #diagWindow .cd2-legend { font-size: 13px; gap: 8px 14px; }
     #diagWindow .cd2-chip { font-size: 13px; padding: 7px 12px; color: var(--ink); }
@@ -2451,7 +2486,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="diag-card" data-diag-key="corredor" data-diag-title="Corredor de interceptação" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor (visão superior)</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('corredor')" title="Abrir em janela">⤢ Janela</button></div>
     <div class="diag-scroll"><svg id="cd2CorridorSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
-    <div class="cd2-anim-row">
+    <div class="cd2-anim-row" data-diag-actions>
       <button class="cd2-anim-btn" id="cd2AnimBtn" type="button" onclick="cd2ToggleAnim()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2AnimResetBtn" type="button" onclick="cd2ResetAnim()">↺ Reiniciar</button>
     </div>
@@ -2461,12 +2496,12 @@ body.nvg-red-mode .leaflet-tile-container img {
 
   <div class="diag-card" data-diag-key="compensacao" data-diag-title="Compensação de deslocamento" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Sistema de compensação de deslocamento</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensacao')" title="Abrir em janela">⤢ Janela</button></div>
-    <div style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
+    <div class="diag-desc" style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
     <div class="cd2-target-select" id="cd2TargetSelect"></div>
     <div class="cd2-speed" id="cd2SpeedAll"></div>
     <div id="cd2CompClicks" class="cd2-clicks" aria-live="polite"></div>
     <div class="diag-scroll"><svg id="cd2CompSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
-    <div class="cd2-anim-row">
+    <div class="cd2-anim-row" data-diag-actions>
       <button class="cd2-anim-btn" id="cd2CompAnimBtn" type="button" onclick="cd2ToggleAnimB()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2CompAnimResetBtn" type="button" onclick="cd2ResetAnimB()">↺ Reiniciar</button>
     </div>
@@ -2528,7 +2563,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil de trajetória: câmera lenta</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria-anim')" title="Abrir em janela">⤢ Janela</button></div>
     <div class="diag-scroll"><canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpRaw" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
-    <div style="display:flex; gap:8px; margin-top:10px;">
+    <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaRawCameraPlay()" id="cenaCamRawPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
@@ -2547,7 +2582,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera lenta (lateral)</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-lateral')" title="Abrir em janela">⤢ Janela</button></div>
     <div class="diag-scroll"><canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpLateral" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
-    <div style="display:flex; gap:8px; margin-top:10px;">
+    <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaCameraPlay()" id="cenaCamPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
@@ -2560,7 +2595,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; background:var(--bg); border-radius:6px;"></canvas>
     <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
     <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
-    <div style="display:flex; gap:8px; margin-top:10px;">
+    <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaRearPlay()" id="cenaRearPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaRearAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
@@ -2570,20 +2605,33 @@ body.nvg-red-mode .leaflet-tile-container img {
 </div>
 
 <div id="diagWindow" role="dialog" aria-label="Diagrama em janela">
+  <!-- Cabeçalho: só aparece com a janela MINIMIZADA (vira uma pílula pra restaurar ou fechar). Com a janela aberta,
+       todos os comandos ficam na coluna lateral (#diagRail), pra o diagrama ocupar o máximo da tela. -->
   <div class="diag-win-head">
     <div class="diag-win-title" id="diagWinTitle">Diagrama</div>
-    <button type="button" class="diag-win-btn" id="diagWinRotBtn" onclick="toggleDiagRotate()" title="Girar a janela (use com o celular deitado)">↻</button>
-    <button type="button" class="diag-win-btn" id="diagWinMinBtn" onclick="toggleDiagMinimize()" title="Minimizar / restaurar">▁</button>
-    <button type="button" class="diag-win-btn close" onclick="closeDiagWindow()" title="Fechar">✕</button>
+    <button type="button" class="diag-win-btn" id="diagWinMinBtn" onclick="toggleDiagMinimize()" title="Restaurar">▣</button>
+    <button type="button" class="diag-win-btn close" onclick="closeDiagWindow()" title="Fechar" aria-label="Fechar">✕</button>
   </div>
-  <div class="diag-win-tools" id="diagWinTools">
-    <button type="button" class="diag-win-btn" onclick="diagZoomBy(-0.1)" aria-label="Diminuir o diagrama" title="Diminuir">−</button>
-    <span class="diag-zoom-label" id="diagZoomLabel">100%</span>
-    <button type="button" class="diag-win-btn" onclick="diagZoomBy(0.1)" aria-label="Aumentar o diagrama" title="Aumentar">+</button>
-    <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagZoomReset()" title="Voltar a 100%">100%</button>
-    <button type="button" class="diag-win-btn diag-max-btn" id="diagMaxBtn" onclick="toggleDiagMaximize()" title="Maximizar / restaurar a janela">⤢</button>
+  <div class="diag-win-main" id="diagWinMain">
+    <div class="diag-rail" id="diagRail">
+      <div class="diag-rail-group diag-rail-win">
+        <button type="button" class="diag-win-btn close" onclick="closeDiagWindow()" title="Fechar" aria-label="Fechar">✕</button>
+        <button type="button" class="diag-win-btn" id="diagRailMinBtn" onclick="toggleDiagMinimize()" title="Minimizar" aria-label="Minimizar">▁</button>
+        <button type="button" class="diag-win-btn diag-max-btn" id="diagMaxBtn" onclick="toggleDiagMaximize()" title="Maximizar / restaurar a janela" aria-label="Maximizar">⤢</button>
+        <button type="button" class="diag-win-btn" id="diagWinRotBtn" onclick="toggleDiagRotate()" title="Girar a janela (use com o celular deitado)" aria-label="Girar">↻</button>
+      </div>
+      <div class="diag-rail-group diag-rail-zoom" id="diagWinTools">
+        <div class="diag-zoom-row">
+          <button type="button" class="diag-win-btn" onclick="diagZoomBy(-DIAG_ZOOM_STEP)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+          <button type="button" class="diag-win-btn" onclick="diagZoomBy(DIAG_ZOOM_STEP)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+        </div>
+        <span class="diag-zoom-label" id="diagZoomLabel">100%</span>
+        <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagZoomReset()" title="Ajustar o diagrama à janela">Ajustar</button>
+      </div>
+      <div class="diag-rail-group diag-rail-actions" id="diagRailActions"></div>
+    </div>
+    <div class="diag-win-body" id="diagWinBody"><div class="diag-zoom-sizer" id="diagZoomSizer"><div class="diag-zoom-inner" id="diagZoomInner"></div></div></div>
   </div>
-  <div class="diag-win-body" id="diagWinBody"><div class="diag-zoom-sizer" id="diagZoomSizer"><div class="diag-zoom-inner" id="diagZoomInner"></div></div></div>
 </div>
 
 <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
@@ -3073,7 +3121,7 @@ body.nvg-red-mode .leaflet-tile-container img {
           <button type="button" class="btn-medir-rotate" onclick="rotateMedirMap(-${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa -22.5°">⟲</button>
           <button type="button" class="btn-medir-rotate" onclick="rotateMedirMap(${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa +22.5°">⟳</button>
         </div>
-        <div id="medirBearingReadout" style="font-size:9px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">0°</div>
+        <div id="medirBearingReadout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">0°</div>
       `;
       container.appendChild(group);
 
@@ -3670,30 +3718,60 @@ function windDriftCm(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
 // O card do diagrama (SVG/canvas + pills + botões + legenda) é MOVIDO pra janela
 // (não clonado), então ids, animações e pills continuam funcionando; ao fechar
 // volta pro lugar de origem. Nenhum cálculo balístico é tocado aqui.
-const DIAG_WIN = { card: null, placeholder: null, rot: null, min: false, max: false, key: null, zoom: 1, zoomByKey: {} };
-const DIAG_ZOOM_MIN = 0.4, DIAG_ZOOM_MAX = 1.5;
-// Zoom do conteúdo da janela (diagrama + legendas + botões + leituras): escala o bloco inteiro por transform e
-// ajusta o "sizer" ao tamanho escalado, então a rolagem e o espaço da janela acompanham. Padrão 100%; lembra o zoom por diagrama na sessão.
-function diagZoomApply() {
-  const inner = document.getElementById('diagZoomInner'), sizer = document.getElementById('diagZoomSizer'), body = document.getElementById('diagWinBody');
-  if (!inner || !sizer || !body) return;
+const DIAG_WIN = { card: null, placeholder: null, rot: null, min: false, max: false, key: null, zoom: 1, zoomByKey: {}, diagEl: null, orig: null, act: null, ro: null };
+const DIAG_ZOOM_MIN = 0.5, DIAG_ZOOM_MAX = 3, DIAG_ZOOM_STEP = 0.25;
+// Janela do diagrama: coluna de comandos (fechar, minimizar, maximizar, girar, zoom, animação) ao lado, e o diagrama
+// ocupando o resto. 100% = diagrama AJUSTADO à janela (cabe inteiro na vista inicial); o zoom mexe só no tamanho do
+// diagrama (legendas, botões e leituras não escalam) e a área rola a partir da coluna lateral. Lembra o zoom por diagrama.
+function diagDiagramEl(card) { return card ? card.querySelector('svg[viewBox], canvas') : null; }
+function diagOffsetTop(el, stop) {
+  // posição do elemento dentro da área de rolagem, em pixels de layout (não muda com a rotação da janela)
+  let t = 0, n = el;
+  if (n && !(n instanceof HTMLElement)) n = n.parentElement;   // <svg> não tem offsetTop: é um bloco sem margem dentro do wrapper
+  while (n && n !== stop) { t += n.offsetTop || 0; n = n.offsetParent; }
+  return t;
+}
+function diagFitApply() {
+  const card = DIAG_WIN.card, body = document.getElementById('diagWinBody'), el = DIAG_WIN.diagEl;
+  if (!card || !body || !el) return;
+  let aspect = 640 / 460;
+  if (el.tagName.toLowerCase() === 'svg') { const vb = el.viewBox && el.viewBox.baseVal; if (vb && vb.width && vb.height) aspect = vb.width / vb.height; }
+  else if (el.width && el.height) aspect = el.width / el.height;
+  const bcs = getComputedStyle(body), ccs = getComputedStyle(card);
+  const padL = parseFloat(bcs.paddingLeft) + parseFloat(ccs.paddingLeft) + parseFloat(ccs.borderLeftWidth);
+  const padR = parseFloat(bcs.paddingRight) + parseFloat(ccs.paddingRight) + parseFloat(ccs.borderRightWidth);
+  const padB = parseFloat(bcs.paddingBottom) + parseFloat(ccs.paddingBottom) + parseFloat(ccs.borderBottomWidth);
+  // tela deitada: reserva uma coluna à direita pra legenda e leituras
+  const reserve = document.getElementById('diagWinMain').classList.contains('diag-landscape') ? (aspect > 2 ? 150 : 212) : 0;
+  const maxW = body.clientWidth - padL - padR - reserve;
+  const top = diagOffsetTop(el, body);
+  const availH = body.clientHeight - top - padB - 4;
+  let fit = maxW;
+  if (availH > 120) fit = Math.min(maxW, availH * aspect);
+  fit = Math.max(160, fit);
   const z = DIAG_WIN.zoom || 1;
-  const w0 = Math.max(200, body.clientWidth - 16);
-  inner.style.width = w0 + 'px';
-  inner.style.transform = 'scale(' + z + ')';
-  sizer.style.width = Math.round(w0 * z) + 'px';
-  sizer.style.height = Math.round(inner.offsetHeight * z) + 'px';
+  const W = Math.round(fit * z);
+  if (el.style.width !== W + 'px') el.style.width = W + 'px';
+  el.style.maxWidth = 'none'; el.style.height = 'auto';
   const lb = document.getElementById('diagZoomLabel');
   if (lb) lb.textContent = Math.round(z * 100) + '%';
+  if (el.tagName.toLowerCase() === 'svg') applyDiagFontScale(el);
 }
+function diagLayoutApply() {
+  const w = document.getElementById('diagWindow'), main = document.getElementById('diagWinMain');
+  if (!w || !main || !DIAG_WIN.card) return;
+  main.classList.toggle('diag-landscape', w.clientWidth >= w.clientHeight * 1.1);
+  diagFitApply();
+}
+function diagZoomApply() { diagLayoutApply(); }
 function diagZoomSet(z) {
-  z = Math.min(DIAG_ZOOM_MAX, Math.max(DIAG_ZOOM_MIN, Math.round(z * 10) / 10));
+  z = Math.min(DIAG_ZOOM_MAX, Math.max(DIAG_ZOOM_MIN, Math.round(z * 20) / 20));
   DIAG_WIN.zoom = z;
   if (DIAG_WIN.key) DIAG_WIN.zoomByKey[DIAG_WIN.key] = z;
   diagZoomApply();
 }
 function diagZoomBy(delta) { diagZoomSet((DIAG_WIN.zoom || 1) + delta); }
-function diagZoomReset() { diagZoomSet(1); }
+function diagZoomReset() { diagZoomSet(1); const b = document.getElementById('diagWinBody'); if (b) { b.scrollTop = 0; b.scrollLeft = 0; } }
 function toggleDiagMaximize() {
   DIAG_WIN.max = !DIAG_WIN.max;
   const w = document.getElementById('diagWindow');
@@ -3702,13 +3780,14 @@ function toggleDiagMaximize() {
   if (b) b.textContent = DIAG_WIN.max ? '⤡' : '⤢';
   diagZoomApply();
 }
-(function setupDiagZoomObserver() {
+(function setupDiagWindowObserver() {
   const start = () => {
     if (!window.ResizeObserver) return;
-    const inner = document.getElementById('diagZoomInner'), body = document.getElementById('diagWinBody');
-    if (!inner || !body) return;
-    const ro = new ResizeObserver(() => { if (DIAG_WIN.card) diagZoomApply(); });
-    ro.observe(inner); ro.observe(body);
+    let raf = 0;
+    const run = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; if (DIAG_WIN.card) diagLayoutApply(); }); };
+    const ro = new ResizeObserver(run);
+    ['diagWindow', 'diagWinBody'].forEach(id => { const e = document.getElementById(id); if (e) ro.observe(e); });
+    DIAG_WIN.ro = ro;
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
@@ -3722,8 +3801,7 @@ function diagApplyLayout() {
   const rb = document.getElementById('diagWinRotBtn');
   if (rb) rb.style.display = portrait ? '' : 'none';
   w.classList.toggle('min', DIAG_WIN.min);
-  const mb = document.getElementById('diagWinMinBtn');
-  if (mb) mb.textContent = DIAG_WIN.min ? '▣' : '▁';
+  diagLayoutApply();
 }
 function openDiagWindow(key) {
   const card = document.querySelector('.diag-card[data-diag-key="' + key + '"]');
@@ -3735,24 +3813,45 @@ function openDiagWindow(key) {
   ph.className = 'diag-placeholder';
   ph.innerHTML = '<span>Aberto em janela: ' + (card.dataset.diagTitle || '') + '</span><button type="button" onclick="closeDiagWindow()">Trazer de volta</button>';
   card.parentNode.insertBefore(ph, card);
+  // Botões de animação do cartão (Animar/Reiniciar...) vão pra coluna lateral enquanto a janela está aberta.
+  const act = card.querySelector('[data-diag-actions]');
+  DIAG_WIN.act = null;
+  if (act) {
+    DIAG_WIN.act = { node: act, parent: act.parentNode, next: act.nextSibling };
+    document.getElementById('diagRailActions').appendChild(act);
+  }
   document.getElementById('diagZoomInner').appendChild(card);
+  const el = diagDiagramEl(card);
+  DIAG_WIN.diagEl = el;
+  DIAG_WIN.orig = el ? { width: el.style.width, maxWidth: el.style.maxWidth, height: el.style.height } : null;
   DIAG_WIN.card = card; DIAG_WIN.placeholder = ph; DIAG_WIN.min = false; DIAG_WIN.rot = null;
   DIAG_WIN.key = key; DIAG_WIN.zoom = DIAG_WIN.zoomByKey[key] || 1;
   document.getElementById('diagWinTitle').textContent = card.dataset.diagTitle || 'Diagrama';
   w.classList.add('open');
-  body.scrollTop = 0;
+  body.scrollTop = 0; body.scrollLeft = 0;
+  if (DIAG_WIN.ro) DIAG_WIN.ro.observe(card);
   diagApplyLayout();
   try { renderCenaDisparoVisuals(); } catch (e) {}
   diagZoomApply();
 }
 function closeDiagWindow() {
   const w = document.getElementById('diagWindow');
+  if (DIAG_WIN.ro && DIAG_WIN.card) { try { DIAG_WIN.ro.unobserve(DIAG_WIN.card); } catch (e) {} }
+  // devolve ao cartão os botões de animação e o tamanho original do diagrama, antes de o cartão voltar à página
+  if (DIAG_WIN.act && DIAG_WIN.act.node) {
+    const a = DIAG_WIN.act;
+    if (a.next && a.next.parentNode === a.parent) a.parent.insertBefore(a.node, a.next); else a.parent.appendChild(a.node);
+  }
+  if (DIAG_WIN.diagEl && DIAG_WIN.orig) {
+    DIAG_WIN.diagEl.style.width = DIAG_WIN.orig.width; DIAG_WIN.diagEl.style.maxWidth = DIAG_WIN.orig.maxWidth; DIAG_WIN.diagEl.style.height = DIAG_WIN.orig.height;
+  }
   if (DIAG_WIN.card && DIAG_WIN.placeholder && DIAG_WIN.placeholder.parentNode) {
     DIAG_WIN.placeholder.parentNode.insertBefore(DIAG_WIN.card, DIAG_WIN.placeholder);
     DIAG_WIN.placeholder.remove();
   }
   const hadCard = !!DIAG_WIN.card;
   DIAG_WIN.card = null; DIAG_WIN.placeholder = null; DIAG_WIN.min = false; DIAG_WIN.max = false; DIAG_WIN.key = null;
+  DIAG_WIN.diagEl = null; DIAG_WIN.orig = null; DIAG_WIN.act = null;
   if (w) { w.classList.remove('open', 'min', 'diag-rot', 'diag-max'); }
   const mb = document.getElementById('diagMaxBtn'); if (mb) mb.textContent = '⤢';
   if (hadCard) { try { renderCenaDisparoVisuals(); } catch (e) {} }
@@ -3769,7 +3868,11 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && DIAG_WIN
 // dentro da janela. Só muda o texto; escala, eixos e geometria do gráfico continuam iguais.
 const DIAG_PAGE_FONT_K = 1.4;
 function diagFontK(el) {
-  if (el.closest('#diagWindow')) return 1;
+  if (el.closest('#diagWindow')) {
+    // dentro da janela o diagrama pode ficar menor que as 640 unidades do desenho: compensa o texto de leve (no máximo 25%)
+    const wpx = parseFloat(el.style.width) || el.clientWidth || 640;
+    return Math.min(1.25, Math.max(1, 0.85 / (wpx / 640)));
+  }
   // largura renderizada; se a aba estiver escondida (0), estima pela tela: celular ~320px, computador limitado a 760px
   const w = el.getBoundingClientRect().width || Math.min(window.innerWidth - 40, 760);
   return w >= 600 ? 1.1 : DIAG_PAGE_FONT_K;
@@ -4220,7 +4323,7 @@ function cd2ModeInfo(mode) { return CD2_MODES[mode === 'rapido' ? 'correndo' : m
 // Arrastar: distância em passos de 10 m, deslocamento lateral em 0,1 m (dentro da escala do diagrama).
 const CD2_DRAG_STEP_M = 10, CD2_MIN_DIST_M = 10, CD2_MAX_OFFSET_M = 4.5;
 const CD2_RISK_SIGMA = 1.2;
-const CD2_ICON_SCALE = 1.3;   // tamanho dos alvos no corredor (1 = original)
+const CD2_ICON_SCALE = 1.56;   // tamanho dos alvos no corredor (1 = original)
 const CD2_RISK_CRITICAL = 65, CD2_RISK_WARN = 30;
 const CD2_ANIM_DURATION_S = 10; // duração visual — o tempo real de voo é bem menor
 const CD2_SIGHT_YELLOW = '#e8c948';
@@ -4666,7 +4769,7 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
     s += `<line id="cd2-comp-trail-${row.id}" x1="${xC}" y1="${yStart}" x2="${xC}" y2="${yArrive}" stroke="${color}" stroke-width="${isSel ? 2.1 : 1.6}" stroke-dasharray="3 3" opacity="${isSel ? 0.85 : 0.42}"/>`;
     s += `<circle cx="${xC}" cy="${yArrive}" r="${isSel ? 3.6 : 3}" fill="none" stroke="${isSel ? 'var(--muted)' : 'var(--line)'}" stroke-width="1.3"/>`;
     s += `</g>`;
-    const scIcon = isSel ? 1.45 : 0.95;
+    const scIcon = isSel ? 1.74 : 1.14;
     s += `<g id="cd2-comp-mover-${row.id}" transform="translate(${xC},${yStart})">`;
     s += `<g opacity="${isSel ? 1 : 0.62}">${cd2TargetIconSvg(color, scIcon)}</g>`;
     s += cd2DragHitSvg(row, scIcon, kb, ratio);
