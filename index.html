@@ -2750,7 +2750,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     const TACTICAL_MARKER_TYPES = [
       // ===== Dock horizontal (rodapé) — MEIOS =====
       { id: 'patrol',    label: 'Patrulha',   icon: 'icons/patrol.png',   dock: 'h' },
-      { id: 'sniper',    label: 'Sniper',     icon: 'icons/sniper.png',   dock: 'h' },
+      { id: 'sniper',    label: 'Desig',      icon: 'icons/sniper.png',   dock: 'h' },
       { id: 'target',    label: 'Alvo',       icon: 'icons/target.png',   dock: 'h' },
       { id: 'armored',   label: 'Blindado',   icon: 'icons/armored.png', dock: 'h' },
       { id: 'drone',     label: 'Drone',      icon: 'icons/drone.png',    dock: 'h' },
@@ -2763,7 +2763,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       { id: 'eab',       label: 'EAB',        icon: 'icons/eab.png',      dock: 'h' },
       { id: 'canil',     label: 'Canil',      icon: 'icons/canil.png',    dock: 'h' },
       // ===== Dock lateral (borda direita) — RISCOS =====
-      { id: 'contencao', label: 'Armas',      icon: 'icons/armas.png',     dock: 'l' },
+      { id: 'contencao', label: 'Ameaça',     icon: 'icons/armas.png',     dock: 'l' },
       { id: 'radinhos',  label: 'Rad.',       icon: 'icons/Radboca.png',   dock: 'l' },
       { id: 'seteira',   label: 'Seteira',    icon: 'icons/loophole.png',  dock: 'l' },
       { id: 'trilho',    label: 'Trilho',     icon: 'icons/trilho.png',    dock: 'l' },
@@ -6945,7 +6945,27 @@ function tacticalIconSizeForZoom(zoom) {
   return Math.min(Math.round(size), maxSize);
 }
 
-function tacticalMarkerIcon(typeId, hasPhoto, size, pin) {
+// Identificação de quem marcou cada ponto: etiqueta com o nome do operador, na cor dele, ao lado do ícone.
+// A cor sai do próprio nome (mesmo nome = mesma cor em todos os aparelhos e abas, sem cadastro nenhum).
+function operatorEsc(txt) {
+  return String(txt == null ? '' : txt).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+function operatorColor(name) {
+  const k = String(name || '').trim().toLowerCase();
+  let h = 0;
+  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+  return `hsl(${(h * 47) % 360}, 68%, 40%)`;
+}
+// full=true (tabela da aba Pontos): nome inteiro, sem cortar; no balão do mapa corta com "..." quando é muito comprido.
+function operatorChipHtml(name, full) {
+  const n = String(name || '').trim();
+  if (!n) return '';
+  const size = full ? 'font-size:12px; line-height:20px; padding:0 9px; border-radius:10px; white-space:nowrap;' : 'font-size:10px; line-height:16px; padding:0 6px; border-radius:8px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+  return `<span style="display:inline-block; background:${operatorColor(n)}; color:#fff; font-weight:700; vertical-align:middle; ${size}" title="${operatorEsc(n)}">${operatorEsc(n)}</span>`;
+}
+
+// `zoom` (opcional): mais longe que o zoom 13 as etiquetas somem pra não poluir o mapa.
+function tacticalMarkerIcon(typeId, hasPhoto, size, pin, zoom) {
   const t = getTacticalType(typeId);
   const s = size || 34;
   const badge = Math.round(s * 0.44);
@@ -6953,7 +6973,13 @@ function tacticalMarkerIcon(typeId, hasPhoto, size, pin) {
   // verde/vermelho), então vira divIcon mesmo sem foto — o resto (ícone
   // simples, com badge de foto) continua exatamente como antes.
   const isPiece = !!(pin && pin.piece);
-  if (!hasPhoto && !isPiece) {
+  // Rascunho de peça (ainda não registrada) não tem autor; os demais pontos mostram o operador.
+  const opName = (pin && !(pin.piece && !pin.locked)) ? String(pin.operator || '').trim() : '';
+  const showTag = !!opName && (typeof zoom !== 'number' || zoom >= 13);
+  const opTag = showTag
+    ? `<span class="tactical-op-tag" style="position:absolute; left:${Math.round(s * 0.82)}px; top:${Math.round(s * 0.18)}px; background:${operatorColor(opName)}; color:#fff; border:1px solid rgba(255,255,255,0.85); border-radius:9px; padding:0 6px; font-size:10px; font-weight:700; line-height:15px; max-width:96px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.6); pointer-events:none;">${operatorEsc(opName)}</span>`
+    : '';
+  if (!hasPhoto && !isPiece && !showTag) {
     return L.icon({ iconUrl: t.icon, iconSize: [s, s], iconAnchor: [s / 2, s], popupAnchor: [0, -s + 4], className: 'tactical-marker-icon' });
   }
   const photoBadge = hasPhoto
@@ -6973,6 +6999,7 @@ function tacticalMarkerIcon(typeId, hasPhoto, size, pin) {
              <img src="${t.icon}" style="width:${s}px; height:${s}px; object-fit:contain; display:block;">
              ${photoBadge}
              ${lockBadge}
+             ${opTag}
            </div>`,
     iconSize: [s, s],
     iconAnchor: [s / 2, s],
@@ -7025,7 +7052,7 @@ function tacticalPopupHtml(pin) {
       ${pin.piece ? `<div style="font-size:10px; color:var(--muted); margin-top:2px;">${pin.locked ? '🔴 Travado' : '🟢 Livre'}</div>` : ''}
       ${pin.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${pin.localidade}</div>` : ''}
       ${pin.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${pin.observation}</div>` : ''}
-      <div style="font-size:10px; color:var(--muted); margin-top:6px;">${pin.operator || ''}${when ? ' · ' + when : ''}</div>
+      <div style="font-size:10px; color:var(--muted); margin-top:6px;">${operatorChipHtml(pin.operator)}${when ? ' · ' + when : ''}</div>
       ${photo}
       ${completeBtn}
       <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" style="margin-top:8px; width:100%; background:#25D366; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">📲 Compartilhar no WhatsApp</button>
@@ -7047,8 +7074,8 @@ function refreshTacticalMarkersUI() {
 
   Object.values(tacticalMarkers).forEach(pin => {
     if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
-    const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin);
-    const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin);
+    const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin, mapNormal ? mapNormal.getZoom() : undefined);
+    const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin, mapRelevo ? mapRelevo.getZoom() : undefined);
     const mkNormal = L.marker([pin.lat, pin.lng], { icon: iconNormal }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
     mkNormal._pinId = pin.id;
     // aba Pontos (Relevo): só leitura/consulta pra QUALQUER marcador — dados
@@ -7065,7 +7092,7 @@ function refreshTacticalMarkersUI() {
     // igual já acontece em Normal/Relevo; só o selo de trava (exclusivo de
     // peça) continua condicional.
     if (tacticalLayerEstrategia && mapEstrategia) {
-      const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin);
+      const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin, mapEstrategia.getZoom());
       const mkEstrategia = L.marker([pin.lat, pin.lng], { icon: iconEstrategia }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerEstrategia);
       mkEstrategia._pinId = pin.id;
       attachTacticalMarkerLongPressDrag(mkEstrategia, pin, mapEstrategia);
@@ -7373,7 +7400,7 @@ function renderTacticalMarkersTable() {
         <td style="color:var(--muted); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${coords}</td>
         <td style="color:var(--sem-hostile); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${shooterCoords}</td>
         <td style="color:var(--muted); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.observation || '-'}</td>
-        <td style="color:var(--muted);">${pin.operator || '-'}</td>
+        <td style="color:var(--muted);">${operatorChipHtml(pin.operator, true) || '-'}</td>
         <td style="color:var(--muted); font-size:12px; white-space:nowrap;">${when}</td>
         <td style="text-align:center;">${photo}</td>
         <td style="text-align:center; white-space:nowrap;">
