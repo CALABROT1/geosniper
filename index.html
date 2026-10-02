@@ -767,6 +767,31 @@
     #diagWindow .cd2-chip.cd2-active { border-color: #ff6b6b; background: rgba(255,107,107,0.18); }
     #diagWindow .cd2-anim-readout { font-size: 13px; color: var(--muted); }
 
+    /* ===== Diagramas nas abas Simulação e Perfis (tela larga): comandos e zoom à esquerda, diagrama no meio, pills e textos à direita.
+       O zoom mexe só no diagrama (a área dele rola); em celular em pé nada muda (empilhado, como antes). ===== */
+    .diag-zoombar { display: none; }
+    #diagWindow .diag-zoombar { display: none !important; }
+    @media (min-width: 760px) {
+      #tabCenaSimulacao .diag-card, #tabCenaPerfis .diag-card { display: grid; grid-template-columns: 92px var(--diag-col, minmax(320px, 760px)) minmax(240px, 1fr);
+        grid-template-rows: auto auto repeat(10, min-content) 1fr; column-gap: 14px; align-items: start; grid-auto-flow: row dense; }
+      /* o ::before ocupa a linha 2 inteira pra os itens da direita nunca subirem acima do diagrama (que começa na linha 3) */
+      #tabCenaSimulacao .diag-card::before, #tabCenaPerfis .diag-card::before { content: ""; grid-column: 1 / -1; grid-row: 2; }
+      #tabCenaSimulacao .diag-card > *, #tabCenaPerfis .diag-card > * { grid-column: 3; margin-top: 8px; min-width: 0; }
+      #tabCenaSimulacao .diag-card > :first-child, #tabCenaPerfis .diag-card > :first-child { grid-column: 1 / -1; grid-row: 1; margin-top: 0; }
+      #tabCenaSimulacao .diag-card > .diag-desc, #tabCenaPerfis .diag-card > .diag-desc { grid-column: 1 / -1; grid-row: 2; }
+      #tabCenaSimulacao .diag-card > .diag-scroll, #tabCenaPerfis .diag-card > .diag-scroll { grid-column: 2; grid-row: 3 / -1; margin: 0; max-width: none;
+        overflow-x: auto; overflow-y: hidden; }
+      #tabCenaSimulacao .diag-card > .diag-zoombar, #tabCenaPerfis .diag-card > .diag-zoombar { grid-column: 1; order: -1; display: flex; flex-direction: column;
+        align-items: stretch; gap: 5px; margin-top: 0; }
+      .diag-card > .diag-zoombar .diag-zoom-row { display: flex; gap: 4px; }
+      .diag-card > .diag-zoombar .diag-win-btn { flex: 1; min-width: 0; height: 32px; padding: 0; font-size: 15px; }
+      .diag-card > .diag-zoombar .diag-zoom-reset { font-size: 11px; }
+      #tabCenaSimulacao .diag-card > [data-diag-actions], #tabCenaPerfis .diag-card > [data-diag-actions] { grid-column: 1; display: flex !important;
+        flex-direction: column !important; gap: 6px !important; margin-top: 12px !important; }
+      #tabCenaSimulacao .diag-card > [data-diag-actions] button, #tabCenaPerfis .diag-card > [data-diag-actions] button { width: 100% !important; flex: none !important;
+        padding: 9px 2px !important; font-size: 12px !important; line-height: 1.15 !important; border-radius: 8px !important; white-space: normal !important; }
+    }
+
     /* Tabela de cenário: no computador, colunas compactas com uma imagem no espaço livre */
     @media (min-width: 901px) {
       .cd2-table-layout { display: flex; gap: 32px; align-items: flex-start; }
@@ -2492,6 +2517,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.</div>
     <div class="cd2-legend" id="cd2CorridorLegend"></div>
+    <div class="diag-zoombar" data-diag-zoom="corredor">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('corredor', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('corredor', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('corredor', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 
   <div class="diag-card" data-diag-key="compensacao" data-diag-title="Compensação de deslocamento" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -2508,6 +2541,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione um alvo móvel acima pra calcular a compensação.</div>
     <div id="cd2CompReadout"></div>
     <div class="cd2-legend" id="cd2CompLegend"></div>
+    <div class="diag-zoombar" data-diag-zoom="compensacao">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('compensacao', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('compensacao', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('compensacao', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 
   <div style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -2557,6 +2598,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div class="diag-scroll"><svg id="trajectoryProfileSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+    <div class="diag-zoombar" data-diag-zoom="trajetoria">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('trajetoria', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('trajetoria', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('trajetoria', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 
   <div class="diag-card" data-diag-key="trajetoria-anim" data-diag-title="Perfil de trajetória: câmera lenta" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -2569,6 +2618,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div id="cenaCamRawReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
     <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div class="diag-zoombar" data-diag-zoom="trajetoria-anim">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('trajetoria-anim', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('trajetoria-anim', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('trajetoria-anim', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 
   <div class="diag-card" data-diag-key="compensado" data-diag-title="Perfil compensado" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -2576,6 +2633,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div id="compensatedReadout" style="font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
     <div class="diag-scroll"><svg id="compensatedProfileStaticSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
     <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+    <div class="diag-zoombar" data-diag-zoom="compensado">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('compensado', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('compensado', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('compensado', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 
   <div class="diag-card" data-diag-key="comp-lateral" data-diag-title="Perfil compensado: câmera lenta (lateral)" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
@@ -2588,11 +2653,19 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div id="cenaCamReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
     <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div class="diag-zoombar" data-diag-zoom="comp-lateral">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('comp-lateral', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('comp-lateral', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('comp-lateral', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 
   <div class="diag-card" data-diag-key="comp-traseira" data-diag-title="Perfil compensado: câmera traseira" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
     <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera traseira</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-traseira')" title="Abrir em janela">⤢ Janela</button></div>
-    <canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; background:var(--bg); border-radius:6px;"></canvas>
+    <div class="diag-scroll"><canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; background:var(--bg); border-radius:6px;"></canvas></div>
     <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
     <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
     <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
@@ -2601,6 +2674,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div id="cenaRearReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
     <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div class="diag-zoombar" data-diag-zoom="comp-traseira">
+      <div class="diag-zoom-row">
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('comp-traseira', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
+        <button type="button" class="diag-win-btn" onclick="diagCardZoom('comp-traseira', 1)" aria-label="Aumentar o diagrama" title="Aumentar só o diagrama">+</button>
+      </div>
+      <span class="diag-zoom-label">100%</span>
+      <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('comp-traseira', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
+    </div>
   </div>
 </div>
 
@@ -3854,7 +3935,7 @@ function closeDiagWindow() {
   DIAG_WIN.diagEl = null; DIAG_WIN.orig = null; DIAG_WIN.act = null;
   if (w) { w.classList.remove('open', 'min', 'diag-rot', 'diag-max'); }
   const mb = document.getElementById('diagMaxBtn'); if (mb) mb.textContent = '⤢';
-  if (hadCard) { try { renderCenaDisparoVisuals(); } catch (e) {} }
+  if (hadCard) { try { renderCenaDisparoVisuals(); } catch (e) {} try { diagPageLayoutAll(); } catch (e) {} }
 }
 function toggleDiagMinimize() { DIAG_WIN.min = !DIAG_WIN.min; diagApplyLayout(); }
 function toggleDiagRotate() {
@@ -3863,6 +3944,63 @@ function toggleDiagRotate() {
 }
 window.addEventListener('resize', () => { if (DIAG_WIN.card) diagApplyLayout(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && DIAG_WIN.card && !DIAG_WIN.min) closeDiagWindow(); });
+
+// ---- Diagramas nas abas Simulação e Perfis (tela larga) ----
+// Mesmo desenho da janela: comandos e zoom à esquerda, diagrama no meio e pills/textos à direita. 100% = diagrama ajustado
+// ao espaço do meio; o zoom só muda o tamanho do diagrama (a área dele rola). Em tela estreita volta ao layout empilhado.
+const DIAG_PAGE = { zoom: {}, ro: null };
+function diagPageWide() { return window.matchMedia('(min-width: 760px)').matches; }
+function diagPageCards() { return Array.from(document.querySelectorAll('#tabCenaSimulacao .diag-card, #tabCenaPerfis .diag-card')); }
+function diagPageLayout(card) {
+  if (!card || card.closest('#diagWindow')) return;
+  const el = diagDiagramEl(card);
+  if (!el) return;
+  if (!el.dataset.origStyle) el.dataset.origStyle = JSON.stringify({ width: el.style.width, maxWidth: el.style.maxWidth, margin: el.style.margin });
+  const orig = JSON.parse(el.dataset.origStyle);
+  if (!diagPageWide()) {
+    card.style.removeProperty('--diag-col');
+    el.style.width = orig.width; el.style.maxWidth = orig.maxWidth; el.style.margin = orig.margin;
+    return;
+  }
+  if (!card.clientWidth) return;   // aba escondida: o observador chama de novo quando ela aparecer
+  let aspect = 640 / 460;
+  if (el.tagName.toLowerCase() === 'svg') { const vb = el.viewBox && el.viewBox.baseVal; if (vb && vb.width && vb.height) aspect = vb.width / vb.height; }
+  else if (el.width && el.height) aspect = el.width / el.height;
+  const cs = getComputedStyle(card);
+  const inner = card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const cap = aspect < 1.3 ? 420 : 820;                    // diagrama quadrado (câmera traseira) não precisa ser enorme
+  const fit = Math.round(Math.max(320, Math.min(cap, inner - 92 - 28 - 260)));
+  const z = DIAG_PAGE.zoom[card.dataset.diagKey] || 1;
+  card.style.setProperty('--diag-col', fit + 'px');
+  const W = Math.round(fit * z) + 'px';
+  if (el.style.width !== W) el.style.width = W;
+  el.style.maxWidth = 'none'; el.style.margin = '0'; el.style.height = 'auto';
+  const lb = card.querySelector('.diag-zoombar .diag-zoom-label');
+  if (lb) lb.textContent = Math.round(z * 100) + '%';
+  if (el.tagName.toLowerCase() === 'svg') applyDiagFontScale(el);
+}
+function diagPageLayoutAll() { diagPageCards().forEach(diagPageLayout); }
+function diagCardZoom(key, dir) {
+  const cur = DIAG_PAGE.zoom[key] || 1;
+  const z = dir === 0 ? 1 : Math.min(DIAG_ZOOM_MAX, Math.max(DIAG_ZOOM_MIN, Math.round((cur + dir * DIAG_ZOOM_STEP) * 20) / 20));
+  DIAG_PAGE.zoom[key] = z;
+  const card = document.querySelector('.diag-card[data-diag-key="' + key + '"]');
+  diagPageLayout(card);
+  if (dir === 0 && card) { const sc = card.querySelector('.diag-scroll'); if (sc) sc.scrollLeft = 0; }
+}
+(function setupDiagPageLayout() {
+  const start = () => {
+    if (!window.ResizeObserver) return;
+    let raf = 0;
+    const run = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; diagPageLayoutAll(); }); };
+    const ro = new ResizeObserver(run);
+    diagPageCards().forEach(c => ro.observe(c));
+    DIAG_PAGE.ro = ro;
+    window.addEventListener('resize', run);
+    run();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
 
 // Fontes dos diagramas: maiores na página (onde ficavam minúsculas no celular) e no tamanho original
 // dentro da janela. Só muda o texto; escala, eixos e geometria do gráfico continuam iguais.
