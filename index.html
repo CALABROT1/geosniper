@@ -192,6 +192,16 @@
       touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
     }
     .dist-info-panel.dist-panel-dragging { cursor: grabbing; transition: none; }
+    /* Faixa de leitura do balão (Distância · Cliques · Telemetria): vidro escuro translúcido pra contrastar com o verde militar.
+       Não aumenta o balão: o preenchimento e a borda são compensados por margens negativas (mesma altura de antes). */
+    .dist-readout {
+      margin: -4px -10px 2px; padding: 3px 9px 1px; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px;
+      background: linear-gradient(180deg, rgba(6,10,18,0.68) 0%, rgba(6,10,18,0.46) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 1px 3px rgba(0,0,0,0.35);
+      -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+    }
+    .dist-readout > :last-child { margin-bottom: 0 !important; }
     /* Botão redondo no canto superior do balão (minimizar) — tamanho em "em"
        (mantido por consistência com os outros botões do balão, mesmo sem
        mais nenhum toggle de fonte no próprio painel). */
@@ -4210,6 +4220,7 @@ function cd2ModeInfo(mode) { return CD2_MODES[mode === 'rapido' ? 'correndo' : m
 // Arrastar: distância em passos de 10 m, deslocamento lateral em 0,1 m (dentro da escala do diagrama).
 const CD2_DRAG_STEP_M = 10, CD2_MIN_DIST_M = 10, CD2_MAX_OFFSET_M = 4.5;
 const CD2_RISK_SIGMA = 1.2;
+const CD2_ICON_SCALE = 1.3;   // tamanho dos alvos no corredor (1 = original)
 const CD2_RISK_CRITICAL = 65, CD2_RISK_WARN = 30;
 const CD2_ANIM_DURATION_S = 10; // duração visual — o tempo real de voo é bem menor
 const CD2_SIGHT_YELLOW = '#e8c948';
@@ -4502,25 +4513,25 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
     s += `</g>`;
 
     s += `<g id="cd2-mover-${row.id}" transform="translate(${xC},${yStart})">`;
-    s += cd2TargetIconSvg(color, 1);
-    s += cd2DragHitSvg(row, 1, kb, ratio);
+    s += cd2TargetIconSvg(color, CD2_ICON_SCALE);
+    s += cd2DragHitSvg(row, CD2_ICON_SCALE, kb, ratio);
     s += `</g>`;
 
     // Rotulos ficam do lado de FORA do alvo (longe da linha central), pra nao se enfiarem entre o alvo e a trajetoria.
     // Em cima, ficam acima do quadradinho de velocidade. Se nao couber no grafico, volta pro lado de dentro.
     const L = 17;
-    const topClear = 6.2 + 25 * kbB + 6;
+    const topClear = 6.2 * CD2_ICON_SCALE + 25 * kbB + 6;
     let above = upperHalf;
     if (above && yStart - topClear - L < MT + 12) above = false;
-    if (!above && yStart + 37 + L > MT + plotH - 2) above = true;
+    if (!above && yStart + 37 * CD2_ICON_SCALE + L > MT + plotH - 2) above = true;
     const halo = 'paint-order="stroke fill" stroke="var(--bg)" stroke-width="3" stroke-linejoin="round"';
     // Duas linhas (distancia e risco): a velocidade fica no quadradinho e na tabela. Com 3 linhas os rotulos de alvos vizinhos (~40px de distancia) se sobrepunham.
-    const yTop = above ? yStart - topClear - L : yStart + 37;
+    const yTop = above ? yStart - topClear - L : yStart + 37 * CD2_ICON_SCALE;
     s += `<g data-aux="${row.id}">`;
     s += `<text x="${xC}" y="${yTop}" fill="var(--muted)" font-size="12" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${row.d}m</text>`;
     s += `<text x="${xC}" y="${yTop + L}" fill="${color}" font-size="12.5" font-weight="700" text-anchor="middle" font-family="var(--font-mono)" ${halo}>${Math.round(row.risk)}%</text>`;
     s += `</g>`;
-    badges += cd2BadgeSvg(row, 1, kbB, false, 'cd2-badge-', xC, yStart, ratio);
+    badges += cd2BadgeSvg(row, CD2_ICON_SCALE, kbB, false, 'cd2-badge-', xC, yStart, ratio);
   });
   s += badges;
 
@@ -8659,9 +8670,11 @@ function initMaps(lat, lng) {
       if (panelEl) {
         panelEl.innerHTML = `
           <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
+          <div class="dist-readout">
           <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
           <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
           <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:#c9d4b8; letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+          </div>
           <!-- Posição ❶/❷: MOAs relativos à distância e ao vento (se houver),
                lado a lado — preenchidos logo abaixo, junto com renderMiniReticle. -->
           <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
@@ -8959,6 +8972,7 @@ function initMaps(lat, lng) {
 
               document.getElementById('distPanel').innerHTML = `
                 <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
+                <div class="dist-readout">
                 <div style="font-size: 9.5px; color: var(--accent); margin-bottom: 2px;">
                   Dist. Até Alvo Recebido: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b>
                 </div>
@@ -8966,6 +8980,7 @@ function initMaps(lat, lng) {
                   <b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
                 </div>
                 <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:#c9d4b8; letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
+                </div>
                 <!-- Posição ❶/❷: MOAs relativos à distância e ao vento (se houver). -->
                 <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
                   <div id="distPanelMoaDist" class="dist-panel-square-btn btn-moa" style="width:auto; height:auto; padding:3px 8px; font-size:0.68em; font-weight:800; gap:0;" title="MOA relativo à distância">-- MOA</div>
