@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Geolocalização & Solucionador Balístico Tático</title>
 
+  <!-- PWA (iPhone/Android pelo navegador): manifesto, ícone de tela inicial e modo tela cheia.
+       "black" na barra de status = o conteúdo começa abaixo dela (sem precisar de safe-area). -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#15160f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="GeoSniper">
+  <link rel="apple-touch-icon" href="icons/pwa/apple-touch-icon-180.png">
+
   <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13239,6 +13249,7 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       const acc = typeof position.coords.accuracy === 'number' ? position.coords.accuracy : null;
       const newPos = [lat, lng];
 
+      hideGpsPermissionHint();
       updateGpsBadge(acc);
       gpsLatestReading = { lat, lng, acc };
       scheduleGpsInitFallback();
@@ -13312,7 +13323,60 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       }
     }
 
+    // Aviso quando a localização está bloqueada: explica, por aparelho, onde liberar.
+    // Código 1 = permissão negada (no app nativo a mensagem vem em texto, sem código).
+    function gpsPermissionHelpText() {
+      const ua = navigator.userAgent || '';
+      const ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const android = /Android/i.test(ua);
+      const instalado = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+      if (isNativeApp()) {
+        return android
+          ? 'Abra Configurações do Android > Apps > GeoSniper > Permissões > Localização e escolha "Permitir" (de preferência com a localização precisa).'
+          : 'Abra Ajustes do iPhone > GeoSniper > Localização e escolha "Ao Usar o App", com "Localização Exata" ativada.';
+      }
+      if (ios) {
+        return 'No iPhone, abra Ajustes > Privacidade e Segurança > Serviços de Localização e confirme que está ativado. Na lista, toque em ' +
+          (instalado ? '"GeoSniper" (ou em "Sites do Safari")' : '"Sites do Safari"') + ' e escolha "Ao Usar o App". Se o Safari perguntar de novo, toque em "Permitir".';
+      }
+      if (android) {
+        return 'No Android, toque no cadeado ao lado do endereço do site > Permissões > Localização > Permitir. Se continuar bloqueado, vá em Configurações > Apps > (seu navegador) > Permissões > Localização.';
+      }
+      return 'Clique no cadeado ao lado do endereço do site, procure "Localização" e escolha "Permitir". Depois recarregue a página.';
+    }
+
+    function showGpsPermissionHint(texto) {
+      let box = document.getElementById('gpsPermHint');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'gpsPermHint';
+        box.setAttribute('role', 'alert');
+        box.style.cssText = 'position:fixed; left:10px; right:10px; top:68px; z-index:9100; background:#15160f; border:1px solid #f87171; border-radius:14px; padding:12px 14px; color:#fff; font:13px/1.45 system-ui,-apple-system,sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.55); max-width:560px; margin:0 auto;';
+        box.innerHTML = '<b style="color:#fca5a5;">A localização está bloqueada</b><div id="gpsPermHintText" style="margin:4px 0 10px;"></div>' +
+          '<div style="display:flex; gap:8px; flex-wrap:wrap;"><button type="button" id="gpsPermHintReload" style="background:#c8a24a; color:#15160f; border:0; border-radius:8px; padding:8px 12px; font-weight:800; cursor:pointer;">Já liberei, recarregar</button>' +
+          '<button type="button" id="gpsPermHintClose" style="background:transparent; color:#d8d5bb; border:1px solid #5a5f48; border-radius:8px; padding:8px 12px; cursor:pointer;">Fechar</button></div>';
+        document.body.appendChild(box);
+        document.getElementById('gpsPermHintReload').addEventListener('click', () => location.reload());
+        document.getElementById('gpsPermHintClose').addEventListener('click', () => { box.style.display = 'none'; });
+      }
+      document.getElementById('gpsPermHintText').textContent = texto;
+      box.style.display = 'block';
+    }
+
+    function hideGpsPermissionHint() {
+      const box = document.getElementById('gpsPermHint');
+      if (box) box.style.display = 'none';
+    }
+
     function handleGpsError(err) {
+      const negada = !!err && (err.code === 1 || /denied|permiss|negad|not authorized/i.test(String(err.message || '')));
+      const semSinal = !!err && err.code === 2 && !gpsLatestReading;
+      if (negada || semSinal) {
+        const badge = document.getElementById('gpsAccuracyBadge');
+        if (badge) { badge.classList.remove('gps-good', 'gps-ok'); badge.classList.add('gps-bad'); badge.textContent = negada ? '📡 Localização bloqueada' : '📡 Sem sinal de GPS'; }
+        showGpsPermissionHint(negada ? gpsPermissionHelpText()
+          : 'Não foi possível obter a posição. Confirme que os serviços de localização do aparelho estão ligados e, se estiver em local fechado, vá para um ponto com céu aberto.');
+      }
       // Só substitui o balão inteiro se não houver medição ativa (painel ainda no
       // texto padrão) — com uma medição em curso, um erro passageiro de GPS não
       // deve apagar a régua/telemetria/botões já exibidos.
@@ -13565,6 +13629,35 @@ async function runVelocityTruing() {
     if (resBox) resBox.innerHTML = '<span style="color:var(--sem-hostile);">Erro ao calcular Truing. Verifique a API.</span>';
   }
 }
+</script>
+
+<!-- PWA: aviso "como instalar no iPhone" (só no Safari/Chrome do iPhone, fora do app instalado) + service worker (só no site geosniper.com.br, nunca no app Android) -->
+<div id="pwaIosHint" style="display:none; position:fixed; left:10px; right:10px; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); z-index:9000; background:#15160f; border:1px solid #c8a24a; border-radius:14px; padding:12px 38px 12px 14px; color:#fff; font:13px/1.4 system-ui,-apple-system,sans-serif; box-shadow:0 8px 24px rgba(0,0,0,.55);">
+  <button type="button" id="pwaIosHintClose" aria-label="Fechar" style="position:absolute; top:6px; right:8px; background:none; border:0; color:#d8d5bb; font-size:20px; line-height:1; cursor:pointer;">×</button>
+  <b style="color:#f5be50;">Instale o GeoSniper no iPhone</b><br>
+  Toque em <b>Compartilhar</b> <span aria-hidden="true">(o quadrado com a seta para cima)</span> e depois em <b>Adicionar à Tela de Início</b>.
+</div>
+<script>
+(function () {
+  var host = location.hostname;
+  var noSite = /(^|\.)geosniper\.com\.br$/.test(host) && location.protocol === 'https:';
+  if (noSite && 'serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+  try {
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var instalado = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    var visto = localStorage.getItem('geosniper_pwa_hint_dismissed') === '1';
+    if (!noSite || !ios || instalado || visto) return;
+    var box = document.getElementById('pwaIosHint');
+    document.getElementById('pwaIosHintClose').addEventListener('click', function () {
+      box.style.display = 'none';
+      try { localStorage.setItem('geosniper_pwa_hint_dismissed', '1'); } catch (e) {}
+    });
+    setTimeout(function () { box.style.display = 'block'; }, 8000);
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>
