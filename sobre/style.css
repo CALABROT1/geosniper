@@ -190,3 +190,23 @@ details p { margin: 0 0 16px; color: var(--muted); }
   box-shadow: 0 0 0 3px rgba(242, 201, 106, 0.18), 0 6px 18px rgba(242, 201, 106, 0.4); }
 .nav a.btn-primary:hover { color: #000; background: linear-gradient(180deg, #fff0b8, #f0c050); text-decoration: none;
   box-shadow: 0 0 0 4px rgba(242, 201, 106, 0.28), 0 10px 26px rgba(242, 201, 106, 0.55); }
+
+/* ---------- telas do app nos três passos ---------- */
+.step { display: flex; flex-direction: column; }
+.shot { margin: 24px 0 0; flex: 1; display: flex; align-items: flex-end; justify-content: center; }
+.phone { position: relative; width: min(212px, 100%); padding: 9px; border-radius: 30px; background: linear-gradient(160deg, #2e3024, #13140e);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.13), 0 16px 36px rgba(0, 0, 0, 0.55); }
+.phone::before { content: ""; position: absolute; top: 15px; left: 50%; width: 46px; height: 5px; border-radius: 5px; background: rgba(0, 0, 0, 0.55); transform: translateX(-50%); z-index: 2; }
+.phone img { width: 100%; height: auto; border-radius: 22px; background: var(--bg); }
+.laptop { width: 100%; }
+.laptop .lid { padding: 9px 9px 11px; border-radius: 14px 14px 4px 4px; background: linear-gradient(160deg, #2e3024, #13140e);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.13), 0 16px 36px rgba(0, 0, 0, 0.55); }
+.laptop .lid img { width: 100%; height: auto; border-radius: 6px; background: var(--bg); }
+.laptop .base { position: relative; height: 13px; margin: 0 -3.5%; border-radius: 0 0 16px 16px; background: linear-gradient(#41443a, #1a1b13); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5); }
+.laptop .base::after { content: ""; position: absolute; top: 0; left: 50%; width: 17%; height: 5px; border-radius: 0 0 9px 9px; background: #101109; transform: translateX(-50%); }
+.shot-note { margin: 16px 0 0; color: var(--muted); font-size: 14px; text-align: center; opacity: .85; }
+@media (min-width: 1001px) { .steps-shots { grid-template-columns: 1fr 2.2fr 1fr; } }
+@media (max-width: 1000px) {
+  .steps-shots { grid-template-columns: 1fr; }
+  .steps-shots .step { max-width: 560px; margin: 0 auto; width: 100%; }
+}
