@@ -704,6 +704,65 @@
     .diag-open-btn { background: var(--surface-2); color: var(--accent); border: 1px solid var(--line); border-radius: 8px;
       padding: 6px 11px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     .diag-open-btn:hover { border-color: var(--accent); }
+    .diag-help-btn { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+      padding: 6px 11px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .diag-help-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .diag-head-btns { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .diag-help { display: none !important; }
+    /* Fonte nativa do Android não "infla" o texto dos diagramas (era o que deixava os pills enormes no celular) */
+    .diag-card, #diagWindow { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    .diag-stage { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .diag-stage > .diag-pills, .diag-stage > .cp-grid, .diag-stage > .diag-note, .diag-stage > div[id$="Legend"] { width: 0; min-width: 100%; box-sizing: border-box; }
+    .diag-pills { display: flex; flex-direction: column; gap: 6px; }
+    .diag-note:empty { display: none; }
+    .diag-side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .diag-side .cd2-anim-readout { margin-top: 0; }
+    .diag-side .cd2-legend { margin-top: 0; }
+    /* pills dos alvos: grade uniforme e compacta, logo abaixo do diagrama */
+    .diag-pills .cd2-target-select { display: grid; grid-template-columns: repeat(auto-fit, minmax(41px, 1fr)); gap: 3px; margin: 0; }
+    .diag-pills .cd2-target-select .cd2-chip { padding: 4px 1px; font-size: 10px; text-align: center; border-radius: 9px; white-space: nowrap; }
+    .diag-pills .cd2-target-select .cd2-chip:first-child { grid-column: span 2; }
+    .diag-pills .cd2-speed { margin: 0; gap: 5px; }
+    .diag-pills .cd2-speed .cd2-chip { padding: 3px 7px; font-size: 10px; }
+    .diag-pills .cd2-speed-label { font-size: 11px; }
+    /* pills dos checkpoints das câmeras lentas */
+    .cp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(46px, 1fr)); gap: 3px; margin-top: 2px; }
+    .cp-grid.cp-wide { grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); }
+    .cp-pill { cursor: pointer; padding: 3px 3px; border-radius: 8px; border: 1px solid var(--line); font-family: var(--font-mono); font-size: 10.5px; line-height: 1.25;
+      text-align: center; display: flex; flex-direction: column; gap: 1px; justify-content: center; min-width: 0; }
+    .cp-pill .cp-h { font-weight: 800; }
+    .cp-pill .cp-t { font-size: 9.5px; opacity: 0.85; }
+    .cp-pill .cp-v { font-weight: 600; overflow-wrap: anywhere; }
+    /* ilustração no espaço liberado (só quando há espaço) */
+    .diag-art { display: none; flex-direction: column; align-items: center; gap: 6px; margin-top: 6px; padding: 10px 8px; border: 1px dashed var(--line);
+      border-radius: 12px; background: rgba(255,255,255,0.02); }
+    .diag-art svg { width: min(150px, 90%); height: auto; opacity: 0.95; }
+    .diag-art svg.art-wide { width: min(230px, 96%); max-height: 62px; }
+    #cd2CompClicks { display: none !important; }
+    /* resultado da compensação: compacto (menos fonte e menos área) */
+    .diag-side .cd2-comp-readout, .diag-card .cd2-comp-readout { padding: 6px 9px; margin-top: 0; gap: 4px 12px; flex-direction: column; align-items: flex-start; }
+    .diag-card .cd2-comp-readout .cd2-cr-label { font-size: 9.5px; }
+    .diag-card .cd2-comp-readout .cd2-cr-value { font-size: 15px; margin-top: 1px; }
+    .diag-card .cd2-comp-readout .cd2-cr-sub { font-size: 11px; line-height: 1.3; margin-top: 2px; }
+    .diag-card .cd2-comp-readout .cd2-cr-value[style] { font-size: 12px !important; }
+    .diag-art span { font-size: 12px; color: var(--muted); text-align: center; letter-spacing: 0.3px; }
+    #diagWindow .diag-art { display: none; }
+    #diagWindow .diag-art svg { width: min(110px, 70%); max-height: 78px; }
+    #diagWindow .diag-art { padding: 6px; gap: 4px; }
+    #diagWindow .diag-win-main.diag-landscape .diag-art { display: flex; }
+    @media (max-width: 759px) { .diag-art { display: none; } }
+    /* janelinha do botão Ajuda */
+    #diagHelpOverlay { position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,0.62); display: none; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; }
+    #diagHelpOverlay.open { display: flex; }
+    #diagHelpBox { background: #171a11; color: #fff; border: 1px solid #6a6f55; border-radius: 12px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;
+      -webkit-text-size-adjust: 100%; text-size-adjust: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+    #diagHelpBox .dh-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #5a5f48; position: sticky; top: 0; background: #171a11; }
+    #diagHelpBox .dh-title { flex: 1; font-weight: 800; font-size: 14px; color: #f2c96a; }
+    #diagHelpBox .dh-close { background: #7a2b26; border: 1px solid #a5433c; color: #fff; border-radius: 8px; min-width: 38px; height: 32px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    #diagHelpBox .dh-body { padding: 10px 16px 14px; font-size: 14px; line-height: 1.5; color: #e8e6d2; }
+    #diagHelpBox .dh-body h4 { display: none; }
+    #diagHelpBox .dh-body p { margin: 8px 0; }
+    #diagHelpBox .dh-body b { color: #fff; }
     .diag-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
     .diag-placeholder { margin: 10px; padding: 14px; border: 1px dashed var(--accent); border-radius: 8px; color: var(--muted);
       font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -753,27 +812,32 @@
     .diag-rail-actions button { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; padding: 7px 8px !important; font-size: 12px !important;
       line-height: 1.15 !important; border-radius: 8px !important; white-space: normal !important; }
     .diag-win-main.diag-landscape .diag-rail-actions > * { flex-direction: column !important; width: 100%; }
-    .diag-win-main.diag-landscape .diag-rail-actions button { width: 100% !important; padding: 9px 1px !important; font-size: 11px !important; letter-spacing: -0.1px; }
+    .diag-win-main.diag-landscape .diag-rail-actions button { width: 100% !important; padding: 9px 1px !important; font-size: 10px !important; letter-spacing: -0.2px; white-space: nowrap !important; overflow: hidden; }
     /* Zoom só do diagrama: o cartão não escala; o diagrama cresce a partir da coluna lateral e a área rola. */
     .diag-zoom-sizer { position: relative; width: 100%; }
     .diag-zoom-inner { width: 100%; }
     .diag-win-body { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; scrollbar-gutter: stable; padding: 6px; }
     #diagWindow .diag-card { margin: 0 !important; padding: 6px 8px !important; display: flex; flex-direction: column; }
-    #diagWindow .diag-card > * { order: 5; }
-    #diagWindow .diag-card > :first-child { order: 0; }
-    #diagWindow .diag-card > .diag-scroll, #diagWindow .diag-card > canvas { order: 1; }
-    /* Tela deitada: o diagrama fica à esquerda (inteiro, sem rolar) e legenda, leituras e seletores ao lado, na direita. */
+    #diagWindow .diag-card > .diag-head-row { order: 0; }
+    #diagWindow .diag-card > .diag-stage { order: 1; }
+    #diagWindow .diag-card > [data-diag-actions] { order: 2; }
+    #diagWindow .diag-card > .diag-side { order: 3; }
+    #diagWindow .diag-card > .diag-zoombar { order: 9; }
+    /* Tela deitada: diagrama + pills (embaixo dele) à esquerda; leituras, legenda e ilustração à direita. */
     #diagWindow .diag-win-main.diag-landscape .diag-card { display: grid; grid-template-columns: max-content minmax(130px, 1fr);
-      grid-template-rows: auto repeat(10, min-content) 1fr; column-gap: 12px; align-items: start; }
-    #diagWindow .diag-win-main.diag-landscape .diag-card > * { grid-column: 2; order: 0; margin-top: 6px; min-width: 0; }
-    #diagWindow .diag-win-main.diag-landscape .diag-card > :first-child { grid-column: 1 / -1; margin-top: 0; }
-    #diagWindow .diag-win-main.diag-landscape .diag-card > .diag-scroll, #diagWindow .diag-win-main.diag-landscape .diag-card > canvas { grid-column: 1; grid-row: 2 / -1; margin-top: 0; }
+      grid-template-rows: auto auto; column-gap: 12px; row-gap: 0; align-items: start; }
+    #diagWindow .diag-win-main.diag-landscape .diag-card > .diag-head-row { grid-column: 1 / -1; grid-row: 1; margin-bottom: 4px; }
+    /* o diagrama fica à esquerda e as leituras à direita; os pills e notas ocupam a LARGURA TODA, logo abaixo (menos linhas, mais espaço pro diagrama) */
+    #diagWindow .diag-win-main.diag-landscape .diag-card > .diag-stage { display: contents; }
+    #diagWindow .diag-win-main.diag-landscape .diag-stage > .diag-scroll { grid-column: 1; grid-row: 2; }
+    #diagWindow .diag-win-main.diag-landscape .diag-stage > :not(.diag-scroll) { grid-column: 1 / -1; grid-row: auto; margin-top: 6px; width: auto; min-width: 0; }
+    #diagWindow .diag-win-main.diag-landscape .diag-card > .diag-side { grid-column: 2; grid-row: 2; margin-top: 0; align-self: stretch; height: 0; min-height: 100%; overflow-y: auto; }
     #diagWindow .diag-head-row { margin-bottom: 4px; }
     #diagWindow .diag-card .diag-scroll { margin: 0; overflow: visible; }
     #diagWindow .diag-desc { display: none; }
     .diag-win-body .diag-open-btn { display: none; }
     #diagWindow .cd2-legend { font-size: 13px; gap: 8px 14px; }
-    #diagWindow .cd2-chip { font-size: 13px; padding: 7px 12px; color: var(--ink); }
+    #diagWindow .cd2-chip { color: var(--ink); }
     #diagWindow .cd2-chip.cd2-active { border-color: #ff6b6b; background: rgba(255,107,107,0.18); }
     #diagWindow .cd2-anim-readout { font-size: 13px; color: var(--muted); }
 
@@ -782,24 +846,22 @@
     .diag-zoombar { display: none; }
     #diagWindow .diag-zoombar { display: none !important; }
     @media (min-width: 760px) {
-      #tabCenaSimulacao .diag-card, #tabCenaPerfis .diag-card { display: grid; grid-template-columns: 92px var(--diag-col, minmax(320px, 760px)) minmax(240px, 1fr);
-        grid-template-rows: auto auto repeat(10, min-content) 1fr; column-gap: 14px; align-items: start; grid-auto-flow: row dense; }
-      /* o ::before ocupa a linha 2 inteira pra os itens da direita nunca subirem acima do diagrama (que começa na linha 3) */
-      #tabCenaSimulacao .diag-card::before, #tabCenaPerfis .diag-card::before { content: ""; grid-column: 1 / -1; grid-row: 2; }
-      #tabCenaSimulacao .diag-card > *, #tabCenaPerfis .diag-card > * { grid-column: 3; margin-top: 8px; min-width: 0; }
-      #tabCenaSimulacao .diag-card > :first-child, #tabCenaPerfis .diag-card > :first-child { grid-column: 1 / -1; grid-row: 1; margin-top: 0; }
-      #tabCenaSimulacao .diag-card > .diag-desc, #tabCenaPerfis .diag-card > .diag-desc { grid-column: 1 / -1; grid-row: 2; }
-      #tabCenaSimulacao .diag-card > .diag-scroll, #tabCenaPerfis .diag-card > .diag-scroll { grid-column: 2; grid-row: 3 / -1; margin: 0; max-width: none;
-        overflow-x: auto; overflow-y: hidden; }
-      #tabCenaSimulacao .diag-card > .diag-zoombar, #tabCenaPerfis .diag-card > .diag-zoombar { grid-column: 1; order: -1; display: flex; flex-direction: column;
+      #tabCenaSimulacao .diag-card, #tabCenaPerfis .diag-card { display: grid; grid-template-columns: 92px var(--diag-col, minmax(320px, 760px)) minmax(190px, 1fr);
+        grid-template-rows: auto min-content 1fr; column-gap: 14px; align-items: start; }
+      #tabCenaSimulacao .diag-card > .diag-head-row, #tabCenaPerfis .diag-card > .diag-head-row { grid-column: 1 / -1; grid-row: 1; margin-bottom: 8px; }
+      #tabCenaSimulacao .diag-card > .diag-stage, #tabCenaPerfis .diag-card > .diag-stage { grid-column: 2; grid-row: 2 / 4; min-width: 0; }
+      #tabCenaSimulacao .diag-card > .diag-side, #tabCenaPerfis .diag-card > .diag-side { grid-column: 3; grid-row: 2 / 4; min-width: 0; }
+      #tabCenaSimulacao .diag-card > .diag-stage > .diag-scroll, #tabCenaPerfis .diag-card > .diag-stage > .diag-scroll { margin: 0; max-width: none; overflow-x: auto; overflow-y: hidden; }
+      #tabCenaSimulacao .diag-card > .diag-zoombar, #tabCenaPerfis .diag-card > .diag-zoombar { grid-column: 1; grid-row: 2; display: flex; flex-direction: column;
         align-items: stretch; gap: 5px; margin-top: 0; }
       .diag-card > .diag-zoombar .diag-zoom-row { display: flex; gap: 4px; }
       .diag-card > .diag-zoombar .diag-win-btn { flex: 1; min-width: 0; height: 32px; padding: 0; font-size: 15px; }
       .diag-card > .diag-zoombar .diag-zoom-reset { font-size: 11px; }
-      #tabCenaSimulacao .diag-card > [data-diag-actions], #tabCenaPerfis .diag-card > [data-diag-actions] { grid-column: 1; display: flex !important;
-        flex-direction: column !important; gap: 6px !important; margin-top: 12px !important; }
+      #tabCenaSimulacao .diag-card > [data-diag-actions], #tabCenaPerfis .diag-card > [data-diag-actions] { grid-column: 1; grid-row: 3; display: flex !important;
+        flex-direction: column !important; gap: 6px !important; margin-top: 12px !important; align-self: start; }
       #tabCenaSimulacao .diag-card > [data-diag-actions] button, #tabCenaPerfis .diag-card > [data-diag-actions] button { width: 100% !important; flex: none !important;
         padding: 9px 2px !important; font-size: 12px !important; line-height: 1.15 !important; border-radius: 8px !important; white-space: normal !important; }
+      .diag-art { display: flex; }
     }
 
     /* Tabela de cenário: no computador, colunas compactas com uma imagem no espaço livre */
@@ -2519,14 +2581,20 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div id="cd2StatRow" class="cd2-stat-row"></div>
 
   <div class="diag-card" data-diag-key="corredor" data-diag-title="Corredor de interceptação" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor (visão superior)</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('corredor')" title="Abrir em janela">⤢ Janela</button></div>
-    <div class="diag-scroll"><svg id="cd2CorridorSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎯 Corredor (visão superior)</div><span class="diag-head-btns"><button type="button" class="diag-help-btn" onclick="openDiagHelp('corredor')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('corredor')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><svg id="cd2CorridorSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+    </div>
     <div class="cd2-anim-row" data-diag-actions>
       <button class="cd2-anim-btn" id="cd2AnimBtn" type="button" onclick="cd2ToggleAnim()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2AnimResetBtn" type="button" onclick="cd2ResetAnim()">↺ Reiniciar</button>
     </div>
-    <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.</div>
-    <div class="cd2-legend" id="cd2CorridorLegend"></div>
+    <div class="diag-side">
+      <div class="cd2-anim-readout" id="cd2AnimReadout">Pronto para animar.</div>
+      <div class="cd2-legend" id="cd2CorridorLegend"></div>
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 160 110"><rect x="1" y="1" width="158" height="108" rx="9" fill="none" stroke="var(--line)"/><line x1="14" y1="55" x2="146" y2="55" stroke="#6aa8ff" stroke-width="1.6"/><circle cx="14" cy="55" r="4.5" fill="#fff"/><g fill="var(--accent)"><rect x="44" y="26" width="9" height="14" rx="2"/><rect x="72" y="70" width="9" height="14" rx="2"/><rect x="100" y="30" width="9" height="14" rx="2"/><rect x="126" y="66" width="9" height="14" rx="2"/></g><g stroke="var(--muted)" stroke-width="1.3" fill="none"><path d="M48.5 46v-4M48.5 42l-2 2.5M48.5 42l2 2.5"/><path d="M76.5 64v4M76.5 68l-2-2.5M76.5 68l2-2.5"/><path d="M104.5 50v-4M104.5 46l-2 2.5M104.5 46l2 2.5"/></g><circle cx="146" cy="55" r="5" fill="none" stroke="var(--sem-hostile)" stroke-width="1.8"/></svg><span>Corredor visto de cima</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Corredor de interceptação</h4><p><b>Pronto pra animar:</b> a animação mostra a trajetória do projétil e o deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.</p><p><b>Como ler:</b> o atirador fica à esquerda. A linha reta é a linha de mira; a linha azul é a trajetória real (com a deriva de vento). Cada alvo móvel mostra a distância e o risco calculado de a trajetória cruzar o caminho dele.</p><p><b>Como montar o cenário:</b> arraste um alvo para a frente e para trás (muda a distância, em passos de 10 m) e para cima e para baixo (muda o deslocamento). Toque no quadradinho acima do alvo para escolher a velocidade.</p><p><b>Velocidades do alvo:</b> lento 1,4 m/s · andando rápido 2,5 m/s · correndo 3,8 m/s.</p></div>
     <div class="diag-zoombar" data-diag-zoom="corredor">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('corredor', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2538,19 +2606,23 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="compensacao" data-diag-title="Compensação de deslocamento" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Sistema de compensação de deslocamento</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensacao')" title="Abrir em janela">⤢ Janela</button></div>
-    <div class="diag-desc" style="font-size:13px; color:var(--muted); line-height:1.45; margin-bottom:10px;">Escolha um alvo móvel do corredor acima pra calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</div>
-    <div class="cd2-target-select" id="cd2TargetSelect"></div>
-    <div class="cd2-speed" id="cd2SpeedAll"></div>
-    <div id="cd2CompClicks" class="cd2-clicks" aria-live="polite"></div>
-    <div class="diag-scroll"><svg id="cd2CompSvg" viewBox="0 0 640 460" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Sistema de compensação de deslocamento</div><span class="diag-head-btns"><button type="button" class="diag-help-btn" onclick="openDiagHelp('compensacao')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensacao')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><svg id="cd2CompSvg" viewBox="0 0 640 460" preserveAspectRatio="none" data-stretch="1.3" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+      <div class="diag-pills"><div class="cd2-target-select" id="cd2TargetSelect"></div><div class="cd2-speed" id="cd2SpeedAll"></div></div>
+    </div>
     <div class="cd2-anim-row" data-diag-actions>
       <button class="cd2-anim-btn" id="cd2CompAnimBtn" type="button" onclick="cd2ToggleAnimB()">▶ Animar</button>
       <button class="cd2-anim-btn cd2-reset" id="cd2CompAnimResetBtn" type="button" onclick="cd2ResetAnimB()">↺ Reiniciar</button>
     </div>
-    <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione um alvo móvel acima pra calcular a compensação.</div>
-    <div id="cd2CompReadout"></div>
-    <div class="cd2-legend" id="cd2CompLegend"></div>
+    <div class="diag-side">
+      <div id="cd2CompClicks" class="cd2-clicks" aria-live="polite"></div>
+      <div class="cd2-anim-readout" id="cd2CompAnimReadout">Selecione uma distância abaixo do diagrama.</div>
+      <div id="cd2CompReadout"></div>
+      <div class="cd2-legend" id="cd2CompLegend"></div>
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 160 110"><circle cx="80" cy="55" r="42" fill="none" stroke="var(--line)" stroke-width="2"/><line x1="80" y1="13" x2="80" y2="97" stroke="var(--muted)" stroke-width="1.2"/><line x1="38" y1="55" x2="122" y2="55" stroke="var(--muted)" stroke-width="1.2"/><g stroke="var(--muted)" stroke-width="1.2"><line x1="76" y1="68" x2="84" y2="68"/><line x1="76" y1="80" x2="84" y2="80"/><line x1="76" y1="42" x2="84" y2="42"/><line x1="94" y1="51" x2="94" y2="59"/><line x1="108" y1="51" x2="108" y2="59"/></g><circle cx="80" cy="55" r="4" fill="var(--sem-hostile)"/><circle cx="94" cy="80" r="5" fill="none" stroke="var(--accent)" stroke-width="1.8"/><line x1="80" y1="55" x2="94" y2="80" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3"/></svg><span>Ponto de encontro e hold</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Sistema de compensação de deslocamento</h4><p>Escolha uma distância nos botões abaixo do diagrama para calcular o hold necessário. O <b style="color:var(--ink);">zero</b> do retículo (bolinha vermelha) é o <b style="color:var(--ink);">ponto de encontro</b> — onde o projétil e o alvo em movimento vão coincidir; a linha <b style="color:#e8c948;">amarela</b> é a linha de visada até lá. A posição de repouso do alvo cai numa marcação da régua, e essa marcação é a própria compensação.</p><p><b>Velocidade dos alvos:</b> troque a velocidade de todos os alvos de uma vez (lento, andando rápido ou correndo) para comparar distâncias com a mesma velocidade.</p><p><b>No diagrama:</b> arraste o alvo para mudar distância e deslocamento; o quadradinho acima dele é a velocidade (toque para trocar e selecionar o alvo). O MRAD/MOA de compensação aparece junto ao alvo, na posição de repouso dele, e a régua está em MRAD.</p><p><b>Avanço:</b> em metros, o avanço cresce com o tempo de voo. Em MRAD, que é o que o retículo mede, ele quase não muda com a distância e depende da velocidade do alvo (correndo 3,8 m/s, andando rápido 2,5 m/s, lento 1,4 m/s). Para comparar distâncias, use a mesma velocidade em todos os alvos.</p><p><b>Animar:</b> mostra o mesmo deslocamento em tempo real. Os valores de cliques, avanço e deriva vêm do equipamento ativo do operador.</p></div>
     <div class="diag-zoombar" data-diag-zoom="compensacao">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('compensacao', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2602,12 +2674,15 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="trajetoria" data-diag-title="Perfil de trajetória" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
-      <div style="flex:1 1 100%; font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div>
-      <button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria')" title="Abrir em janela">⤢ Janela</button><button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">📉 Perfil de trajetória (altura x distância)</div><span class="diag-head-btns"><button type="button" id="trajectoryProfileExpandBtn" onclick="toggleCenaRawProfileExpand()" style="display:none; align-items:center; gap:4px; background:var(--surface-2); color:var(--accent); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">⤢ Expandir (ver cena toda)</button><button type="button" class="diag-help-btn" onclick="openDiagHelp('trajetoria')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><svg id="trajectoryProfileSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+      <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:0; font-size:12px; color:var(--muted);"></div>
     </div>
-    <div class="diag-scroll"><svg id="trajectoryProfileSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
-    <div id="trajectoryProfileLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+    <div class="diag-side">
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 160 110"><line x1="14" y1="92" x2="150" y2="92" stroke="var(--ink)" stroke-width="1.4"/><line x1="14" y1="16" x2="14" y2="92" stroke="var(--line)"/><line x1="14" y1="62" x2="146" y2="62" stroke="var(--muted)" stroke-dasharray="4 3"/><path d="M14 66 C44 36 74 28 94 34" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="6 4"/><path d="M94 34 C116 40 134 52 146 66" fill="none" stroke="var(--sem-hostile)" stroke-width="2.6"/><circle cx="146" cy="66" r="4" fill="var(--sem-hostile)"/><g stroke="var(--line)"><line x1="54" y1="92" x2="54" y2="96"/><line x1="94" y1="92" x2="94" y2="96"/><line x1="134" y1="92" x2="134" y2="96"/></g></svg><span>Subida e queda do projétil</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Perfil de trajetória</h4><p>Altura do projétil em relação à linha de mira, <b>sem nenhuma compensação</b>. O traço amarelo tracejado é a subida (da boca do cano até a zeragem); a linha vermelha é a queda (da zeragem até o alvo, ou até o ponto em que a trajetória chega ao solo).</p><p>O botão <b>Expandir</b> mostra a cena inteira, até a distância do alvo; por padrão o gráfico é recortado perto do impacto para a curva aparecer maior.</p></div>
     <div class="diag-zoombar" data-diag-zoom="trajetoria">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('trajetoria', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2619,15 +2694,20 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="trajetoria-anim" data-diag-title="Perfil de trajetória: câmera lenta" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil de trajetória: câmera lenta</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria-anim')" title="Abrir em janela">⤢ Janela</button></div>
-    <div class="diag-scroll"><canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
-    <div id="cenaCpRaw" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil de trajetória: câmera lenta</div><span class="diag-head-btns"><button type="button" class="diag-help-btn" onclick="openDiagHelp('trajetoria-anim')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('trajetoria-anim')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><canvas id="cenaCamRawLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
+      <div class="cp-grid" id="cenaCpRaw"></div>
+      <div class="diag-note" id="cenaCamRawReadout" style="font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
+    </div>
     <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaRawCameraPlay()" id="cenaCamRawPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaRawCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
-    <div id="cenaCamRawReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div class="diag-side">
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 240 70" class="art-wide"><rect x="2" y="4" width="236" height="62" rx="6" fill="none" stroke="var(--line)" stroke-width="2"/><g fill="var(--line)"><rect x="12" y="9" width="8" height="5" rx="1"/><rect x="12" y="56" width="8" height="5" rx="1"/><rect x="29" y="9" width="8" height="5" rx="1"/><rect x="29" y="56" width="8" height="5" rx="1"/><rect x="46" y="9" width="8" height="5" rx="1"/><rect x="46" y="56" width="8" height="5" rx="1"/><rect x="63" y="9" width="8" height="5" rx="1"/><rect x="63" y="56" width="8" height="5" rx="1"/><rect x="80" y="9" width="8" height="5" rx="1"/><rect x="80" y="56" width="8" height="5" rx="1"/><rect x="97" y="9" width="8" height="5" rx="1"/><rect x="97" y="56" width="8" height="5" rx="1"/><rect x="114" y="9" width="8" height="5" rx="1"/><rect x="114" y="56" width="8" height="5" rx="1"/><rect x="131" y="9" width="8" height="5" rx="1"/><rect x="131" y="56" width="8" height="5" rx="1"/><rect x="148" y="9" width="8" height="5" rx="1"/><rect x="148" y="56" width="8" height="5" rx="1"/><rect x="165" y="9" width="8" height="5" rx="1"/><rect x="165" y="56" width="8" height="5" rx="1"/><rect x="182" y="9" width="8" height="5" rx="1"/><rect x="182" y="56" width="8" height="5" rx="1"/><rect x="199" y="9" width="8" height="5" rx="1"/><rect x="199" y="56" width="8" height="5" rx="1"/><rect x="216" y="9" width="8" height="5" rx="1"/><rect x="216" y="56" width="8" height="5" rx="1"/></g><path d="M16 46 C70 22 130 18 170 24 C200 29 218 38 226 46" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-dasharray="5 4"/><circle cx="226" cy="46" r="3.5" fill="var(--sem-hostile)"/></svg><span>Câmera lenta da trajetória</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Câmera lenta da trajetória</h4><p>Reproduz a trajetória real do projétil em câmera lenta, vista de lado, sem compensação. O tempo mostrado é o tempo real de voo.</p><p><b>Como usar:</b> toque num checkpoint (a distância) para pausar a animação naquele ponto. O <b>Reproduzir</b> retoma do mesmo ponto e o <b>Reiniciar</b> volta ao início.</p><p><b>Cores dos checkpoints:</b> verde (▲) = subida da trajetória; vermelho (▼) = queda. O traço “—” é um ponto ainda não alcançado pela animação.</p></div>
     <div class="diag-zoombar" data-diag-zoom="trajetoria-anim">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('trajetoria-anim', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2639,10 +2719,16 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="compensado" data-diag-title="Perfil compensado" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Perfil compensado</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensado')" title="Abrir em janela">⤢ Janela</button></div>
-    <div id="compensatedReadout" style="font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.4;"></div>
-    <div class="diag-scroll"><svg id="compensatedProfileStaticSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
-    <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:12px; color:var(--muted);"></div>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🧭 Perfil compensado</div><span class="diag-head-btns"><button type="button" class="diag-help-btn" onclick="openDiagHelp('compensado')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('compensado')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><svg id="compensatedProfileStaticSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></svg></div>
+      <div class="diag-note" id="compensatedReadout" style="font-size:13px; color:var(--muted); line-height:1.4;"></div>
+      <div id="compensatedProfileStaticLegend" style="display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:var(--muted);"></div>
+    </div>
+    <div class="diag-side">
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 160 110"><line x1="14" y1="92" x2="150" y2="92" stroke="var(--ink)" stroke-width="1.4"/><line x1="14" y1="16" x2="14" y2="92" stroke="var(--line)"/><line x1="14" y1="62" x2="146" y2="62" stroke="var(--muted)" stroke-dasharray="4 3"/><path d="M14 66 C44 36 74 28 94 34" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="6 4"/><path d="M94 34 C116 40 134 52 146 66" fill="none" stroke="var(--sem-hostile)" stroke-width="2.6"/><circle cx="146" cy="66" r="4" fill="var(--sem-hostile)"/><g stroke="var(--line)"><line x1="54" y1="92" x2="54" y2="96"/><line x1="94" y1="92" x2="94" y2="96"/><line x1="134" y1="92" x2="134" y2="96"/></g></svg><span>Arco já compensado</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Perfil compensado</h4><p>Mesma trajetória, mas já com a compensação de elevação aplicada para o alvo simulado: o projétil sobe acima da linha de mira original no meio do percurso e desce de volta exatamente no alvo.</p><p>O valor da compensação é o mesmo usado no retículo e nas câmeras lentas: muda só a apresentação.</p></div>
     <div class="diag-zoombar" data-diag-zoom="compensado">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('compensado', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2654,15 +2740,20 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="comp-lateral" data-diag-title="Perfil compensado: câmera lenta (lateral)" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera lenta (lateral)</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-lateral')" title="Abrir em janela">⤢ Janela</button></div>
-    <div class="diag-scroll"><canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
-    <div id="cenaCpLateral" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera lenta (lateral)</div><span class="diag-head-btns"><button type="button" class="diag-help-btn" onclick="openDiagHelp('comp-lateral')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-lateral')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><canvas id="cenaCamLateral" width="620" height="230" style="width:100%; height:auto; display:block; background:var(--bg); border-radius:6px;"></canvas></div>
+      <div class="cp-grid cp-wide" id="cenaCpLateral"></div>
+      <div class="diag-note" id="cenaCamReadout" style="font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
+    </div>
     <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaCameraPlay()" id="cenaCamPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaCameraAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
-    <div id="cenaCamReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div class="diag-side">
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 240 70" class="art-wide"><rect x="2" y="4" width="236" height="62" rx="6" fill="none" stroke="var(--line)" stroke-width="2"/><g fill="var(--line)"><rect x="12" y="9" width="8" height="5" rx="1"/><rect x="12" y="56" width="8" height="5" rx="1"/><rect x="29" y="9" width="8" height="5" rx="1"/><rect x="29" y="56" width="8" height="5" rx="1"/><rect x="46" y="9" width="8" height="5" rx="1"/><rect x="46" y="56" width="8" height="5" rx="1"/><rect x="63" y="9" width="8" height="5" rx="1"/><rect x="63" y="56" width="8" height="5" rx="1"/><rect x="80" y="9" width="8" height="5" rx="1"/><rect x="80" y="56" width="8" height="5" rx="1"/><rect x="97" y="9" width="8" height="5" rx="1"/><rect x="97" y="56" width="8" height="5" rx="1"/><rect x="114" y="9" width="8" height="5" rx="1"/><rect x="114" y="56" width="8" height="5" rx="1"/><rect x="131" y="9" width="8" height="5" rx="1"/><rect x="131" y="56" width="8" height="5" rx="1"/><rect x="148" y="9" width="8" height="5" rx="1"/><rect x="148" y="56" width="8" height="5" rx="1"/><rect x="165" y="9" width="8" height="5" rx="1"/><rect x="165" y="56" width="8" height="5" rx="1"/><rect x="182" y="9" width="8" height="5" rx="1"/><rect x="182" y="56" width="8" height="5" rx="1"/><rect x="199" y="9" width="8" height="5" rx="1"/><rect x="199" y="56" width="8" height="5" rx="1"/><rect x="216" y="9" width="8" height="5" rx="1"/><rect x="216" y="56" width="8" height="5" rx="1"/></g><path d="M16 46 C70 22 130 18 170 24 C200 29 218 38 226 46" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-dasharray="5 4"/><circle cx="226" cy="46" r="3.5" fill="var(--sem-hostile)"/></svg><span>Câmera lenta, vista lateral</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Câmera lenta compensada (lateral)</h4><p>Reproduz em câmera lenta a trajetória já compensada, vista de lado. Cada checkpoint mostra a altura em relação à linha de mira, a elevação necessária (MRAD) e a queda bruta até ali.</p><p><b>Como usar:</b> toque num checkpoint (a distância) para pausar a animação naquele ponto. O <b>Reproduzir</b> retoma do mesmo ponto e o <b>Reiniciar</b> volta ao início.</p><p><b>Cores dos checkpoints:</b> verde (▲) = subida da trajetória; vermelho (▼) = queda. O traço “—” é um ponto ainda não alcançado pela animação.</p></div>
     <div class="diag-zoombar" data-diag-zoom="comp-lateral">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('comp-lateral', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2674,16 +2765,21 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
 
   <div class="diag-card" data-diag-key="comp-traseira" data-diag-title="Perfil compensado: câmera traseira" style="margin:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px;">
-    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera traseira</div><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-traseira')" title="Abrir em janela">⤢ Janela</button></div>
-    <div class="diag-scroll"><canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; background:var(--bg); border-radius:6px;"></canvas></div>
-    <div id="cenaCpTraseira" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; justify-content:center;"></div>
-    <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
+    <div class="diag-head-row"><div style="font-weight:700; color:var(--ink); font-size:14px;">🎞️ Perfil compensado: câmera traseira</div><span class="diag-head-btns"><button type="button" class="diag-help-btn" onclick="openDiagHelp('comp-traseira')" title="Explicação deste diagrama">❔ Ajuda</button><button type="button" class="diag-open-btn" onclick="openDiagWindow('comp-traseira')" title="Abrir em janela">⤢ Janela</button></span></div>
+    <div class="diag-stage">
+      <div class="diag-scroll"><canvas id="cenaCamTraseira" width="320" height="320" style="width:100%; max-width:280px; height:auto; display:block; margin:0 auto; background:var(--bg); border-radius:6px;"></canvas></div>
+    </div>
     <div data-diag-actions style="display:flex; gap:8px; margin-top:10px;">
       <button onclick="toggleCenaRearPlay()" id="cenaRearPlayBtn" style="flex:1; background:var(--action); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">▶ Reproduzir</button>
       <button onclick="resetCenaRearAnim()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; font-size:14px; cursor:pointer;">↺ Reiniciar</button>
     </div>
-    <div id="cenaRearReadout" style="margin-top:8px; font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
-    <div style="font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">Clique num checkpoint pra pausar a animação naquela distância — o play retoma do mesmo ponto, e o reiniciar volta ao início.</div>
+    <div class="diag-side">
+      <div class="diag-note" id="cenaRearReadout" style="font-size:12px; color:var(--muted); font-family:var(--font-mono);"></div>
+      <div class="cp-grid cp-wide" id="cenaCpTraseira"></div>
+      <div id="cenaCamOutOfView" style="display:none; margin-top:8px; background:rgba(193,72,61,0.15); border:1px solid var(--sem-hostile); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--sem-hostile);">⚠️ O projétil saiu do quadro da câmera traseira — fora do alcance visível desta referência.</div>
+    <div class="diag-art" aria-hidden="true"><svg viewBox="0 0 160 110"><circle cx="80" cy="55" r="40" fill="none" stroke="var(--line)" stroke-width="2"/><circle cx="80" cy="55" r="24" fill="none" stroke="var(--line)"/><line x1="80" y1="9" x2="80" y2="101" stroke="var(--muted)" stroke-width="1.1"/><line x1="34" y1="55" x2="126" y2="55" stroke="var(--muted)" stroke-width="1.1"/><circle cx="80" cy="30" r="5" fill="var(--sem-hostile)"/><circle cx="80" cy="55" r="2.5" fill="var(--accent)"/><path d="M80 36v12M80 36l-3 4M80 36l3 4" stroke="var(--accent)" fill="none" stroke-width="1.5"/></svg><span>Visão traseira</span></div>
+    </div>
+    <div class="diag-help" hidden><h4>Câmera traseira compensada</h4><p>Visão de trás da trajetória compensada: mostra o desvio lateral (deriva de vento) e a altura do projétil em cada checkpoint.</p><p><b>Como usar:</b> toque num checkpoint (a distância) para pausar a animação naquele ponto. O <b>Reproduzir</b> retoma do mesmo ponto e o <b>Reiniciar</b> volta ao início.</p><p><b>Cores dos checkpoints:</b> verde (▲) = subida da trajetória; vermelho (▼) = queda. O traço “—” é um ponto ainda não alcançado pela animação.</p></div>
     <div class="diag-zoombar" data-diag-zoom="comp-traseira">
       <div class="diag-zoom-row">
         <button type="button" class="diag-win-btn" onclick="diagCardZoom('comp-traseira', -1)" aria-label="Diminuir o diagrama" title="Diminuir só o diagrama">−</button>
@@ -2693,6 +2789,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       <button type="button" class="diag-win-btn diag-zoom-reset" onclick="diagCardZoom('comp-traseira', 0)" title="Ajustar o diagrama ao espaço">Ajustar</button>
     </div>
   </div>
+
 </div>
 
 <div id="diagWindow" role="dialog" aria-label="Diagrama em janela">
@@ -3814,7 +3911,7 @@ const DIAG_ZOOM_MIN = 0.5, DIAG_ZOOM_MAX = 3, DIAG_ZOOM_STEP = 0.25;
 // Janela do diagrama: coluna de comandos (fechar, minimizar, maximizar, girar, zoom, animação) ao lado, e o diagrama
 // ocupando o resto. 100% = diagrama AJUSTADO à janela (cabe inteiro na vista inicial); o zoom mexe só no tamanho do
 // diagrama (legendas, botões e leituras não escalam) e a área rola a partir da coluna lateral. Lembra o zoom por diagrama.
-function diagDiagramEl(card) { return card ? card.querySelector('svg[viewBox], canvas') : null; }
+function diagDiagramEl(card) { return card ? card.querySelector('.diag-scroll > svg[viewBox], .diag-scroll > canvas') : null; }
 function diagOffsetTop(el, stop) {
   // posição do elemento dentro da área de rolagem, em pixels de layout (não muda com a rotação da janela)
   let t = 0, n = el;
@@ -3828,22 +3925,37 @@ function diagFitApply() {
   let aspect = 640 / 460;
   if (el.tagName.toLowerCase() === 'svg') { const vb = el.viewBox && el.viewBox.baseVal; if (vb && vb.width && vb.height) aspect = vb.width / vb.height; }
   else if (el.width && el.height) aspect = el.width / el.height;
+  const stretch = parseFloat(el.dataset.stretch) || 1;   // diagrama esticado no eixo y (só a apresentação; a conta não muda)
+  aspect = aspect / stretch;
   const bcs = getComputedStyle(body), ccs = getComputedStyle(card);
   const padL = parseFloat(bcs.paddingLeft) + parseFloat(ccs.paddingLeft) + parseFloat(ccs.borderLeftWidth);
   const padR = parseFloat(bcs.paddingRight) + parseFloat(ccs.paddingRight) + parseFloat(ccs.borderRightWidth);
   const padB = parseFloat(bcs.paddingBottom) + parseFloat(ccs.paddingBottom) + parseFloat(ccs.borderBottomWidth);
-  // tela deitada: reserva uma coluna à direita pra legenda e leituras
-  const reserve = document.getElementById('diagWinMain').classList.contains('diag-landscape') ? (aspect > 2 ? 150 : 212) : 0;
+  // tela deitada: reserva uma coluna à direita pra leituras, legenda e ilustração
+  const reserve = document.getElementById('diagWinMain').classList.contains('diag-landscape') ? (aspect > 2 ? 130 : 170) : 0;
   const maxW = body.clientWidth - padL - padR - reserve;
   const top = diagOffsetTop(el, body);
-  const availH = body.clientHeight - top - padB - 4;
-  let fit = maxW;
-  if (availH > 120) fit = Math.min(maxW, availH * aspect);
-  fit = Math.max(160, fit);
+  const stage = el.closest('.diag-stage');
+  // pills, leituras e legenda ficam logo abaixo do diagrama: a altura deles sai do espaço do diagrama
+  const extraNow = () => { let x = 0; if (stage) Array.from(stage.children).forEach(ch => { if (!ch.contains(el) && ch.offsetHeight) x += ch.offsetHeight + 6; }); return x; };
+  const setW = (w) => { const v = Math.round(w) + 'px'; if (el.style.width !== v) el.style.width = v; el.style.maxWidth = 'none'; el.style.height = stretch !== 1 ? Math.round(w / aspect) + 'px' : 'auto'; };
+  const MINW = 220;
+  // 1) procura o MAIOR diagrama que caiba na altura da janela junto com os pills/leituras de baixo (a altura deles cresce quando a largura diminui)
+  const availTotal = body.clientHeight - top - padB - 4;
+  let fit = Math.max(MINW, maxW), best = null;
+  for (let w = Math.max(MINW, maxW); w >= MINW - 0.5; w -= 24) {
+    setW(w);
+    const total = el.getBoundingClientRect().height + extraNow();
+    if (best === null || total < best.total) best = { w, total };
+    if (total <= availTotal) { fit = w; best = null; break; }
+    fit = w;
+  }
+  if (best) { fit = best.w; setW(fit); }   // nada coube: usa o tamanho de menor altura total (a janela rola o resto)
+  // prioridade ao diagrama: ele ocupa pelo menos ~62% da altura útil; os pills vão mais pra baixo (a janela rola)
+  const wPrio = Math.min(Math.max(MINW, maxW), 0.62 * availTotal * aspect);
+  if (fit < wPrio) { fit = wPrio; setW(fit); }
   const z = DIAG_WIN.zoom || 1;
-  const W = Math.round(fit * z);
-  if (el.style.width !== W + 'px') el.style.width = W + 'px';
-  el.style.maxWidth = 'none'; el.style.height = 'auto';
+  setW(Math.max(MINW, fit * z));
   const lb = document.getElementById('diagZoomLabel');
   if (lb) lb.textContent = Math.round(z * 100) + '%';
   if (el.tagName.toLowerCase() === 'svg') applyDiagFontScale(el);
@@ -3947,13 +4059,36 @@ function closeDiagWindow() {
   const mb = document.getElementById('diagMaxBtn'); if (mb) mb.textContent = '⤢';
   if (hadCard) { try { renderCenaDisparoVisuals(); } catch (e) {} try { diagPageLayoutAll(); } catch (e) {} }
 }
+function openDiagHelp(key) {
+  const card = document.querySelector('.diag-card[data-diag-key="' + key + '"]');
+  const src = card && card.querySelector('.diag-help');
+  if (!src) return;
+  let ov = document.getElementById('diagHelpOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'diagHelpOverlay';
+    ov.innerHTML = '<div id="diagHelpBox" role="dialog" aria-modal="true"><div class="dh-head"><div class="dh-title"></div><button type="button" class="dh-close" aria-label="Fechar">✕</button></div><div class="dh-body"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', (e) => { if (e.target === ov) closeDiagHelp(); });
+    ov.querySelector('.dh-close').addEventListener('click', closeDiagHelp);
+  }
+  ov.querySelector('.dh-title').textContent = '❔ ' + (card.dataset.diagTitle || 'Ajuda');
+  ov.querySelector('.dh-body').innerHTML = src.innerHTML;
+  ov.classList.add('open');
+}
+function closeDiagHelp() { const ov = document.getElementById('diagHelpOverlay'); if (ov) ov.classList.remove('open'); }
 function toggleDiagMinimize() { DIAG_WIN.min = !DIAG_WIN.min; diagApplyLayout(); }
 function toggleDiagRotate() {
   const cur = DIAG_WIN.rot === null ? diagIsPortraitPhone() : DIAG_WIN.rot;
   DIAG_WIN.rot = !cur; diagApplyLayout();
 }
 window.addEventListener('resize', () => { if (DIAG_WIN.card) diagApplyLayout(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && DIAG_WIN.card && !DIAG_WIN.min) closeDiagWindow(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const ov = document.getElementById('diagHelpOverlay');
+  if (ov && ov.classList.contains('open')) { closeDiagHelp(); return; }
+  if (DIAG_WIN.card && !DIAG_WIN.min) closeDiagWindow();
+});
 
 // ---- Diagramas nas abas Simulação e Perfis (tela larga) ----
 // Mesmo desenho da janela: comandos e zoom à esquerda, diagrama no meio e pills/textos à direita. 100% = diagrama ajustado
@@ -3970,6 +4105,7 @@ function diagPageLayout(card) {
   if (!diagPageWide()) {
     card.style.removeProperty('--diag-col');
     el.style.width = orig.width; el.style.maxWidth = orig.maxWidth; el.style.margin = orig.margin;
+    if (el.dataset.stretch) el.style.height = 'auto';
     return;
   }
   if (!card.clientWidth) return;   // aba escondida: o observador chama de novo quando ela aparecer
@@ -3979,12 +4115,14 @@ function diagPageLayout(card) {
   const cs = getComputedStyle(card);
   const inner = card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const cap = aspect < 1.3 ? 420 : 820;                    // diagrama quadrado (câmera traseira) não precisa ser enorme
-  const fit = Math.round(Math.max(320, Math.min(cap, inner - 92 - 28 - 260)));
+  const fit = Math.round(Math.max(320, Math.min(cap, inner - 92 - 28 - 190)));
   const z = DIAG_PAGE.zoom[card.dataset.diagKey] || 1;
   card.style.setProperty('--diag-col', fit + 'px');
   const W = Math.round(fit * z) + 'px';
   if (el.style.width !== W) el.style.width = W;
-  el.style.maxWidth = 'none'; el.style.margin = '0'; el.style.height = 'auto';
+  const stretchP = 1;   // na página o diagrama mantém a proporção original; o esticamento no eixo y vale só na janela
+  el.style.maxWidth = 'none'; el.style.margin = '0';
+  el.style.height = stretchP !== 1 ? Math.round((fit * z) / (aspect / stretchP)) + 'px' : 'auto';
   const lb = card.querySelector('.diag-zoombar .diag-zoom-label');
   if (lb) lb.textContent = Math.round(z * 100) + '%';
   if (el.tagName.toLowerCase() === 'svg') applyDiagFontScale(el);
@@ -4072,6 +4210,17 @@ function toggleCenaRawProfileExpand() {
   renderTrajectoryProfileDiagram();
 }
 
+// Eixo y: ~8 linhas de grade (mais juntas, parecidas com as do eixo x) e rótulo sem arredondar errado (0,25 não vira 0,3).
+function diagYTickStep(hRange) {
+  const want = hRange / 8;
+  const nice = [0.05, 0.1, 0.2, 0.25, 0.5, 1, 2, 5];
+  return nice.find(n => n >= want) || 5;
+}
+function diagYTickLabel(h, step) {
+  const dec = step < 0.1 ? 2 : (Math.abs(step * 10 - Math.round(step * 10)) < 1e-9 ? 1 : 2);
+  return h.toFixed(dec).replace('.', ',') + 'm';
+}
+
 function renderTrajectoryProfileDiagram() {
   const svg = document.getElementById('trajectoryProfileSvg');
   if (!svg) return;
@@ -4120,7 +4269,7 @@ function renderTrajectoryProfileDiagram() {
     if (h > peakH) peakH = h;
   }
   const hRange = Math.max(0.8, peakH * 1.15);
-  const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
+  const yTickStep = diagYTickStep(hRange);
 
   const W = 640, H = 260, ML = 66, MR = 16, MT = 20, MB = 34;
   const plotW = W - ML - MR, plotH = H - MT - MB;
@@ -4150,7 +4299,7 @@ function renderTrajectoryProfileDiagram() {
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     s += `<line x1="${ML}" y1="${Yh(h)}" x2="${ML+plotW}" y2="${Yh(h)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="15" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
+    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="15" font-weight="600" text-anchor="end">${diagYTickLabel(h, yTickStep)}</text>`;
   }
 
   if (targetReachable && targetDistM < displayEndM) {
@@ -4357,7 +4506,7 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   const comp = getCompensatedTrajectory(fps, bcVal, scopeH_m, zeroDist, targetDistM, sceneEndM);
   const { AIM_HEIGHT_M, hAGComp, peakH, impactD, drawEndM, targetReachable, splitM } = comp;
   const hRange = Math.max(0.8, peakH * 1.15);
-  const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
+  const yTickStep = diagYTickStep(hRange);
 
   const W = 640, H = 260, ML = 66, MR = 16, MT = 20, MB = 34;
   const plotW = W - ML - MR, plotH = H - MT - MB;
@@ -4379,7 +4528,7 @@ function renderCompensatedProfileDiagram(svgId, legendId) {
   }
   for (let h = 0; h <= hRange + 0.001; h += yTickStep) {
     s += `<line x1="${ML}" y1="${Yh(h)}" x2="${ML+plotW}" y2="${Yh(h)}" stroke="var(--line)" stroke-width="1"/>`;
-    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="13.5" font-weight="600" text-anchor="end">${h.toFixed(1).replace('.', ',')}m</text>`;
+    s += `<text x="${ML-8}" y="${Yh(h)+3.5}" fill="${AXIS_LABEL_COLOR}" font-size="13.5" font-weight="600" text-anchor="end">${diagYTickLabel(h, yTickStep)}</text>`;
   }
 
   if (targetReachable && targetDistM < sceneEndM) {
@@ -4804,8 +4953,6 @@ function cd2RenderCorridorSvg(rows, targetDistM, fps, bcVal) {
   if (legend) legend.innerHTML = `
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--muted);"></span>linha de mira (reta)</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--action);"></span>trajetória real (com deriva de vento)</span>
-    <span class="cd2-sw">arraste o alvo: ◄► muda a distância, ▲▼ muda o deslocamento · quadradinho = velocidade (toque pra trocar)</span>
-    <span class="cd2-sw">velocidades: lento 1,4 · andando rápido 2,5 · correndo 3,8 m/s</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_GOOD};"></span>risco baixo</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_WARN};"></span>risco moderado</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_COLOR_CRITICAL};"></span>risco crítico de interceptação</span>
@@ -4839,8 +4986,8 @@ function cd2ComputeCompensation(row) {
 function cd2DefaultCompAnimText() {
   const selT = cd2State.selectedTarget !== null ? cd2TargetById(cd2State.selectedTarget) : null;
   return selT
-    ? `Pronto pra animar — compensação já calculada para o alvo de ${selT.d}m.`
-    : 'Selecione um alvo móvel acima pra calcular a compensação — a animação mostra o mesmo deslocamento em tempo real.';
+    ? `Pronto para animar — alvo de ${selT.d}m.`
+    : 'Selecione uma distância abaixo do diagrama.';
 }
 
 function cd2RenderTargetSelector(rows) {
@@ -5046,9 +5193,6 @@ function cd2RenderCompSvg(rows, targetDistM, fps, bcVal) {
   if (legend) legend.innerHTML = `
     <span class="cd2-sw"><span class="cd2-dot" style="background:var(--muted);"></span>alvos móveis não selecionados</span>
     <span class="cd2-sw"><span class="cd2-dot" style="background:${CD2_SIGHT_YELLOW};"></span>linha de visada — sai do atirador direto pro ponto de encontro</span>
-    <span class="cd2-sw">arraste o alvo pra mudar distância e deslocamento · quadradinho = velocidade (toque pra trocar e selecionar o alvo)</span>
-    <span class="cd2-sw">🔴 zero do retículo = ponto de encontro (onde o projétil e o alvo vão coincidir)</span>
-    <span class="cd2-sw">MRAD/MOA de compensação aparecem junto ao alvo, na posição de repouso dele</span>
     <span class="cd2-sw">régua em MRAD · torre configurada na aba Equipamento: ${turretInfo.unit}, cliques de ${cd2Fmt(turretInfo.val, turretInfo.unit==='MOA'?3:2)} ${turretInfo.unit}</span>
   `;
 }
@@ -5073,13 +5217,19 @@ function cd2RenderCompReadout(rows) {
   const valInTurretUnit = turretInfo.unit === 'MOA' ? mradToMoa(comp.mrad) : comp.mrad;
   const clicks = Math.round(Math.abs(valInTurretUnit) / turretInfo.val);
   const dirLabel = comp.dir === 'centro' ? 'sem ajuste lateral' : `para a ${comp.dir}`;
+  // elevação em cliques (antes ficava num quadro à parte, que repetia o avanço e o MRAD)
+  const scopeH_m = (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100;
+  const elevMrad = computeCompensationMrad(cd2Draw.fps, cd2Draw.bcVal, scopeH_m, simState.zeroDist, selRow.d);
+  const elevUnit = turretInfo.unit === 'MOA' ? mradToMoa(elevMrad) : elevMrad;
+  const elevClicks = Math.round(Math.abs(elevUnit) / turretInfo.val);
+  const elevLine = `<b>⬆ elevação:</b> ${elevClicks} cliques (${cd2Fmt(elevUnit, 2)} ${turretInfo.unit})<br>`;
   el.className = 'cd2-comp-readout cd2-active';
   el.innerHTML = `
     <div>
       <div class="cd2-cr-label">Compensação necessária — alvo ${selRow.d}m</div>
       <div class="cd2-cr-value cd2-hostile">${fmtMradMoa(comp.mrad)}</div>
-      <div class="cd2-cr-sub">${clicks} cliques de ${cd2Fmt(turretInfo.val, turretInfo.unit==='MOA'?3:2)} ${turretInfo.unit} · ${dirLabel}, do ponto de encontro (zero) até a posição de repouso do alvo</div>
-      <div class="cd2-cr-sub">Avanço de ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m = ${cd2Fmt(selRow.speed, 1)} m/s × ${cd2Fmt(selRow.tFlight, 2)} s${simState.windSpeed > 0 ? ' (mais a deriva do vento)' : ''}. Em metros o avanço cresce com o tempo de voo. Em MRAD, que é o que o retículo mede, ele quase não muda com a distância e depende da velocidade do alvo (correndo 3,8 m/s, andando rápido 2,5 m/s, lento 1,4 m/s). Para comparar distâncias, use a mesma velocidade em todos os alvos.</div>
+      <div class="cd2-cr-sub">${elevLine}<b>↔ avanço:</b> ${clicks} cliques de ${cd2Fmt(turretInfo.val, turretInfo.unit==='MOA'?3:2)} ${turretInfo.unit} · ${dirLabel}</div>
+      <div class="cd2-cr-sub">Avanço de ${cd2Fmt(Math.abs(comp.leadOffsetM), 2)} m = ${cd2Fmt(selRow.speed, 1)} m/s × ${cd2Fmt(selRow.tFlight, 2)} s${simState.windSpeed > 0 ? ' (mais a deriva do vento)' : ''}</div>
     </div>
     <div>
       <div class="cd2-cr-label">Alvo selecionado</div>
@@ -5410,7 +5560,7 @@ function cd2ResetAnim() {
     if (bulletMover) bulletMover.setAttribute('opacity', '0');
   }
   const el = document.getElementById('cd2AnimReadout');
-  if (el) el.innerHTML = 'Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.';
+  if (el) el.innerHTML = 'Pronto para animar.';
 }
 
 function cd2StopAnimForRerender() {
@@ -5668,7 +5818,7 @@ function cd2Render() {
   cd2RefreshComp();
   cd2SetControlsDisabled(false);
   const el = document.getElementById('cd2AnimReadout');
-  if (el) el.innerHTML = 'Pronto pra animar — trajetória do projétil e deslocamento dos alvos móveis em tempo real, até o projétil chegar ao alvo.';
+  if (el) el.innerHTML = 'Pronto para animar.';
 }
 
 
@@ -5822,7 +5972,7 @@ function drawCenaLateral(d) {
   const X = dd => ML + dd * scaleX, Yh = h => MT + (hRange - h) * scaleY;
   // Mesma fórmula do gráfico estático (renderCompensatedProfileDiagram) —
   // grade horizontal com valores de altura, que faltava aqui.
-  const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
+  const yTickStep = diagYTickStep(hRange);
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -5850,7 +6000,7 @@ function drawCenaLateral(d) {
     ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(ML, Yh(h)); ctx.lineTo(ML + plotW, Yh(h)); ctx.stroke();
     ctx.fillStyle = axisLabelColor; ctx.textAlign = 'right';
-    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3.5);
+    ctx.fillText(diagYTickLabel(h, yTickStep), ML - 6, Yh(h) + 3.5);
   }
 
   ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
@@ -6010,7 +6160,7 @@ function cenaRenderCheckpoints() {
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
       const arrow = on ? phase.arrow + ' ' : '';
-      return `<span onclick="seekCenaCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
+      return `<span class="cp-pill" onclick="seekCenaCameraToCheckpoint(${cp})" style="${style}"><span class="cp-h">${arrow}${cp}m</span><span class="cp-t">${t.toFixed(2).replace('.', ',')}s</span><span class="cp-v">${val.split(' · ').join('<br>')}</span></span>`;
     }).join('');
   }
 }
@@ -6034,7 +6184,7 @@ function cenaRenderRearCheckpoints() {
         ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
         : 'background:transparent; color:var(--muted); border-color:var(--line);';
       const arrow = on ? phase.arrow + ' ' : '';
-      return `<span onclick="seekCenaRearToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
+      return `<span class="cp-pill" onclick="seekCenaRearToCheckpoint(${cp})" style="${style}"><span class="cp-h">${arrow}${cp}m</span><span class="cp-t">${t.toFixed(2).replace('.', ',')}s</span><span class="cp-v">${val.split(' · ').join('<br>')}</span></span>`;
     }).join('');
   }
 }
@@ -6318,7 +6468,7 @@ function drawCenaRawLateral(d) {
   const hRange = Math.max(0.8, c.raw.peakH * 1.15);
   const scaleY = plotH / hRange;
   const X = dd => ML + dd * scaleX, Yh = h => MT + (hRange - h) * scaleY;
-  const yTickStep = hRange > 4 ? 1 : (hRange > 2 ? 0.5 : (hRange > 1 ? 0.25 : 0.1));
+  const yTickStep = diagYTickStep(hRange);
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -6343,7 +6493,7 @@ function drawCenaRawLateral(d) {
     ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(ML, Yh(h)); ctx.lineTo(ML + plotW, Yh(h)); ctx.stroke();
     ctx.fillStyle = axisLabelColor; ctx.textAlign = 'right';
-    ctx.fillText(h.toFixed(1).replace('.', ',') + 'm', ML - 6, Yh(h) + 3.5);
+    ctx.fillText(diagYTickLabel(h, yTickStep), ML - 6, Yh(h) + 3.5);
   }
 
   ctx.strokeStyle = muted; ctx.lineWidth = 1.5;
@@ -6432,7 +6582,7 @@ function cenaRenderRawCheckpoints() {
       ? `background:${phase.bg}; color:${phase.fg}; border-color:${phase.bg};`
       : 'background:transparent; color:var(--muted); border-color:var(--line);';
     const arrow = on ? phase.arrow + ' ' : '';
-    return `<span onclick="seekCenaRawCameraToCheckpoint(${cp})" style="cursor:pointer; padding:3px 7px; border-radius:10px; border:1px solid var(--line); font-size:10px; font-family:var(--font-mono); ${style}">${arrow}${cp}m (${t.toFixed(2)}s): ${val}</span>`;
+    return `<span class="cp-pill" onclick="seekCenaRawCameraToCheckpoint(${cp})" style="${style}"><span class="cp-h">${arrow}${cp}m</span><span class="cp-t">${t.toFixed(2).replace('.', ',')}s</span><span class="cp-v">${val}</span></span>`;
   }).join('');
 }
 
