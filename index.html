@@ -14,6 +14,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="GeoSniper">
   <link rel="apple-touch-icon" href="icons/pwa/apple-touch-icon-180.png">
+  <!-- Motor balístico (o MESMO arquivo que roda no servidor): usado nas abas Simulação e Perfis -->
+  <script src="ballistics-engine.js"></script>
 
   <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1576,7 +1578,8 @@ body.nvg-red-mode .leaflet-tile-container img {
           <th style="padding:10px; border:1px solid var(--line);">Energia (J)</th>
           <th style="padding:10px; border:1px solid var(--line);">Elevação (MOA)</th>
           <th style="padding:10px; border:1px solid var(--line);">Elevação (MRAD)</th>
-          <th style="padding:10px; border:1px solid var(--line); color:var(--sem-hostile);">Cliques UP</th>
+          <th style="padding:10px; border:1px solid var(--line); color:var(--sem-hostile);">Cliques (elev.)</th>
+          <th style="padding:10px; border:1px solid var(--line); color:var(--accent);">Cliques (vento)</th>
         </tr>
       </thead>
       <tbody id="trajectoryTableBody">
@@ -1918,7 +1921,7 @@ body.nvg-red-mode .leaflet-tile-container img {
           </select>
         </div>
         <div class="form-group">
-          <label>Distância do Alvo (Metros) <span style="color:var(--accent); font-weight:normal;">[Zeragem: 100m]</span></label>
+          <label>Distância do Alvo (Metros) <span id="balZeroLabel" style="color:var(--accent); font-weight:normal;">[Zeragem: 100m]</span></label>
           <input type="number" id="balDistance" value="600" step="25">
         </div>
       </div>
@@ -2226,6 +2229,13 @@ body.nvg-red-mode .leaflet-tile-container img {
           <select id="eqProfile" onchange="saveGunProfile()">
             <option value="G1" selected>G1 (Padrão/Comercial)</option>
             <option value="G7">G7 (Boat-tail / Longa Distância)</option>
+            <option value="G2">G2 (Cônico / projétil de artilharia)</option>
+            <option value="G5">G5 (Ogiva curta, boat-tail)</option>
+            <option value="G6">G6 (Base plana, ponta fina)</option>
+            <option value="G8">G8 (Base plana, ogiva secante longa)</option>
+            <option value="GI">GI (G1 de Ingalls)</option>
+            <option value="GS">GS (Esfera)</option>
+            <option value="RA4">RA4 (.22 LR 40 gr)</option>
           </select>
         </div>
         <div class="form-group">
@@ -2257,7 +2267,20 @@ body.nvg-red-mode .leaflet-tile-container img {
           <label for="eqScopeHeight">Altura da Luneta (cm)</label>
           <input type="number" id="eqScopeHeight" value="3.8" step="0.1" onchange="saveGunProfile()">
         </div>
+        <div class="form-group">
+          <label for="eqZeroDist">Distância de Zeragem (m)</label>
+          <input type="number" id="eqZeroDist" value="100" min="10" max="2000" step="10" onchange="saveGunProfile(); updateZeroLabel()">
+        </div>
+        <div class="form-group">
+          <label for="eqCaliber">Calibre do Projétil (pol.) <span style="color:var(--muted); font-weight:normal;">— opcional</span></label>
+          <input type="number" id="eqCaliber" placeholder="ex.: 0.308" min="0.1" max="1" step="0.001" onchange="saveGunProfile()">
+        </div>
+        <div class="form-group">
+          <label for="eqBulletLen">Comprimento do Projétil (pol.) <span style="color:var(--muted); font-weight:normal;">— opcional</span></label>
+          <input type="number" id="eqBulletLen" placeholder="ex.: 1.24" min="0.2" max="3" step="0.01" onchange="saveGunProfile()">
+        </div>
       </div>
+      <div style="font-size:11.5px; color:var(--muted); margin:-4px 2px 8px;">Calibre e comprimento do projétil são opcionais: com eles o app calcula a estabilidade (Miller) e a deriva giroscópica com mais precisão; sem eles usa uma estimativa.</div>
     </div>
 
     <div class="equip-card" style="border-left: 4px solid var(--action);">
@@ -3786,7 +3809,7 @@ function readSimDefaultsFromApp() {
   const windClockRaw = parseInt(document.getElementById('eqWindClock')?.value);
   const windSpeedRaw = parseFloat(document.getElementById('eqWindSpeed')?.value);
   return {
-    zeroDist: simRoundToStep(isNaN(mrdZeroRaw) ? 100 : mrdZeroRaw, 100, 100, 1000),
+    zeroDist: simRoundToStep(engineZeroDefault(), 10, 10, 1000),
     distance: simRoundToStep(isNaN(balDistRaw) ? 300 : balDistRaw, 50, 50, 1000),
     windClock: isNaN(windClockRaw) ? 3 : windClockRaw,
     windSpeed: simRoundToStep(isNaN(windSpeedRaw) ? 0 : windSpeedRaw, 5, 0, 40)
@@ -3798,7 +3821,14 @@ function applySimStateToFields() {
   const dEl = document.getElementById('simDistance');
   const wcEl = document.getElementById('simWindClock');
   const wsEl = document.getElementById('simWindSpeed');
-  if (zEl) zEl.value = String(simState.zeroDist);
+  if (zEl) {
+    if (!Array.from(zEl.options).some(o => o.value === String(simState.zeroDist))) {
+      const opt = document.createElement('option'); opt.value = String(simState.zeroDist); opt.textContent = simState.zeroDist + 'm';
+      const after = Array.from(zEl.options).find(o => parseInt(o.value) > simState.zeroDist);
+      zEl.insertBefore(opt, after || null);
+    }
+    zEl.value = String(simState.zeroDist);
+  }
   if (dEl) dEl.value = String(simState.distance);
   if (wcEl) wcEl.value = String(simState.windClock);
   if (wsEl) wsEl.value = String(simState.windSpeed);
@@ -3849,7 +3879,78 @@ function syncCenaProfileBadge() {
 }
 
 // ============================================================
-// DERIVA DE VENTO LOCAL (Fase 2 do plano de implementação)
+// MOTOR BALÍSTICO NO NAVEGADOR (Simulação, Perfis, MRD e marcas do retículo)
+// Usa o MESMO arquivo ballistics-engine.js do servidor: arrasto G1..G8/GI/GS/RA4, atmosfera real (temperatura, pressão, umidade),
+// vento vetorial, zeragem e altura da luneta. Aqui o tiro é plano (as cenas são didáticas) e só o vento entra na deriva lateral;
+// deriva giroscópica, Coriolis e inclinação aparecem na Balística/Medir. Se o arquivo não carregar, as fórmulas antigas assumem.
+// ============================================================
+const __engCache = new Map();
+function engineProfile(over, dMax) {
+  if (typeof GeoBallistics === 'undefined') return null;
+  const el = (id) => document.getElementById(id);
+  const f = (id, d) => { const v = parseFloat(String(el(id)?.value ?? '').replace(',', '.')); return Number.isFinite(v) ? v : d; };
+  const maxRange = Math.max(300, Math.ceil(((dMax || 0) + 5) / 250) * 250);
+  const inp = {
+    dragModel: el('eqProfile')?.value || 'G1', bc: over.bc, vFps: over.fps, scopeHeightCm: over.scopeH_m * 100, zeroDistM: over.zero,
+    tempC: f('eqTemp', 15), pressureHpa: f('eqPressure', 1013), humidityPct: f('eqHumidity', 50),
+    windKmh: over.windKmh || 0, windClock: over.windClock || 12, inclinationDeg: 0, latitudeDeg: 0, azimuthDeg: 90, twistIn: 0, weightGr: 0
+  };
+  const key = [inp.dragModel, inp.bc, inp.vFps, inp.scopeHeightCm, inp.zeroDistM, inp.tempC, inp.pressureHpa, inp.humidityPct, inp.windKmh, inp.windClock, over.aim || 0, maxRange].join('|');
+  let pr = __engCache.get(key);
+  if (!pr) {
+    try { pr = GeoBallistics.profile(inp, { maxRange, step: 1, aimDeltaRad: over.aim || 0 }); } catch (e) { return null; }
+    if (__engCache.size > 300) __engCache.clear();
+    __engCache.set(key, pr);
+  }
+  return pr;
+}
+function engineAt(arr, pr, d) {
+  if (!arr) return NaN;
+  if (d <= 0) return arr[0];
+  const i = Math.floor(d / pr.step);
+  if (i >= pr.n - 1) return arr[pr.n - 1];
+  const a = arr[i], b = arr[i + 1];
+  if (!isFinite(a)) return NaN;
+  if (!isFinite(b)) return a;
+  return a + (b - a) * (d / pr.step - i);
+}
+function engineZeroDefault() {
+  const z = parseFloat(document.getElementById('eqZeroDist')?.value);
+  return Number.isFinite(z) && z >= 10 ? z : 100;
+}
+function engineScopeDefault() { return (parseFloat(document.getElementById('eqScopeHeight')?.value) || 3.8) / 100; }
+
+// tempo de voo (s) até a distância d
+function flightTimeS(d, fps, bcVal) {
+  const zero = (typeof simState !== 'undefined' && simState && simState.zeroDist) || engineZeroDefault();
+  const pr = engineProfile({ fps, bc: bcVal, scopeH_m: engineScopeDefault(), zero }, d);
+  if (pr) { const v = engineAt(pr.t, pr, d); if (isFinite(v)) return v; }
+  return flightTimeS_legacy(d, fps, bcVal);
+}
+// altura da trajetória (cm) em relação à linha de visada: positivo = abaixo (queda), negativo = acima (subida), com zeragem em zeroDist
+function trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) {
+  const pr = engineProfile({ fps, bc: bcVal, scopeH_m, zero: zeroDist || 100 }, d);
+  if (pr) { const v = engineAt(pr.dn, pr, d); if (isFinite(v)) return -v * 100; }
+  return trajectoryHeightCm_legacy(d, zeroDist, fps, bcVal, scopeH_m);
+}
+// o mesmo, com a torre simulada "dialada" por um ângulo adicional (radianos) sobre a zeragem
+function trajectoryHeightCmDialed(d, dialedAngleRad, fps, bcVal, scopeH_m) {
+  const pr = engineProfile({ fps, bc: bcVal, scopeH_m, zero: engineZeroDefault(), aim: dialedAngleRad || 0 }, d);
+  if (pr) { const v = engineAt(pr.dn, pr, d); if (isFinite(v)) return -v * 100; }
+  return trajectoryHeightCmDialed_legacy(d, dialedAngleRad, fps, bcVal, scopeH_m);
+}
+// deriva do vento (cm) com a visada na zeragem: positivo = o projétil vai para a ESQUERDA (corrigir para a direita)
+function windDriftCm(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
+  const speed = parseFloat(windSpeedKmh) || 0;
+  if (!distanceMeters || distanceMeters <= 0 || speed === 0) return 0;
+  const zero = (typeof simState !== 'undefined' && simState && simState.zeroDist) || engineZeroDefault();
+  const pr = engineProfile({ fps, bc: bcVal, scopeH_m: engineScopeDefault(), zero, windKmh: speed, windClock: windClockHour || 12 }, distanceMeters);
+  if (pr && pr.windDr) { const v = engineAt(pr.windDr, pr, distanceMeters); if (isFinite(v)) return -v * 100; }
+  return windDriftCm_legacy(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal);
+}
+
+// ============================================================
+// DERIVA DE VENTO LOCAL (Fase 2 do plano de implementação) — modelo antigo, só como reserva
 //
 // O app já calcula vento, mas sempre no SERVIDOR (ver
 // getBallisticSolutionForDistance) — não existe hoje uma fórmula de
@@ -3872,7 +3973,7 @@ function syncCenaProfileBadge() {
 // componente lateral), 9h = vento cheio da esquerda (empurra pra
 // DIREITA). Retorno positivo = deriva pra esquerda — mesma convenção
 // de sinal do `clicksWind` do servidor (positivo = corrigir pra direita).
-function windDriftCm(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
+function windDriftCm_legacy(distanceMeters, windClockHour, windSpeedKmh, fps, bcVal) {
   const speed = parseFloat(windSpeedKmh) || 0;
   if (!distanceMeters || distanceMeters <= 0 || speed === 0) return 0;
 
@@ -4372,7 +4473,7 @@ function renderTrajectoryProfileDiagram() {
 // construção; só a apresentação (com câmera lenta ao lado, na fase 5,
 // ou sozinha) é diferente.
 function computeCompensationMrad(fps, bcVal, scopeH_m, zeroDist, targetDistM) {
-  if (targetDistM <= 100) return 0;
+  if (targetDistM <= 10) return 0;
   const dropAtTargetCm = trajectoryHeightCm(targetDistM, zeroDist, fps, bcVal, scopeH_m);
   return dropAtTargetCm / (targetDistM * 0.1);
 }
@@ -4461,7 +4562,7 @@ function fmtMradMoa(mrad) {
 // em vez da queda. Sinal positivo = deriva pra esquerda = corrigir pra
 // DIREITA (mesma convenção do clicksWind do servidor).
 function computeWindMrad(fps, bcVal, targetDistM, windClock, windSpeed) {
-  if (targetDistM <= 100) return 0;
+  if (targetDistM <= 10) return 0;
   const driftCm = windDriftCm(targetDistM, windClock, windSpeed, fps, bcVal);
   return driftCm / (targetDistM * 0.1);
 }
@@ -5839,7 +5940,7 @@ function cd2Render() {
 // ============================================================
 let cenaCam = null; // estado da animação atual — recriado a cada mudança de campo
 
-function flightTimeS(d, fps, bcVal) {
+function flightTimeS_legacy(d, fps, bcVal) {
   const dFeet = d * 3.28084;
   const drag = 0.00007 / bcVal;
   const v_t = fps * Math.exp(-drag * dFeet);
@@ -8136,7 +8237,7 @@ function updateDistPanelMoaBadges(sol) {
     const mradWind = parseFloat(sol.mradWind) || 0;
     if (mradWind !== 0) {
       const moaWind = Math.abs(mradWind) * 3.4377;
-      windBadge.textContent = `← ${moaWind.toFixed(2)} MOA`;
+      windBadge.textContent = `${mradWind < 0 ? '←' : '→'} ${moaWind.toFixed(2)} MOA`;
       windBadge.style.display = 'flex';
     } else {
       windBadge.style.display = 'none';
@@ -9073,7 +9174,7 @@ function initMaps(lat, lng) {
           <button type="button" onclick="minimizeDistPanel()" title="Minimizar" class="dist-panel-icon-btn btn-minimize metallic-icon-btn">➖</button>
           <div class="dist-readout">
           <div style="font-size: 11px; color: var(--accent); margin-bottom: 2px;">Distância: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b></div>
-          <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)</div>
+          <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;"><b style="color: var(--sem-hostile);">${sol.clicksElev < 0 ? Math.abs(sol.clicksElev) + ' CLIQUES DOWN' : sol.clicksElev + ' CLIQUES UP'}</b> (${sol.moaElev} MOA)</div>
           <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:#c9d4b8; letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
           </div>
           <!-- Posição ❶/❷: MOAs relativos à distância e ao vento (se houver),
@@ -9378,7 +9479,7 @@ function initMaps(lat, lng) {
                   Dist. Até Alvo Recebido: <b><span id="liveDistanceValue">${Math.round(distanceMeters)}m</span></b>
                 </div>
                 <div style="font-size: 10.5px; color: var(--ink); margin-bottom: 4px;">
-                  <b style="color: var(--sem-hostile);">${sol.clicksElev} CLIQUES UP</b> (${sol.moaElev} MOA)
+                  <b style="color: var(--sem-hostile);">${sol.clicksElev < 0 ? Math.abs(sol.clicksElev) + ' CLIQUES DOWN' : sol.clicksElev + ' CLIQUES UP'}</b> (${sol.moaElev} MOA)
                 </div>
                 <div id="mapReticleTelemetry" class="mono" style="font-size:11px; color:#c9d4b8; letter-spacing:0.4px; margin-bottom:4px;">DIST --m · ÂNGULO --°</div>
                 </div>
@@ -9581,33 +9682,50 @@ function syncMedirDistanceToBalistica(distanceMeters) {
   if (typeof runBallistics === 'function') runBallistics();
 }
 
+// Dados que o motor balístico usa (os mesmos para Balística, Medir, card de tiro e calibração).
+function ballisticEnvPayload() {
+  const el = (id) => document.getElementById(id);
+  const f = (id, d) => { const v = parseFloat(String(el(id)?.value ?? '').replace(',', '.')); return Number.isFinite(v) ? v : d; };
+  const model = el('eqProfile')?.value || 'G1';
+  return {
+    fps: f('eqFps', 2680) || 2680, bc: f('eqBC', 0.447) || 0.447, profile: model, dragModel: model,
+    turret: el('eqTurret')?.value || '1/4_MOA',
+    windKmh: f('eqWindSpeed', 0), windClock: parseInt(el('eqWindClock')?.value) || 3,
+    inclinationDeg: f('eqInclination', 0), tempC: f('eqTemp', 15), pressureHpa: f('eqPressure', 1013), humidityPct: f('eqHumidity', 50),
+    twistRateInches: f('eqTwist', 10), twistDirection: el('eqTwistDir')?.value || 'RIGHT',
+    latitude: (typeof currentPos !== 'undefined' && currentPos) ? currentPos[0] : f('eqLatitude', 0),
+    azimuthDeg: f('eqAzimuth', 90), scopeHeightCm: f('eqScopeHeight', 3.8), zeroDistM: f('eqZeroDist', 100) || 100,
+    weightGr: f('eqWeight', 0), caliberIn: f('eqCaliber', 0), bulletLengthIn: f('eqBulletLen', 0)
+  };
+}
+function updateZeroLabel() {
+  const z = parseFloat(document.getElementById('eqZeroDist')?.value) || 100;
+  const lab = document.getElementById('balZeroLabel');
+  if (lab) lab.textContent = `[Zeragem: ${z}m]`;
+}
+// "+N UP" / "N DOWN" e "N R" / "N L" (o motor devolve sinal: + sobe / + vai para a direita)
+function fmtClicksElev(n) { return `${Math.abs(n)} ${n < 0 ? 'DOWN' : 'UP'}`; }
+function fmtClicksWind(n) { return `${Math.abs(n)} ${n >= 0 ? 'R' : 'L'}`; }
+window.__ballisticError = '';
+
 async function getBallisticSolutionForDistance(dist) {
       try {
+        window.__ballisticError = '';
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            dist: dist,
-            fps: parseFloat(document.getElementById('eqFps')?.value) || 2680,
-            bc: parseFloat(document.getElementById('eqBC')?.value) || 0.447,
-            profile: document.getElementById('eqProfile')?.value || 'G1',
-            turret: document.getElementById('eqTurret')?.value || '1/4_MOA',
-            windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value) || 0,
-            windClock: parseInt(document.getElementById('eqWindClock')?.value) || 3,
-            inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
-            tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
-            pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
-            twistRateInches: parseFloat(document.getElementById('eqTwist')?.value) || 10,
-            twistDirection: document.getElementById('eqTwistDir')?.value || 'RIGHT',
-            latitude: currentPos ? currentPos[0] : -22.82,
-            azimuthDeg: parseFloat(document.getElementById('eqAzimuth')?.value) || 90
-          })
+          body: JSON.stringify({ dist: dist, ...ballisticEnvPayload() })
         });
-
-        if (!response.ok) throw new Error('Erro na requisição da API');
+        if (!response.ok) {
+          let msg = 'Erro na requisição da API';
+          try { const j = await response.json(); if (j && j.error) msg = j.error; } catch (e) {}
+          window.__ballisticError = msg;
+          throw new Error(msg);
+        }
         return await response.json();
       } catch (err) {
+        if (!window.__ballisticError) window.__ballisticError = 'Sem conexão com o servidor de cálculo.';
         console.error('Falha de conexão com a API:', err);
         return null;
       }
@@ -9635,13 +9753,17 @@ async function getBallisticSolutionForDistance(dist) {
 
   const dist = parseVal('balDistance', 100);
   const data = await getBallisticSolutionForDistance(dist);
-  if (!data) return;
+  if (!data) {
+    const box = document.getElementById('resDetails');
+    if (box && window.__ballisticError) box.innerHTML = `<div style="padding:10px; border:1px solid var(--sem-hostile); border-radius:8px; color:#f0a99f;">⚠️ ${window.__ballisticError}</div>`;
+    return;
+  }
 
   // Atualiza blocos numéricos
   const elElev = document.getElementById('resElevation');
   const elWind = document.getElementById('resWindage');
-  if (elElev) elElev.innerText = `${data.clicksElev} UP`;
-  if (elWind) elWind.innerText = `${Math.abs(data.clicksWind)} ${data.clicksWind >= 0 ? 'R' : 'L'}`;
+  if (elElev) elElev.innerText = fmtClicksElev(data.clicksElev);
+  if (elWind) elWind.innerText = fmtClicksWind(data.clicksWind);
 
   // Atualiza painel explicativo
   const rawTurret = document.getElementById('balTurret')?.value || '1/4_MOA';
@@ -9670,7 +9792,8 @@ async function getBallisticSolutionForDistance(dist) {
       <table class="bal-calc-table">
         <tr><td>Ângulo Correção (MOA)</td><td>${data.moaElev} MOA</td></tr>
         <tr><td>Ângulo Correção (MRAD)</td><td>${data.mradElev} MRAD</td></tr>
-        <tr class="bal-final-row"><td>Ajuste da Torre (${rawTurret})</td><td>${data.clicksElev} CLIQUES UP</td></tr>
+        <tr><td>Deriva do vento (${data.mradWind >= 0 ? 'para a direita' : 'para a esquerda'})</td><td>${Math.abs(data.moaWind)} MOA</td></tr>
+        <tr class="bal-final-row"><td>Ajuste da Torre (${rawTurret})</td><td>${data.clicksElev < 0 ? Math.abs(data.clicksElev) + ' CLIQUES DOWN' : data.clicksElev + ' CLIQUES UP'}</td></tr>
       </table>
     </div>
   `;
@@ -9997,7 +10120,7 @@ function projectileEnergy(weightGrains, velocityFps) {
 // referência do retículo em renderReticle — só generalizada aqui pra aceitar
 // qualquer distância de zeragem, em vez de fixa em 100m, pra dar pra "varrer"
 // candidatos até achar o MRD ideal.
-function trajectoryHeightCm(d, zeroDist, fps, bcVal, scopeH_m) {
+function trajectoryHeightCm_legacy(d, zeroDist, fps, bcVal, scopeH_m) {
   const dFeet = d * 3.28084;
   const drag = 0.00007 / bcVal;
   const v_t = fps * Math.exp(-drag * dFeet);
@@ -10125,12 +10248,12 @@ function renderReticuleMoaCorner(ctx, cx, cy, radius, mradElev, mradWind, pxPerM
 
   const lines = [];
   if (mradElev !== 0) {
-    const moaElev = mradElev * 3.4377;
-    lines.push({ text: `↑ ${moaElev.toFixed(2)} MOA`, color: '#3a6996' });
+    const moaElev = Math.abs(mradElev) * 3.4377;
+    lines.push({ text: `${mradElev < 0 ? '↓' : '↑'} ${moaElev.toFixed(2)} MOA`, color: '#3a6996' });
   }
   if (mradWind !== 0) {
     const moaWind = Math.abs(mradWind) * 3.4377;
-    lines.push({ text: `← ${moaWind.toFixed(2)} MOA`, color: '#4a7a3a' });
+    lines.push({ text: `${mradWind < 0 ? '←' : '→'} ${moaWind.toFixed(2)} MOA`, color: '#4a7a3a' });
   }
 
   lines.forEach((line, i) => {
@@ -10890,7 +11013,7 @@ function currentDialedAngleRad() {
 
 // Altura da trajetória (cm) numa distância "d", com a zeragem-base de 100m do
 // app MAIS o ângulo adicional que a torre simulada está dialada.
-function trajectoryHeightCmDialed(d, dialedAngleRad, fps, bcVal, scopeH_m) {
+function trajectoryHeightCmDialed_legacy(d, dialedAngleRad, fps, bcVal, scopeH_m) {
   const dFeet = d * 3.28084;
   const drag = 0.00007 / bcVal;
   const v_t = fps * Math.exp(-drag * dFeet);
@@ -11071,25 +11194,14 @@ function renderReticle(mradElev = 0, mradWind = 0, distanceMeters = 300, zoomLev
     ? currentDialedAngleRad() : 0;
   const moaAlreadyDialed = mradToMoa(dialedAngleRadForRefs * 1000);
 
+  const refZeroM = engineZeroDefault();
   refDistances.forEach(d => {
-    const dFeet = d * 3.28084;
-    const drag = 0.00007 / bcVal;
-    const v_t = fps * Math.exp(-drag * dFeet);
-    const t_f = dFeet / ((fps + v_t) / 2);
-    const dropM = 0.5 * 9.81 * Math.pow(t_f, 2);
-
-    const zeroFeet = 100 * 3.28084;
-    const v_t0 = fps * Math.exp(-drag * zeroFeet);
-    const t_z = zeroFeet / ((fps + v_t0) / 2);
-    const dropZ = 0.5 * 9.81 * Math.pow(t_z, 2);
-    const zAngle = (dropZ + scopeH_m) / 100;
-
-    const netDropCm = (dropM - (d * zAngle) + scopeH_m) * 100;
+    const netDropCm = trajectoryHeightCm(d, refZeroM, fps, bcVal, scopeH_m);
     // dMrad e refY (posição do pontinho azul na régua física) continuam sem
     // considerar o dial — a régua do retículo não se move quando o operador
     // gira a torre simulada, só o marcador amarelo. O que muda é o MOA
     // exibido ao lado (ver moaAtDist mais abaixo).
-    const dMrad = d <= 100 ? 0 : netDropCm / (d * 0.1);
+    const dMrad = d <= refZeroM ? 0 : netDropCm / (d * 0.1);
     const refY = cy + (dMrad * pxPerMrad);
 
     // Pula essa marcação fixa se ela cair muito perto do marcador do alvo
@@ -12161,7 +12273,7 @@ function renderReticleExpandTelemetry(dist, zoomLevel, mradElevVal = 0, mradWind
     ['Ângulo de Sítio', `${inclinationDeg > 0 ? '+' : ''}${inclinationDeg}°`],
     ['Zoom Recomendado', `${data.recommendedZoom || zoomLevel}x`],
     ['Torre / Graduação', rawTurret.replace('_', ' ')],
-    ['Elevação', `${data.clicksElev ?? '--'} UP (${data.moaElev ?? '--'} MOA / ${data.mradElev ?? '--'} MRAD)`],
+    ['Elevação', `${data.clicksElev === undefined ? '--' : fmtClicksElev(data.clicksElev)} (${data.moaElev ?? '--'} MOA / ${data.mradElev ?? '--'} MRAD)`],
     ['Deriva (Vento)', `${data.clicksWind !== undefined ? Math.abs(data.clicksWind) : '--'} ${data.clicksWind >= 0 ? 'DIR' : 'ESQ'} — ${windKmh} km/h às ${windClock}h`],
     ['Temperatura / Pressão', `${tempC}°C · ${pressureHpa} hPa`],
     ['Velocidade no Alvo', `${data.v_target_fps ?? '--'} FPS`],
@@ -12454,6 +12566,9 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
         twistDir: document.getElementById('eqTwistDir').value,
         barrelLen: parseFloat(document.getElementById('eqBarrelLen').value) || 0,
         scopeHeight: parseFloat(document.getElementById('eqScopeHeight').value) || 0,
+        zeroDist: parseFloat(document.getElementById('eqZeroDist')?.value) || 100,
+        caliber: parseFloat(document.getElementById('eqCaliber')?.value) || null,
+        bulletLen: parseFloat(document.getElementById('eqBulletLen')?.value) || null,
         scopeFovPreset: document.getElementById('eqScopeFovPreset')?.value || '',
         scopeZoomMin: parseFloat(document.getElementById('eqScopeZoomMin')?.value) || null,
         scopeZoomMax: parseFloat(document.getElementById('eqScopeZoomMax')?.value) || null,
@@ -12480,6 +12595,10 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       document.getElementById('eqTwistDir').value = load.twistDir || 'RIGHT';
       document.getElementById('eqBarrelLen').value = load.barrelLen ?? 20;
       document.getElementById('eqScopeHeight').value = load.scopeHeight ?? 3.8;
+      const zeroEl = document.getElementById('eqZeroDist'); if (zeroEl) zeroEl.value = load.zeroDist ?? 100;
+      const calEl = document.getElementById('eqCaliber'); if (calEl) calEl.value = load.caliber ?? '';
+      const lenEl = document.getElementById('eqBulletLen'); if (lenEl) lenEl.value = load.bulletLen ?? '';
+      if (typeof updateZeroLabel === 'function') updateZeroLabel();
       const fovPresetEl = document.getElementById('eqScopeFovPreset');
       if (fovPresetEl) fovPresetEl.value = load.scopeFovPreset || '';
       const zMinEl = document.getElementById('eqScopeZoomMin');
@@ -12885,6 +13004,23 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
       }, 3500);
     }
 
+    // converte o vento absoluto (graus) em horas de relógio relativas ao azimute do disparo
+    function applyWindClockFromAbsolute() {
+      if (typeof window.__windFromDeg !== 'number') return;
+      const az = parseFloat(document.getElementById('eqAzimuth')?.value);
+      const rel = (((window.__windFromDeg - (Number.isFinite(az) ? az : 0)) % 360) + 360) % 360;
+      let clockHour = Math.round(rel / 30);
+      if (clockHour === 0 || clockHour === 12) clockHour = 12;
+      ['eqWindClock', 'balWindDir'].forEach(id => { const e = document.getElementById(id); if (e) e.value = String(clockHour); });
+      if (typeof saveEnvironmentProfile === 'function') saveEnvironmentProfile();
+    }
+    // se a pessoa mexer no vento à mão, o app para de recalcular sozinho; se mudar o azimute, recalcula
+    document.addEventListener('DOMContentLoaded', () => {
+      ['eqWindClock', 'balWindDir', 'eqWindSpeed', 'balWindSpeed'].forEach(id => { const e = document.getElementById(id); if (e) e.addEventListener('change', () => { window.__windAuto = false; }); });
+      ['eqAzimuth', 'balAzimuth'].forEach(id => { const e = document.getElementById(id); if (e) e.addEventListener('change', () => { if (window.__windAuto) setTimeout(applyWindClockFromAbsolute, 0); }); });
+      updateZeroLabel();
+    });
+
     async function syncWeatherFromGPS(clickedBtn) {
 
       const btn = clickedBtn || document.querySelector('.btn-sync');
@@ -12926,12 +13062,11 @@ function drawMiniReticleDistanceLabels(ctx, cx, cy, pxPerMrad, radius, distanceM
         if (windSpeedEl && current.wind_speed_10m !== undefined) windSpeedEl.value = Math.round(current.wind_speed_10m);
 
         if (current.wind_direction_10m !== undefined) {
-          const degrees = current.wind_direction_10m;
-          let clockHour = Math.round(degrees / 30);
-          if (clockHour === 0) clockHour = 12;
-
-          const clockEl = document.getElementById('eqWindClock');
-          if (clockEl) clockEl.value = clockHour.toString();
+          // direção de ONDE o vento sopra, em graus absolutos (0 = norte). O app usa relógio relativo à linha de tiro
+          // (12h = de frente, 3h = da direita), então subtrai o azimute do disparo.
+          window.__windFromDeg = current.wind_direction_10m;
+          window.__windAuto = true;
+          applyWindClockFromAbsolute();
         }
 
         if (typeof syncEnvFromEquipamento === 'function') {
@@ -13646,24 +13781,15 @@ function drawTrajectoryChart(table) {
       body: JSON.stringify({
         maxDist: 1000,
         step: 50,
-        fps: parseFloat(document.getElementById('eqFps')?.value) || 2680,
-        bc: parseFloat(document.getElementById('eqBC')?.value) || 0.447,
-        profile: document.getElementById('eqProfile')?.value || 'G1',
-        turret: document.getElementById('eqTurret')?.value || '1/4_MOA',
-        windKmh: parseFloat(document.getElementById('eqWindSpeed')?.value) || 0,
-        windClock: parseInt(document.getElementById('eqWindClock')?.value) || 3,
-        inclinationDeg: parseFloat(document.getElementById('eqInclination')?.value) || 0,
-        tempC: parseFloat(document.getElementById('eqTemp')?.value) || 15,
-        pressureHpa: parseFloat(document.getElementById('eqPressure')?.value) || 1013,
-        twistRateInches: parseFloat(document.getElementById('eqTwist')?.value) || 10,
-        twistDirection: document.getElementById('eqTwistDir')?.value || 'RIGHT',
-        latitude: currentPos ? currentPos[0] : -22.82,
-        azimuthDeg: parseFloat(document.getElementById('eqAzimuth')?.value) || 90
+        ...ballisticEnvPayload()
       })
     });
 
     const data = await response.json();
-    if (!data.success) return;
+    if (!data.success) {
+      tbody.innerHTML = `<tr><td colspan="9" style="padding:20px; color:var(--sem-hostile);">${data.error || 'Não foi possível gerar a tabela.'}</td></tr>`;
+      return;
+    }
 
     const shotWeightGrains = parseFloat(document.getElementById('eqWeight')?.value) || 175;
 
@@ -13679,7 +13805,8 @@ function drawTrajectoryChart(table) {
           <td style="padding:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--sem-hostile);">${Math.round(rowEnergy.energyJ)}</td>
           <td style="padding:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;">${row.moaElev}</td>
           <td style="padding:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;">${row.mradElev}</td>
-          <td style="padding:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:800; color:var(--sem-hostile); background:rgba(193,72,61,0.12);">${row.clicksElev} UP</td>
+          <td style="padding:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:800; color:var(--sem-hostile); background:rgba(193,72,61,0.12);">${fmtClicksElev(row.clicksElev)}</td>
+          <td style="padding:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:800; color:var(--accent);">${fmtClicksWind(row.clicksWind)}</td>
         </tr>
       `;
     });
@@ -13751,7 +13878,7 @@ async function runVelocityTruing() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ truingDist, actualDropCm, currentFps, bc, inclinationDeg, scopeHeightCm })
+      body: JSON.stringify({ truingDist, actualDropCm, currentFps, bc, inclinationDeg, scopeHeightCm, ...ballisticEnvPayload(), windKmh: 0, dist: truingDist })
     });
 
     const data = await response.json();
