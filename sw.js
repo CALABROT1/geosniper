@@ -3,10 +3,10 @@
    NÃO guarda dados do usuário, respostas da API, mapas (Mapbox), meteorologia nem WebSocket:
    tudo isso sempre vai direto à rede (login, pontos, balística e mapas precisam de conexão).
    Páginas: rede primeiro (o usuário sempre recebe a versão nova quando há internet). */
-const VERSAO = 'gs-2026-10-04';
+const VERSAO = 'gs-2026-10-05';
 const CACHE_APP = 'gs-app-' + VERSAO;
 const CACHE_LIBS = 'gs-libs-1';
-const APP = ['./', 'ballistics-engine.js', 'manifest.webmanifest', 'icons/pwa/icon-192.png', 'icons/pwa/icon-512.png', 'icons/pwa/apple-touch-icon-180.png'];
+const APP = ['./', 'ballistics-engine.js', 'ajuda.js', 'manifest.webmanifest', 'icons/pwa/icon-192.png', 'icons/pwa/icon-512.png', 'icons/pwa/apple-touch-icon-180.png'];
 const LIBS = ['unpkg.com', 'cdn.socket.io', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', (e) => {

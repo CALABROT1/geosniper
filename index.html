@@ -16,6 +16,8 @@
   <link rel="apple-touch-icon" href="icons/pwa/apple-touch-icon-180.png">
   <!-- Motor balístico (o MESMO arquivo que roda no servidor): usado nas abas Simulação e Perfis -->
   <script src="ballistics-engine.js"></script>
+  <!-- Ajuda por aba (roteiro de utilização) -->
+  <script src="ajuda.js" defer></script>
 
   <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -134,6 +136,8 @@
       border: 1px solid var(--line); border-radius: 10px; }
     .cd2-clicks:empty { display: none; }
     .cd2-clicks .cd2-clicks-sub { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .home-guide-btn { background: var(--surface-2); color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 10px 20px; font-weight: 800; font-size: 14px; cursor: pointer; }
+    .home-guide-btn:hover { background: var(--surface); }
     .home-hero-brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
     .home-hero-logo { width: 84px; height: 84px; object-fit: contain; flex: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
     body.nvg-red-mode .home-hero-logo { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-35deg) brightness(0.75); }
@@ -1620,6 +1624,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       <div class="home-hero-tag">Cálculo e referência para tiro de precisão: zeragem, retículo e marcação tática em campo.</div>
     </div>
     <div class="home-who" id="homeWho"></div>
+    <div style="text-align:center; margin:2px 0 14px;"><button type="button" class="home-guide-btn" onclick="openTabHelp('tabInicio')">📖 Guia rápido de uso</button></div>
     <div class="home-grid" id="homeGrid"></div>
     <div class="home-foot">GeoSniper é uma ferramenta de cálculo. Não vende armas, munição ou acessórios.</div>
   </div>
