@@ -224,6 +224,8 @@
       '#tabHelpBox .th-step{background:#262b1e;color:#fff;border:1px solid #5a5f48;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}',
       '#tabHelpBox .th-video{margin:10px 0;border:1px solid #5a5f48;border-radius:10px;overflow:hidden;background:#000}',
       '#tabHelpBox .th-video video{display:block;width:100%;max-height:46vh;background:#000}',
+      '#tabHelpBox .th-vwrap{position:relative}',
+      '#tabHelpBox .th-cap{position:absolute;left:8px;right:8px;bottom:44px;text-align:center;color:#fff;background:rgba(0,0,0,.72);border-radius:6px;padding:4px 8px;font-size:14px;line-height:1.35;pointer-events:none;display:none}',
       '#tabHelpBox .th-vbar{display:flex;gap:8px;align-items:center;padding:6px 8px;background:#14170f}',
       '#tabHelpBox .th-vbtn{background:#262b1e;color:#fff;border:1px solid #5a5f48;border-radius:8px;padding:5px 10px;font-weight:700;font-size:12px;cursor:pointer}',
       'body.nvg-red-mode #tabHelpBtn{color:#ff6a5a;border-color:#660000;background:#1a0000}',
@@ -243,22 +245,27 @@
   }
 
   function videoHtml(tab, clip) {
-    return '<div class="th-video" id="thVideoBox"><video id="thVideo" preload="none" playsinline controls ' + (clip.poster ? 'poster="' + clip.poster + '" ' : '') + 'src="' + clip.src + '">' +
-      (clip.vtt ? '<track kind="subtitles" srclang="pt" label="Português" src="' + clip.vtt + '" default>' : '') + '</video>' +
-      '<div class="th-vbar"><button type="button" class="th-vbtn" id="thAudio">🔊 Som ligado</button><button type="button" class="th-vbtn" id="thCc">CC Legenda</button><span style="font-size:11.5px;color:#b9b7a0">Os dados da demonstração são fictícios.</span></div></div>';
+    return '<div class="th-video" id="thVideoBox"><div class="th-vwrap"><video id="thVideo" preload="none" playsinline controls ' + (clip.poster ? 'poster="' + clip.poster + '" ' : '') + 'src="' + clip.src + '"></video><div class="th-cap" id="thCap" aria-live="off"></div></div>' +
+      '<div class="th-vbar"><button type="button" class="th-vbtn" id="thAudio">🔊 Som ligado</button><button type="button" class="th-vbtn" id="thCc">CC Legenda</button><span style="font-size:11.5px;color:#b9b7a0">Demonstração com dados fictícios.</span></div></div>';
   }
-  function wireVideo() {
+  function wireVideo(clip) {
     const v = $('thVideo'); if (!v) return;
     let audioOn = true; try { audioOn = localStorage.getItem('geosniper_help_audio') !== 'off'; } catch (e) {}
     let ccOn = true; try { ccOn = localStorage.getItem('geosniper_help_cc') !== 'off'; } catch (e) {}
+    const cap = $('thCap'), cues = (clip && clip.cues) || [];
+    const paint = () => {
+      if (!ccOn || !cues.length) { cap.style.display = 'none'; return; }
+      const t = v.currentTime; let txt = '';
+      for (let i = 0; i < cues.length; i++) if (t >= cues[i][0] && t <= cues[i][1] + 0.2) { txt = cues[i][2]; break; }
+      cap.textContent = txt; cap.style.display = txt ? 'block' : 'none';
+    };
     const apply = () => {
       v.muted = !audioOn; $('thAudio').textContent = audioOn ? '🔊 Som ligado' : '🔇 Som desligado';
-      for (const t of v.textTracks) t.mode = ccOn ? 'showing' : 'hidden';
-      $('thCc').style.opacity = ccOn ? '1' : '.55';
+      $('thCc').style.opacity = ccOn ? '1' : '.55'; paint();
     };
     $('thAudio').addEventListener('click', () => { audioOn = !audioOn; try { localStorage.setItem('geosniper_help_audio', audioOn ? 'on' : 'off'); } catch (e) {} apply(); });
     $('thCc').addEventListener('click', () => { ccOn = !ccOn; try { localStorage.setItem('geosniper_help_cc', ccOn ? 'on' : 'off'); } catch (e) {} apply(); });
-    v.addEventListener('loadedmetadata', apply); v.addEventListener('play', apply); apply();
+    v.addEventListener('timeupdate', paint); v.addEventListener('seeked', paint); v.addEventListener('loadedmetadata', apply); v.addEventListener('play', apply); apply();
   }
 
   function render(tab) {
@@ -286,7 +293,7 @@
     html += '<div class="th-foot">' + (prev ? '<button type="button" class="th-step" data-go="' + prev + '">◀ Antes: ' + NAMES[prev] + '</button>' : '<span></span>') + (next ? '<button type="button" class="th-step" data-go="' + next + '">Depois: ' + NAMES[next] + ' ▶</button>' : '') + '</div>';
     const body = $('thBody'); body.innerHTML = html; body.scrollTop = 0;
     body.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => render(b.getAttribute('data-go'))));
-    wireVideo();
+    wireVideo(h.clip);
   }
 
   function open(tab) {
