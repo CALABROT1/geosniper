@@ -76,7 +76,7 @@
       antes: 'Localização liberada, GPS com boa precisão (veja o selo "GPS ±m" no canto) e o Equipamento e as condições preenchidos. As correções usam o mesmo cálculo da Balística.',
       passos: [
         'Veja a sua posição: ponto azul com um cone que mostra para onde o celular aponta.',
-        '<b>Toque no alvo no mapa.</b> O app traça a linha, mede a distância em linha reta e abre o <b>balão de informação</b>.',
+        '<b>Toque no alvo no mapa.</b> O app mede a distância em linha reta, abre o <b>balão de informação</b> e traça os caminhos até o alvo: <b>a pé</b> (linha branca tracejada) e <b>de carro</b> (linha âmbar), com distância e tempo de cada um numa legenda no canto. Toque numa linha da legenda para esconder ou mostrar aquele caminho.',
         'Leia no balão: distância, <b>cliques de elevação (UP/DOWN) e MOA</b>, o retículo com o ponto de mira corrigido e o vento. Use − e + para ampliar o retículo e ▲ ▼ ↺ para ensaiar a torre.',
         '<b>📌 Registrar ponto</b>: dê um rótulo, uma observação e, se quiser, uma foto. Ao salvar, o ponto é registrado e aparece para a sua equipe (aba Pontos).',
         '<b>Compartilhar alvo no WhatsApp</b>: quem receber e tiver a aba Medir liberada abre o balão com as correções calculadas para o <b>equipamento dele</b> e a distância <b>dele</b> até o alvo.',
@@ -84,7 +84,7 @@
         'Gire o mapa com ⟲ ⟳ e ajuste a bússola em "Calibrar" se o cone não bater com a direção real.',
         'Para recomeçar, limpe o ponto no balão (lixeira) e toque em outro lugar.'
       ],
-      ve: 'A distância é medida entre a sua posição (GPS) e o ponto tocado. A inclinação usada é a informada no Equipamento ou na Balística: o app não calcula o desnível pelo relevo.',
+      ve: 'A distância balística é em linha reta entre a sua posição (GPS) e o ponto tocado; os caminhos a pé e de carro são rotas reais, e o tempo e o comprimento delas são estimativas. A pé só até cerca de 43 km. Sem a chave do serviço de rotas ou sem internet, só aparece o caminho de carro, marcado como aproximado. A inclinação usada é a informada no Equipamento ou na Balística: o app não calcula o desnível pelo relevo.',
       pular: DEFAULTS,
       dica: 'Antes de tocar no alvo, espere o selo "GPS ±m" estabilizar: o erro de posição entra direto na distância. O mapa de satélite precisa de internet.',
       falha: 'O mapa não mostra a sua posição: a localização está bloqueada (o aviso explica como liberar). "Visada" avisou para marcar um alvo: toque antes em um ponto do mapa. Nada acontece ao tocar: aguarde o balão terminar de carregar ou veja se há internet.'
@@ -112,6 +112,7 @@
         '<b>Arraste o ícone até o local no mapa e solte.</b> Um toque simples não marca.',
         'Na janela, informe rótulo, localidade e observação e, se quiser, tire uma <b>foto</b>. Toque em <b>Salvar ponto</b>.',
         'O ponto aparece para toda a equipe em tempo real, com a etiqueta de quem marcou.',
+        'Quando alguém compartilha um ponto, quem abre o link vê os caminhos <b>a pé</b> (branco tracejado) e <b>de carro</b> (âmbar) até ele, com distância e tempo.',
         'Toque no marcador para abrir o cartão do ponto: rótulo, observação, quem marcou, foto, <b>📲 Compartilhar no WhatsApp</b> (quem receber abre o ponto no mapa, com o caminho até ele) e <b>🗑️ Excluir</b> (precisa da permissão Excluir).',
         'O marcador <b>Alvo</b> é especial: quando alguém compartilha um Alvo, quem abre e tem a aba Medir recebe o balão com as correções para o equipamento dele; sem a aba Medir, vê um marcador comum.',
         'Use as ferramentas de desenho (lápis) para traçar áreas e caminhos sobre o mapa.'

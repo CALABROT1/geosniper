@@ -7,6 +7,25 @@
 
   <!-- PWA (iPhone/Android pelo navegador): manifesto, ícone de tela inicial e modo tela cheia.
        "black" na barra de status = o conteúdo começa abaixo dela (sem precisar de safe-area). -->
+  <!-- chaves e opções dos mapas (arquivo editável: mapas-config.js) -->
+  <script src="mapas-config.js"></script>
+  <script>
+  /* App Android: usa a configuração mais recente do servidor (renovação de chave sem atualizar o app). Guarda a última boa no aparelho. */
+  (function () {
+    try {
+      var nativo = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      if (!nativo) return;
+      var guardada = localStorage.getItem('geosniper_esri_key');
+      var base = window.GEOSNIPER_MAPS || {};
+      if (guardada) window.GEOSNIPER_MAPS = Object.assign({}, base, { esriKey: guardada });
+      var s = document.createElement('script');
+      s.src = 'https://geosniper.com.br/mapas-config.js?v=' + Date.now();
+      s.onload = function () { try { var k = (window.GEOSNIPER_MAPS || {}).esriKey; if (k) localStorage.setItem('geosniper_esri_key', k); else window.GEOSNIPER_MAPS = Object.assign({}, base, guardada ? { esriKey: guardada } : {}); } catch (e) {} };
+      s.onerror = function () { window.GEOSNIPER_MAPS = Object.assign({}, base, guardada ? { esriKey: guardada } : {}); };
+      document.head.appendChild(s);
+    } catch (e) {}
+  })();
+  </script>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#15160f">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -137,6 +156,12 @@
       border: 1px solid var(--line); border-radius: 10px; }
     .cd2-clicks:empty { display: none; }
     .cd2-clicks .cd2-clicks-sub { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .route-legend { position: absolute; left: 10px; bottom: 74px; z-index: 900; display: flex; flex-direction: column; gap: 4px; background: rgba(15,17,12,.88); border: 1px solid #5a5f48; border-radius: 10px; padding: 6px 8px; max-width: 70%; }
+    .route-legend-row { display: flex; align-items: center; gap: 8px; background: transparent; border: 0; color: #fff; font: 700 12px system-ui, sans-serif; cursor: pointer; padding: 3px 2px; text-align: left; }
+    .route-legend-row b { color: #f2c96a; }
+    .route-legend-note { font: 11px system-ui, sans-serif; color: #d8d5bb; padding: 0 2px; }
+    body.nvg-red-mode .route-legend { background: #1a0000; border-color: #660000; }
+    body.nvg-red-mode .route-legend-row, body.nvg-red-mode .route-legend-row b, body.nvg-red-mode .route-legend-note { color: #ff6a5a; }
     .home-guide-btn { background: var(--surface-2); color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 10px 20px; font-weight: 800; font-size: 14px; cursor: pointer; }
     .home-guide-btn:hover { background: var(--surface); }
     .home-hero-brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
@@ -3460,33 +3485,44 @@ body.nvg-red-mode .leaflet-tile-container img {
       if (readout) readout.textContent = `${Math.round(medirMapBearing)}°`;
     }
 
+    // Mapas. Regras:
+    //  - Com chave Esri (mapas-config.js): satélite, ruas e relevo vêm da Esri (ArcGIS Location Platform), no app e no navegador.
+    //  - O satélite do Mapbox NUNCA é usado dentro do app nativo (o Mapbox exige os SDKs móveis nesse caso); no navegador ele fica como opção extra.
+    //  - Sem chave: o navegador mantém as camadas antigas; o app nativo usa só as camadas públicas, sem Mapbox (modo de reserva).
+    function mapsEsriKey() { return ((window.GEOSNIPER_MAPS || {}).esriKey || '').trim(); }
     function createTileLayers() {
-      const part1 = 'pk.eyJ1IjoiZmFiaW9jYWxhYnJvdCIsImEiOiJjbXQ2YXZ5N3gxdTdkMndwdDYyOXdidW';
-      const part2 = '9uIn0.8Wqi1dqir8FRPfUdLtZezg';
-      const MAPBOX_TOKEN = part1 + part2;
-
-      const mapboxSatellite = L.tileLayer(
-        'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + MAPBOX_TOKEN, {
-          maxZoom: 22,
-          maxNativeZoom: 19,
-          attribution: '© Mapbox © Maxar'
-        }
-      );
-
-      const esriClarity = L.tileLayer(
-        'https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19,
-          attribution: 'Tiles © Esri Clarity'
-        }
-      );
-
-      return {
-        "Mapbox Satélite (HD)": mapboxSatellite,
-        "Esri Clarity": esriClarity,
-        "Satélite Padrão": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' }),
-        "Mapa Vias": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' }),
-        "Relevo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' })
-      };
+      const key = mapsEsriKey();
+      const native = (typeof isNativeApp === 'function') && isNativeApp();
+      const esri = (servico, attribution, maxNative) => L.tileLayer(
+        'https://ibasemaps-api.arcgis.com/arcgis/rest/services/' + servico + '/MapServer/tile/{z}/{y}/{x}?token=' + encodeURIComponent(key),
+        { maxZoom: 22, maxNativeZoom: maxNative || 19, attribution });
+      // Ruas e relevo: serviço de tiles estáticos da Esri (tiles de 512 px: tileSize 512 e zoomOffset -1)
+      const esriEstatico = (estilo, attribution) => L.tileLayer(
+        'https://static-map-tiles-api.arcgis.com/arcgis/rest/services/static-basemap-tiles-service/v1/' + estilo + '/static/tile/{z}/{y}/{x}?token=' + encodeURIComponent(key),
+        { tileSize: 512, zoomOffset: -1, maxZoom: 22, maxNativeZoom: 20, attribution });
+      const layers = {};
+      if (key) {
+        layers['Satélite (Esri)'] = esri('World_Imagery', 'Powered by Esri · Esri, Maxar, Earthstar Geographics, and the GIS User Community', 19);
+        layers['Mapa Vias'] = esriEstatico('arcgis/streets', 'Powered by Esri · Esri, TomTom, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors, and the GIS User Community');
+        layers['Relevo'] = esriEstatico('arcgis/outdoor', 'Powered by Esri · Esri, TomTom, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors, and the GIS User Community');
+      } else {
+        layers['Satélite Padrão'] = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' });
+        layers['Mapa Vias'] = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: 'OSM' });
+        layers['Relevo'] = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'OpenTopo' });
+        if (native) console.warn('GeoSniper: sem chave Esri em mapas-config.js; usando as camadas públicas (modo de reserva).');
+      }
+      if (!native) {
+        const part1 = 'pk.eyJ1IjoiZmFiaW9jYWxhYnJvdCIsImEiOiJjbXQ2YXZ5N3gxdTdkMndwdDYyOXdidW';
+        const part2 = '9uIn0.8Wqi1dqir8FRPfUdLtZezg';
+        layers['Mapbox Satélite (HD)'] = L.tileLayer(
+          'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + part1 + part2,
+          { maxZoom: 22, maxNativeZoom: 19, attribution: '© Mapbox © Maxar' });
+      }
+      return layers;
+    }
+    // camada de satélite padrão de cada mapa
+    function defaultSatLayer(layers) {
+      return layers['Satélite (Esri)'] || layers['Mapbox Satélite (HD)'] || layers['Satélite Padrão'];
     }
 
 function openTab(evt, tabName) {
@@ -8119,6 +8155,7 @@ function limparPontoRecebido() {
   if (measureMarker && mapMedir) { mapMedir.removeLayer(measureMarker); measureMarker = null; }
   if (measureLine && mapMedir) { mapMedir.removeLayer(measureLine); measureLine = null; }
   if (currentRoutePolyline && mapMedir) { mapMedir.removeLayer(currentRoutePolyline); currentRoutePolyline = null; }
+  __medirRouteSeq++; clearRoutes(mapMedir, __medirRouteStore);
   stopTargetGuidance();
 
   const distEl = document.getElementById('distPanel');
@@ -9063,7 +9100,7 @@ function initMaps(lat, lng) {
     // 1. MAPA RAIOS
     const layersRaios = createTileLayers();
     if (mapRaios) mapRaios.remove();
-    mapRaios = L.map('mapRaios', { layers: [layersRaios["Satélite Padrão"]] }).setView(currentPos, 17);
+    mapRaios = L.map('mapRaios', { layers: [defaultSatLayer(layersRaios)] }).setView(currentPos, 17);
     L.control.layers(layersRaios).addTo(mapRaios);
     markers.raios = L.marker(currentPos, { icon: opIcon }).addTo(mapRaios).bindPopup("Sua Localização");
     circlesAndLabelsGroup.addTo(mapRaios);
@@ -9094,7 +9131,7 @@ function initMaps(lat, lng) {
     // 3. RELEVO
     const layersRelevo = createTileLayers();
     if (mapRelevo) mapRelevo.remove();
-    mapRelevo = L.map('mapRelevo', { layers: [layersRelevo["Mapbox Satélite (HD)"]], tapTolerance: 28 }).setView(currentPos, 14);
+    mapRelevo = L.map('mapRelevo', { layers: [defaultSatLayer(layersRelevo)], tapTolerance: 28 }).setView(currentPos, 14);
     L.control.layers(layersRelevo).addTo(mapRelevo);
     positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
@@ -9109,7 +9146,7 @@ function initMaps(lat, lng) {
     // painel (ver setupTacticalPiecePanel) lança a peça ali.
     const layersEstrategia = createTileLayers();
     if (mapEstrategia) mapEstrategia.remove();
-    mapEstrategia = L.map('mapEstrategia', { layers: [layersEstrategia["Mapbox Satélite (HD)"]], tapTolerance: 28 }).setView(currentPos, 14);
+    mapEstrategia = L.map('mapEstrategia', { layers: [defaultSatLayer(layersEstrategia)], tapTolerance: 28 }).setView(currentPos, 14);
     L.control.layers(layersEstrategia).addTo(mapEstrategia);
     // Mesmo pontinho azul com cone de direção da aba Marker (ver comentário
     // em markers.normal acima) — necessário pra bússola da aba Estratégia
@@ -9135,7 +9172,7 @@ function initMaps(lat, lng) {
     // gesto de dois dedos por enquanto (touchRotate:false) — isso é uma
     // etapa futura à parte. rotateControl:false porque os botões próprios
     // do app substituem o controle nativo do plugin.
-    mapMedir = L.map('mapMedir', { layers: [layersMedir["Mapbox Satélite (HD)"]], rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 16);
+    mapMedir = L.map('mapMedir', { layers: [defaultSatLayer(layersMedir)], rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 16);
     L.control.layers(layersMedir).addTo(mapMedir);
     medirMapBearing = 0;
     // Na aba Medir o marcador do operador é o pontinho azul com cone de
@@ -9247,38 +9284,125 @@ function initMaps(lat, lng) {
     });
 }
 
+    // ===== ROTAS: a pé (branca tracejada) e de carro (âmbar contínua) =====
+    // Com chave Esri: serviço de rotas da Esri, modos "Walking Time" e "Driving Time". A pé só até ~43 km.
+    // Sem chave (ou se a Esri falhar): rota de CARRO pelo servidor público OSRM (ele ignora o modo, então NÃO serve para "a pé").
+    const ROUTE_STYLE = {
+      walk: { color: '#ffffff', weight: 4, opacity: 0.92, dashArray: '6, 6' },
+      drive: { color: '#f2a93b', weight: 4, opacity: 0.92 }
+    };
+    const __routeCache = new Map();
+    let __esriTravelModes = null;
+    function fmtRouteTime(min) {
+      if (!isFinite(min) || min <= 0) return '';
+      if (min < 60) return Math.max(1, Math.round(min)) + ' min';
+      const h = Math.floor(min / 60), m = Math.round(min % 60);
+      return h + ' h ' + (m < 10 ? '0' : '') + m + ' min';
+    }
+    function fmtRouteDist(km) { return km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1).replace('.', ',') + ' km'; }
+    async function esriRouteSolve(key, o, d, modeName) {
+      if (!__esriTravelModes) {
+        const r = await fetch('https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World?f=json&token=' + encodeURIComponent(key));
+        const j = await r.json();
+        if (j.error) throw new Error(j.error.message || 'rotas indisponíveis');
+        __esriTravelModes = {};
+        (j.supportedTravelModes || []).forEach(m => { __esriTravelModes[m.name] = m; });
+      }
+      const mode = __esriTravelModes[modeName];
+      if (!mode) throw new Error('modo ' + modeName + ' indisponível');
+      const body = new URLSearchParams({
+        f: 'json', token: key, stops: o[1] + ',' + o[0] + ';' + d[1] + ',' + d[0], returnRoutes: 'true', returnDirections: 'false',
+        returnStops: 'false', returnBarriers: 'false', outSR: '4326', travelMode: JSON.stringify(mode), findBestSequence: 'false',
+        preserveFirstStop: 'true', preserveLastStop: 'true'
+      });
+      const res = await fetch('https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve', { method: 'POST', body });
+      const j = await res.json();
+      if (j.error) throw new Error((j.error.details && j.error.details[0]) || j.error.message || 'sem rota');
+      const f = j.routes && j.routes.features && j.routes.features[0];
+      if (!f) throw new Error('sem rota');
+      const at = f.attributes || {};
+      const min = at.Total_TravelTime || at.Total_WalkTime || at.Total_Time || at.Total_Minutes || 0;
+      return { coords: f.geometry.paths.reduce((acc, p) => acc.concat(p), []).map(c => [c[1], c[0]]), km: at.Total_Kilometers || 0, min };
+    }
+    async function osrmCarRoute(o, d) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${o[1]},${o[0]};${d[1]},${d[0]}?overview=full&geometries=geojson&radiuses=500;500`;
+      const res = await fetch(url);
+      const j = await res.json();
+      if (!j.routes || !j.routes.length) throw new Error('sem rota');
+      const r0 = j.routes[0];
+      return { coords: r0.geometry.coordinates.map(c => [c[1], c[0]]), km: r0.distance / 1000, min: r0.duration / 60 };
+    }
+    // devolve { walk, drive, fonte } — qualquer um pode ser null
+    async function fetchRoutes(oLat, oLng, tLat, tLng) {
+      const o = [oLat, oLng], d = [tLat, tLng];
+      const ck = [oLat, oLng, tLat, tLng].map(x => x.toFixed(5)).join(',');
+      if (__routeCache.has(ck)) return __routeCache.get(ck);
+      const key = mapsEsriKey();
+      let out = { walk: null, drive: null, fonte: 'nenhuma' };
+      if (key) {
+        const [w, c] = await Promise.allSettled([esriRouteSolve(key, o, d, 'Walking Time'), esriRouteSolve(key, o, d, 'Driving Time')]);
+        out = { walk: w.status === 'fulfilled' ? w.value : null, drive: c.status === 'fulfilled' ? c.value : null, fonte: 'esri', walkErro: w.status === 'rejected' ? String(w.reason && w.reason.message || w.reason) : '' };
+      }
+      if (!out.drive) {
+        try { out.drive = await osrmCarRoute(o, d); out.fonte = out.fonte === 'esri' ? 'esri+osrm' : 'osrm'; } catch (e) {}
+      }
+      if (out.walk || out.drive) { if (__routeCache.size > 40) __routeCache.clear(); __routeCache.set(ck, out); }
+      return out;
+    }
+    // desenha as rotas num mapa e mostra a legenda (com liga/desliga de cada uma). Devolve um grupo para remover depois.
+    function renderRoutes(map, routes, store) {
+      if (!map || !routes) return null;
+      clearRoutes(map, store);
+      const layers = {}, group = L.layerGroup();
+      if (routes.drive) { layers.drive = L.polyline(routes.drive.coords, ROUTE_STYLE.drive); group.addLayer(layers.drive); }
+      if (routes.walk) { layers.walk = L.polyline(routes.walk.coords, ROUTE_STYLE.walk); group.addLayer(layers.walk); }
+      group.addTo(map);
+      const box = document.createElement('div');
+      box.className = 'route-legend';
+      const row = (tipo, titulo, r) => {
+        const el = document.createElement('button'); el.type = 'button'; el.className = 'route-legend-row'; el.dataset.on = '1';
+        el.innerHTML = '<svg width="34" height="8"><line x1="1" y1="4" x2="33" y2="4" stroke="' + ROUTE_STYLE[tipo].color + '" stroke-width="4" ' + (ROUTE_STYLE[tipo].dashArray ? 'stroke-dasharray="6 5"' : '') + '/></svg>' +
+          '<span><b>' + titulo + '</b> ' + fmtRouteDist(r.km) + (fmtRouteTime(r.min) ? ' · ' + fmtRouteTime(r.min) : '') + '</span>';
+        el.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const on = el.dataset.on === '1';
+          el.dataset.on = on ? '0' : '1'; el.style.opacity = on ? '.45' : '1';
+          if (on) group.removeLayer(layers[tipo]); else group.addLayer(layers[tipo]);
+        });
+        L.DomEvent.disableClickPropagation(el);
+        return el;
+      };
+      if (routes.walk) box.appendChild(row('walk', 'A pé', routes.walk));
+      if (routes.drive) box.appendChild(row('drive', routes.fonte === 'osrm' ? 'Carro (aprox.)' : 'Carro', routes.drive));
+      if (routes.fonte === 'osrm' || (routes.fonte === 'esri+osrm' && !routes.walk)) {
+        const n = document.createElement('div'); n.className = 'route-legend-note'; n.textContent = 'Rota a pé indisponível';
+        box.appendChild(n);
+      }
+      map.getContainer().appendChild(box);
+      const handle = { group, box };
+      store.handle = handle;
+      return handle;
+    }
+    function clearRoutes(map, store) {
+      const h = store && store.handle;
+      if (!h) return;
+      try { if (map && h.group) map.removeLayer(h.group); } catch (e) {}
+      if (h.box && h.box.parentNode) h.box.parentNode.removeChild(h.box);
+      store.handle = null;
+    }
+    const __medirRouteStore = { handle: null };
+    let __medirRouteSeq = 0;
     async function drawTacticalRouteAndLine(opLat, opLng, targetLat, targetLng) {
       if (!mapMedir) return;
-
-      if (currentRoutePolyline) {
-        mapMedir.removeLayer(currentRoutePolyline);
-        currentRoutePolyline = null;
-      }
-
-      const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${opLng},${opLat};${targetLng},${targetLat}?overview=full&geometries=geojson&radiuses=500;500`;
-
+      clearRoutes(mapMedir, __medirRouteStore);
+      if (currentRoutePolyline) { mapMedir.removeLayer(currentRoutePolyline); currentRoutePolyline = null; }
+      const seq = ++__medirRouteSeq;
       try {
-        const res = await fetch(osrmUrl);
-        const data = await res.json();
-
-        if (data.routes && data.routes.length > 0) {
-          const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-
-          // Sem "noClip"/"smoothFactor: 0" forçado + redraw manual no zoom: isso
-          // fazia a linha "descolar" da posição real durante a animação de zoom
-          // (o redraw rodava com os pixels do zoom antigo enquanto o mapa já
-          // estava transformado pro zoom novo). O Leaflet já reposiciona
-          // automaticamente qualquer polyline sozinho durante o zoom/pan, então
-          // basta deixar o comportamento padrão.
-          currentRoutePolyline = L.polyline(coords, {
-            color: '#ffffff',
-            weight: 4,
-            opacity: 0.9,
-            dashArray: '6, 6'
-          }).addTo(mapMedir);
-        }
+        const routes = await fetchRoutes(opLat, opLng, targetLat, targetLng);
+        if (seq !== __medirRouteSeq || !mapMedir) return;   // o operador já escolheu outro alvo
+        renderRoutes(mapMedir, routes, __medirRouteStore);
       } catch (err) {
-        console.warn("Erro ao buscar rota terrestre:", err);
+        console.warn('Erro ao buscar rota terrestre:', err);
       }
     }
 
@@ -9314,12 +9438,27 @@ function initMaps(lat, lng) {
 
     async function runLocationSearch(query, listEl, getMap, inputEl) {
       try {
-        const MAPBOX_TOKEN = 'pk.eyJ1IjoiZmFiaW9jYWxhYnJvdCIsImEiOiJjbXQ2YXZ5N3gxdTdkMndwdDYyOXdidW9uIn0.8Wqi1dqir8FRPfUdLtZezg';
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&language=pt&country=br&limit=6`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Erro na busca de localidade');
-        const data = await res.json();
-        const feats = data.features || [];
+        const esriKey = mapsEsriKey();
+        const nativo = (typeof isNativeApp === 'function') && isNativeApp();
+        let feats = [];
+        if (esriKey) {
+          // Esri World Geocoding Service, uso temporário (a chave não tem permissão de armazenar): o resultado só centraliza o mapa.
+          const url = 'https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&countryCode=BRA&langCode=pt&maxLocations=6&outFields=PlaceName,Place_addr&singleLine=' + encodeURIComponent(query) + '&token=' + encodeURIComponent(esriKey);
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Erro na busca de localidade');
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message || 'Erro na busca de localidade');
+          feats = (data.candidates || []).map(c => ({ text: (c.attributes && c.attributes.PlaceName) || (c.address || '').split(',')[0], place_name: c.address || '', center: [c.location.x, c.location.y] }));
+        } else if (nativo) {
+          throw new Error('Busca de localidade indisponível sem a chave Esri neste app');
+        } else {
+          const MAPBOX_TOKEN = 'pk.eyJ1IjoiZmFiaW9jYWxhYnJvdCIsImEiOiJjbXQ2YXZ5N3gxdTdkMndwdDYyOXdidW9uIn0.8Wqi1dqir8FRPfUdLtZezg';
+          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&language=pt&country=br&limit=6`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Erro na busca de localidade');
+          const data = await res.json();
+          feats = data.features || [];
+        }
 
         if (feats.length === 0) {
           listEl.innerHTML = '<div style="padding:8px 10px; color:var(--muted); font-size:12px;">Nenhum resultado encontrado</div>';
@@ -9350,7 +9489,8 @@ function initMaps(lat, lng) {
             if (map) map.setView([lat, lng], 16);
             listEl.style.display = 'none';
             if (inputEl) inputEl.value = f.place_name || query;
-            lastLocationSearchName = f.place_name || f.text || query;
+            // com a Esri, grava só o texto digitado pela pessoa (o resultado da Esri não pode ser armazenado)
+            lastLocationSearchName = mapsEsriKey() ? query : (f.place_name || f.text || query);
           });
         });
       } catch (err) {
@@ -9622,8 +9762,23 @@ function initMaps(lat, lng) {
         map._sharedPointLayer = null;
       }
       const layers = [];
+      let straight = null;
       if (currentPos) {
-        layers.push(L.polyline([currentPos, [lat, lng]], { color: '#ffffff', weight: 3, opacity: 0.85, dashArray: '6, 6' }));
+        straight = L.polyline([currentPos, [lat, lng]], { color: '#ffffff', weight: 3, opacity: 0.85, dashArray: '2, 8' });
+        layers.push(straight);
+      }
+      if (!map._routeStore) map._routeStore = { handle: null };
+      clearRoutes(map, map._routeStore);
+      if (currentPos) {
+        const seq = (map._routeSeq = (map._routeSeq || 0) + 1);
+        fetchRoutes(currentPos[0], currentPos[1], lat, lng).then((routes) => {
+          if (seq !== map._routeSeq || !map._sharedPointLayer || !(routes.walk || routes.drive)) return;
+          if (straight) map._sharedPointLayer.removeLayer(straight);   // tem caminho real: some a linha reta
+          renderRoutes(map, routes, map._routeStore);
+          const b2 = L.latLngBounds([currentPos, [lat, lng]]);
+          [routes.walk, routes.drive].forEach(r => { if (r) r.coords.forEach(c => b2.extend(c)); });
+          map.fitBounds(b2, { padding: [60, 60], maxZoom: 17 });
+        }).catch(() => {});
       }
       const pingIcon = L.divIcon({
         className: 'shared-point-ping-wrap',
@@ -9644,7 +9799,8 @@ function initMaps(lat, lng) {
           map.removeLayer(map._sharedPointLayer);
           map._sharedPointLayer = null;
         }
-      }, 25000);
+        clearRoutes(map, map._routeStore);
+      }, 60000);
     }
 
     // Acha, dentro do grupo de camadas de uma aba, o marker Leaflet cujo pin
