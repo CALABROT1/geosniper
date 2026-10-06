@@ -1,0 +1,19 @@
+# Cópias de segurança e rascunhos: ficam no computador, não vão para o GitHub
+*.bak
+*.bak.html
+index.original-*.html
+icons anti/
+*.docx
+
+# Segredos e chaves de assinatura do app (nunca versionar)
+.env
+.env.*
+*.jks
+*.keystore
+keystore.properties
+
+# Lixo de sistema e de ferramentas
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
