@@ -1,0 +1,4 @@
+Fontes do HUD da landing (hospedadas aqui, sem conexão com terceiros):
+- Chakra Petch (500, 600, 700) — Cadson Demak — SIL Open Font License 1.1
+- Share Tech Mono (400) — Carrois Apostrophe — SIL Open Font License 1.1
+Origem: Google Fonts (subconjunto latino). Licença: https://openfontlicense.org

@@ -17,7 +17,8 @@
 <meta property="og:image" content="https://geosniper.com.br/sobre/img/og-image.jpg">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="style.css?v=20261002">
+<link rel="preload" href="fonts/chakra-petch-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=20261006">
 </head>
 <body>
 <a class="skip" href="#conteudo">Ir para o conteúdo</a>
@@ -58,8 +59,10 @@
         <li>Contas individuais por operador</li>
       </ul>
     </div>
-    <div class="hero-art">
-      <img src="img/logo-512.png" alt="Logotipo do GeoSniper: luneta com um marcador de localização vermelho no centro" width="380" height="380">
+    <div class="hero-art hero-3d">
+      <img class="globo-fallback" src="img/logo-512.png" alt="Logotipo do GeoSniper: luneta com um marcador de localização vermelho no centro" width="380" height="380">
+      <canvas id="globo" aria-hidden="true"></canvas>
+      <div id="globoChips" class="chips" role="group" aria-label="Módulos do app: toque para ver os detalhes"></div>
     </div>
   </div>
 </section>
@@ -213,5 +216,6 @@
 </footer>
 
 <script src="app.js"></script>
+<script src="globo.js?v=20261006" defer></script>
 </body>
 </html>

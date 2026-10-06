@@ -37,6 +37,7 @@
   <script src="ballistics-engine.js"></script>
   <!-- Ajuda por aba (roteiro de utilização) -->
   <script src="ajuda.js" defer></script>
+  <script src="home-hud.js" defer></script>
   <script src="ajuda-clips.js" defer></script>
 
   <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
@@ -174,6 +175,18 @@
       background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; }
     .home-who b { color: var(--ink); font-weight: 700; }
     .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    /* HUD orbital da Início (só web; ligado por home-hud.js). Sem a classe home-hud-on nada disso aparece. */
+    @font-face { font-family: 'Chakra Petch'; font-style: normal; font-weight: 600; font-display: swap; src: url(fonts/chakra-petch-600.woff2) format('woff2'); }
+    @font-face { font-family: 'Chakra Petch'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/chakra-petch-700.woff2) format('woff2'); }
+    @font-face { font-family: 'Share Tech Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/share-tech-mono-400.woff2) format('woff2'); }
+    .home-hud { display: none; }
+    #tabInicio.home-hud-on .home-hud { display: block; width: 100%; max-width: clamp(300px, calc(100vh - 380px), 520px); margin: 0 auto 12px; }
+    #tabInicio.home-hud-on .home-grid, #tabInicio.home-hud-on .home-hero-logo { display: none; }
+    .home-hud canvas { display: block; width: 100%; aspect-ratio: 1; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+    body.nvg-red-mode .home-hud canvas { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-35deg) brightness(0.75); }
+    .home-view-toggle { display: none; justify-content: center; gap: 6px; margin: 0 0 12px; }
+    .home-view-toggle button { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .home-view-toggle button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
     .home-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
       color: inherit; font: inherit; -webkit-tap-highlight-color: transparent;
       background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.015) 100%), var(--surface);
@@ -1652,6 +1665,11 @@ body.nvg-red-mode .leaflet-tile-container img {
     </div>
     <div class="home-who" id="homeWho"></div>
     <div style="text-align:center; margin:2px 0 14px;"><button type="button" class="home-guide-btn" onclick="openTabHelp('tabInicio')">📖 Guia rápido de uso</button></div>
+    <div class="home-view-toggle" id="homeViewToggle" role="group" aria-label="Forma de exibir os módulos">
+      <button type="button" data-view="hud" aria-pressed="true" onclick="GeoHomeHud.setView('hud')">🛰️ Órbita</button>
+      <button type="button" data-view="lista" aria-pressed="false" onclick="GeoHomeHud.setView('lista')">▦ Lista</button>
+    </div>
+    <div class="home-hud" id="homeHud"><canvas id="homeHudCanvas" aria-hidden="true"></canvas></div>
     <div class="home-grid" id="homeGrid"></div>
     <div class="home-foot">GeoSniper é uma ferramenta de cálculo. Não vende armas, munição ou acessórios.</div>
   </div>
@@ -3837,6 +3855,19 @@ function renderHome() {
     const bs = who.querySelectorAll('b');
     bs[0].textContent = op || '-';
     bs[1].textContent = unit || '-';
+  }
+  // HUD orbital: só na web. No app nativo (Capacitor) a lista de cartões segue como sempre.
+  if (window.GeoHomeHud) {
+    GeoHomeHud.update(cards.map(c => ({ tab: c.tab, title: c.title })), {
+      native: isNativeApp(),
+      open: (tab) => openTab(null, tab),
+      info: () => [
+        { tit: 'SISTEMA', ln: ['MÓDULOS ' + cards.length + '/' + HOME_CARDS.length, 'ÓRBITA ATIVA'] },
+        { tit: 'OPERADOR', ln: [getOperatorName() || '-', getUnitName() || '-'] },
+        { tit: 'GPS', ln: [currentPos ? 'SINAL ATIVO' : 'SEM SINAL'] },
+        { tit: 'REDE', ln: [navigator.onLine ? 'ONLINE' : 'OFFLINE', (typeof tacticalSocket !== 'undefined' && tacticalSocket && tacticalSocket.connected) ? 'EQUIPE CONECTADA' : 'EQUIPE OFF'] }
+      ]
+    });
   }
 }
 

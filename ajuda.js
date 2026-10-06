@@ -24,7 +24,8 @@
         '<b>Medir</b>: toque no alvo no mapa; o app mede a distância e já mostra as correções. Registre o ponto e compartilhe.',
         '<b>Em equipe</b>: Marker, Estratégia e Pontos compartilham marcações em tempo real; Raios mostra os anéis de distância ao seu redor.',
         '<b>Planejamento e treino</b>: Simulação e Perfis mostram a trajetória, a deriva do vento e o risco de interceptação em alvos móveis de treinamento.',
-        'À noite, use o botão <b>NVG RED</b> (vermelho escuro) para preservar a visão.'
+        'À noite, use o botão <b>NVG RED</b> (vermelho escuro) para preservar a visão.',
+        '<b>Na versão web</b>, a página Início mostra os seus módulos em <b>órbita</b> ao redor do logo: toque no nome para abrir a aba. O botão <b>Lista</b> troca para os cartões, e o app lembra a sua escolha.'
       ],
       pular: DEFAULTS,
       dica: 'O botão <b>❔ Ajuda</b> da barra de abas abre a ajuda da aba em que você está, com os passos daquela etapa. ' + CAUTION,
