@@ -110,26 +110,27 @@
       passos: [
         'Escolha um marcador nas barras: <b>de baixo</b> (meios, como Patrulha, Desig, Alvo, Viatura) ou <b>da lateral</b> (riscos, como Ameaça, Seteira, Barricada, Bunker, Vala).',
         '<b>Arraste o ícone até o local no mapa e solte.</b> Um toque simples não marca.',
-        'Na janela, informe rótulo, localidade e observação e, se quiser, tire uma <b>foto</b>. Toque em <b>Salvar ponto</b>.',
+        'Na janela, informe rótulo, localidade e observação e, se quiser, tire uma <b>foto</b>. O <b>endereço (rua)</b> vem sugerido pelo OpenStreetMap; se não vier, ou se estiver errado, <b>digite ou corrija à mão</b>. Toque em <b>Salvar ponto</b>.',
         'O ponto aparece para toda a equipe em tempo real, com a etiqueta de quem marcou.',
         'Quando alguém compartilha um ponto, quem abre o link vê os caminhos <b>a pé</b> (branco tracejado) e <b>de carro</b> (âmbar) até ele, com distância e tempo.',
-        'Toque no marcador para abrir o cartão do ponto: rótulo, observação, quem marcou, foto, <b>📲 Compartilhar no WhatsApp</b> (quem receber abre o ponto no mapa, com o caminho até ele) e <b>🗑️ Excluir</b> (precisa da permissão Excluir).',
+        'Toque no marcador para abrir o cartão do ponto: rótulo, endereço, observação, quem marcou, foto, <b>🧭 Caminho até aqui</b> (traça, a partir de <b>onde você está</b>, o caminho <b>a pé</b> em branco tracejado e <b>de carro</b> em âmbar, com distância e tempo; só você vê), <b>📲 Compartilhar no WhatsApp</b> (quem receber abre o ponto no mapa, com o caminho até ele) e <b>🗑️ Excluir</b> (precisa da permissão Excluir).',
+        'O marcador <b>P. Encontro</b> (bóia, na barra de baixo) marca um ponto de encontro: qualquer operador com a permissão Criar pode colocar. Ele vale por <b>6 horas</b>: o cartão mostra quem criou, a hora de criação e a hora em que expira. Depois disso some dos mapas e fica na tabela da aba Pontos como <b>expirado</b>.',
         'O marcador <b>Alvo</b> é especial: quando alguém compartilha um Alvo, quem abre e tem a aba Medir recebe o balão com as correções para o equipamento dele; sem a aba Medir, vê um marcador comum.',
         'Use as ferramentas de desenho (lápis) para traçar áreas e caminhos sobre o mapa.'
       ],
       ve: 'Todos da unidade veem os mesmos pontos. Você só precisa estar com o app aberto e com internet para enviar e receber.',
       pular: 'Marcar sem informar rótulo usa o nome do tipo de marcador.',
       dica: 'Os pontos registrados também aparecem na aba Pontos, em tabela, com exportação para CSV e Excel.',
-      falha: 'O ícone não marcou: você precisa arrastar e soltar sobre o mapa, fora das barras de marcadores. "Operação não permitida": a sua conta não tem a permissão Criar, Editar ou Excluir. Peça ao administrador.'
+      falha: 'O ícone não marcou: você precisa arrastar e soltar sobre o mapa, fora das barras de marcadores. O endereço não apareceu: o OpenStreetMap pode não ter a rua desse ponto ou estar sem internet; digite o endereço no campo, que sempre aceita edição. "Operação não permitida": a sua conta não tem a permissão Criar, Editar ou Excluir. Peça ao administrador.'
     },
 
     tabRelevo: {
       title: 'Pontos', lead: 'Mapa e tabela de todos os pontos registrados pela unidade, com foto, operador e horário. Serve para consultar, compartilhar e exportar.',
       antes: 'Pontos registrados nas abas Medir, Marker ou Estratégia (na Estratégia, a peça só é registrada quando é travada).',
       passos: [
-        'Abra a aba: o mapa mostra os pontos registrados. Toque num marcador para ver o rótulo, a observação, quem marcou e a foto.',
-        'Abra a tabela em <b>⛶ Tela cheia</b>. Ela lista cada ponto: tipo, rótulo, localidade, coordenadas, posição do atirador, observação, operador, data e foto (toque na foto para ampliar).',
-        'Use <b>Filtrar por localidade</b> para reduzir a lista.',
+        'Abra a aba: o mapa mostra os pontos registrados. Toque num marcador para ver o rótulo, o endereço, a observação, quem marcou e a foto, e use <b>🧭 Caminho até aqui</b> para traçar as rotas a pé e de carro a partir de onde você está.',
+        'Abra a tabela em <b>⛶ Tela cheia</b>. Ela lista cada ponto: tipo, rótulo, localidade, <b>endereço</b>, coordenadas, posição do atirador, observação, operador, data e foto (toque na foto para ampliar). Um P. Encontro vencido continua na lista, esmaecido e marcado <b>expirado</b>.',
+        'Use <b>Filtrar por localidade ou rua</b> para reduzir a lista.',
         'Em cada linha: <b>📍</b> centraliza o ponto no mapa, o botão verde <b>compartilha no WhatsApp</b> e <b>🗑️</b> exclui (precisa da permissão Excluir).',
         '<b>Compartilhar filtrado</b> envia a lista filtrada pelo WhatsApp. <b>Salvar</b> grava a tabela filtrada em CSV neste aparelho. <b>Exportar tabela</b> gera uma planilha Excel (.xlsx) com links clicáveis.'
       ],
@@ -147,6 +148,7 @@
         'A peça nasce <b>livre</b> (selo verde): você pode arrastá-la e reposicioná-la. Ainda é só um rascunho, que só você vê.',
         'Toque no <b>selo</b> para <b>travar</b> (selo vermelho). Ao travar, a peça é registrada e sincronizada em tempo real com toda a equipe.',
         'Para mudar a posição, <b>destrave</b> pelo selo, arraste e trave de novo: a equipe vê a alteração na hora.',
+        'Toque numa peça travada para abrir o cartão: <b>🧭 Caminho até aqui</b> traça as rotas a pé (branco tracejado) e de carro (âmbar) a partir de onde você está. A peça <b>P. Encontro</b> (bóia) vale 6 horas e depois some do mapa.',
         'No painel <b>Desenho</b>, use caminho, caneta, retângulo, círculo, seta, tracejada, curva e envolvimento para traçar rotas e áreas. "Medir" mede distâncias no mapa e "Apagar" remove desenhos. Escolha a cor.',
         'Os painéis flutuam: arraste pelo cabeçalho, redimensione pelas bordas e minimize com ▾.'
       ],

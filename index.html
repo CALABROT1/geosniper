@@ -956,6 +956,7 @@
     .tactical-table th:nth-child(1), .tactical-table td:nth-child(1) { width: 1%; white-space: nowrap; }
     .tactical-table th:nth-child(2), .tactical-table td:nth-child(2) { width: 1%; white-space: nowrap; }
     .tactical-table th:nth-child(3), .tactical-table td:nth-child(3) { width: 180px; }
+    .tactical-table th:nth-child(4), .tactical-table td:nth-child(4) { width: 180px; }
     .loc-cell-input {
       display: block; width: 100%; max-width: 180px; border: none; background: transparent;
       color: inherit; font: inherit; padding: 0; margin: 0; cursor: text;
@@ -1742,10 +1743,10 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="tactical-table-scroll">
       <table class="tactical-table">
         <thead>
-          <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
+          <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
         </thead>
         <tbody id="tacticalMarkersTableBody">
-          <tr><td colspan="10" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
+          <tr><td colspan="11" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1838,7 +1839,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     <button onclick="closePontosTableModal()" style="background:var(--sem-hostile); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer;">❌ FECHAR</button>
   </div>
   <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
-    <input id="pontosLocalidadeFilter" type="text" placeholder="🔎 Filtrar por localidade..." oninput="filterPontosTableByLocalidade()" style="flex:1; min-width:180px; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:9px 12px; font-size:13px;">
+    <input id="pontosLocalidadeFilter" type="text" placeholder="🔎 Filtrar por localidade ou rua..." oninput="filterPontosTableByLocalidade()" style="flex:1; min-width:180px; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:9px 12px; font-size:13px;">
     <button onclick="shareFilteredPontos()" style="background:#25D366; color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">📲 Compartilhar Filtrado</button>
     <button onclick="savePontosTableCSV()" title="Salva a tabela filtrada (.csv) neste aparelho" style="background:var(--action); color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">💾 Salvar</button>
     <button onclick="exportPontosTableXLSX()" title="Exporta a tabela filtrada como planilha Excel (.xlsx), com links clicáveis" style="background:var(--accent); color:#15160f; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">📊 Exportar Tabela</button>
@@ -1846,7 +1847,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div style="overflow-x:auto;">
     <table class="tactical-table" style="color:var(--ink);">
       <thead>
-        <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
+        <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
       </thead>
       <tbody id="tacticalMarkersTableBodyModal">
         <!-- Espelha #tacticalMarkersTableBody, preenchido por renderTacticalMarkersTable() -->
@@ -2931,6 +2932,13 @@ body.nvg-red-mode .leaflet-tile-container img {
     <label style="font-size:11px; color:var(--muted); font-weight:700;">Localidade</label>
     <input id="tacticalPinLocalidade" type="text" placeholder="Nome do local (ex: bairro, ponto de referência)" style="width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px;">
 
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Endereço (rua)</label>
+    <div style="display:flex; gap:6px; align-items:stretch; margin:4px 0 4px;">
+      <input id="tacticalPinEndereco" type="text" maxlength="300" oninput="tacticalEnderecoTouched = true" placeholder="Rua e número — sugerido pelo OpenStreetMap; você pode editar" style="flex:1; min-width:0; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 10px; margin:0; font-size:13px;">
+      <button type="button" id="tacticalPinEnderecoBtn" onclick="buscarEnderecoDoPonto(true)" title="Buscar o endereço deste ponto no OpenStreetMap" style="flex:none; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:0 11px; font-size:15px; cursor:pointer;">🔄</button>
+    </div>
+    <div id="tacticalPinEnderecoHint" style="font-size:10px; color:var(--muted); margin:0 0 12px; min-height:13px; line-height:1.3;"></div>
+
     <label style="font-size:11px; color:var(--muted); font-weight:700;">Observação</label>
     <textarea id="tacticalPinObservation" rows="3" style="width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px; resize:vertical;"></textarea>
 
@@ -3062,6 +3070,9 @@ body.nvg-red-mode .leaflet-tile-container img {
       { id: 'saer',      label: 'SAER',       icon: 'icons/saer.png',     dock: 'h' },
       { id: 'eab',       label: 'EAB',        icon: 'icons/eab.png',      dock: 'h' },
       { id: 'canil',     label: 'Canil',      icon: 'icons/canil.png',    dock: 'h' },
+      // Bóia de ponto de encontro: qualquer operador coloca; vale por ttlHours
+      // a partir da criação (depois some dos mapas e fica na tabela como "expirado").
+      { id: 'rally',     label: 'P. Encontro', icon: 'icons/rally.png',   dock: 'h', ttlHours: 6 },
       // ===== Dock lateral (borda direita) — RISCOS =====
       { id: 'contencao', label: 'Ameaça',     icon: 'icons/armas.png',     dock: 'l' },
       { id: 'radinhos',  label: 'Rad.',       icon: 'icons/Radboca.png',   dock: 'l' },
@@ -3095,7 +3106,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       // Bloco 1 — preenchimento vermelho / risco
       'contencao', 'boca', 'barricade', 'radinhos', 'seteira', 'trilho', 'bunker', 'vala', 'barreira',
       // Bloco 2 — meios
-      'patrol', 'sniper', 'armored', 'heli', 'vtr1', 'cami1', 'intel', 'target', 'cam', 'cam2', 'aph',
+      'patrol', 'sniper', 'armored', 'heli', 'vtr1', 'cami1', 'intel', 'target', 'cam', 'cam2', 'aph', 'rally',
       // Bloco 3 — apoio / avanço
       'sote', 'sap', 'drone', 'saer', 'eab', 'canil', 'priority', 'contato', 'bloq', 'avanco-1', 'avanco2-1', 'avanco3-1', 'avanco4-1'
     ];
@@ -7575,6 +7586,48 @@ function closeTacticalPhotoModal() {
   if (modal) modal.style.display = 'none';
 }
 
+// Validade de marcadores temporários (hoje só o P. Encontro, 6 h): conta a
+// partir do timestamp que o SERVIDOR gravou ao criar. Sem timestamp (rascunho
+// local) ou tipo sem prazo = não expira.
+function pinExpiresAt(pin) {
+  const t = TACTICAL_MARKER_TYPES.find(x => x.id === pin.type);
+  if (!t || !t.ttlHours || !pin.timestamp) return null;
+  const ms = new Date(pin.timestamp).getTime();
+  return isNaN(ms) ? null : ms + t.ttlHours * 3600 * 1000;
+}
+function pinExpired(pin) {
+  const e = pinExpiresAt(pin);
+  return e !== null && Date.now() >= e;
+}
+// "14:03" se for hoje, "05/10 14:03" se for outro dia
+function fmtQuando(ms) {
+  const d = new Date(ms), hoje = new Date();
+  const hm = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (d.toDateString() === hoje.toDateString()) return hm;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + hm;
+}
+// Reavalia a cada 30 s: quando um P. Encontro vence (ou volta a valer), redesenha mapas e tabela.
+let __expiradosVistos = '';
+function verificarExpiracaoMarcadores() {
+  const ids = Object.values(tacticalMarkers).filter(pinExpired).map(p => p.id).sort().join(',');
+  if (ids !== __expiradosVistos) { __expiradosVistos = ids; refreshTacticalMarkersUI(); }
+}
+setInterval(verificarExpiracaoMarcadores, 30000);
+
+// "Caminho até aqui": rotas a pé (branca tracejada) e de carro (âmbar) da
+// posição de QUEM TOCOU até o marcador. A posição nunca é enviada a ninguém —
+// é só um cálculo local no aparelho de quem pediu.
+function caminhoAteAqui(pinId, btn) {
+  const pin = tacticalMarkers[pinId];
+  if (!pin || typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
+  const cont = btn && btn.closest ? btn.closest('.leaflet-container') : null;
+  const map = cont ? ({ mapNormal, mapRelevo, mapEstrategia })[cont.id] : null;
+  if (!map) return;
+  if (!currentPos) { alert('Sua posição ainda não foi obtida. Ative a localização do aparelho e tente de novo.'); return; }
+  map.closePopup();
+  showSharedPointPath(map, pin.lat, pin.lng, { persist: true });
+}
+
 function tacticalPopupHtml(pin) {
   const t = getTacticalType(pin.type);
   const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '';
@@ -7601,15 +7654,22 @@ function tacticalPopupHtml(pin) {
     ? `<button onclick="openTacticalPinModal('${pin.type}', ${pin.lat}, ${pin.lng}, '${pin.id}')" style="margin-top:8px; width:100%; background:var(--action); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🖊️ Completar cadastro</button>`
     : '';
 
+  const expMs = pinExpiresAt(pin);
+  const rallyInfo = expMs !== null
+    ? `<div style="font-size:11px; color:var(--muted); margin-top:6px;">🚩 Criado por ${operatorChipHtml(pin.operator)} às ${fmtQuando(new Date(pin.timestamp).getTime())}</div>
+       <div style="font-size:11px; margin-top:3px; font-weight:700; color:${Date.now() >= expMs ? 'var(--sem-hostile)' : 'var(--accent)'};">${Date.now() >= expMs ? '⌛ Expirado às ' : '⏳ Expira às '}${fmtQuando(expMs)}</div>`
+    : '';
   return `
     <div style="min-width:170px; max-width:220px;">
       <b style="color:var(--accent);">${t.label}${pin.label && pin.label !== t.label ? ' — ' + pin.label : ''}</b><br>
       ${pin.piece ? `<div style="font-size:10px; color:var(--muted); margin-top:2px;">${pin.locked ? '🔴 Travado' : '🟢 Livre'}</div>` : ''}
       ${pin.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${pin.localidade}</div>` : ''}
+      ${pin.endereco ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">🛣️ ${escAttr(pin.endereco)}</div>` : ''}
       ${pin.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${pin.observation}</div>` : ''}
-      <div style="font-size:10px; color:var(--muted); margin-top:6px;">${operatorChipHtml(pin.operator)}${when ? ' · ' + when : ''}</div>
+      ${rallyInfo || `<div style="font-size:10px; color:var(--muted); margin-top:6px;">${operatorChipHtml(pin.operator)}${when ? ' · ' + when : ''}</div>`}
       ${photo}
       ${completeBtn}
+      <button onclick="caminhoAteAqui('${pin.id}', this)" style="margin-top:8px; width:100%; background:var(--surface); color:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🧭 Caminho até aqui</button>
       <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" style="margin-top:8px; width:100%; background:#25D366; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">📲 Compartilhar no WhatsApp</button>
       <button onclick="deleteTacticalMarker('${pin.id}')" style="margin-top:6px; width:100%; background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir</button>
     </div>
@@ -7629,6 +7689,7 @@ function refreshTacticalMarkersUI() {
 
   Object.values(tacticalMarkers).forEach(pin => {
     if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
+    if (pinExpired(pin)) return;   // P. Encontro vencido: some dos mapas, continua na tabela de Pontos
     const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin, mapNormal ? mapNormal.getZoom() : undefined);
     const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin, mapRelevo ? mapRelevo.getZoom() : undefined);
     const mkNormal = L.marker([pin.lat, pin.lng], { icon: iconNormal }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
@@ -7885,7 +7946,7 @@ function registerTacticalPiece(pin) {
   if (!tacticalSocket) return;
   const payload = {
     id: pin.id, type: pin.type, lat: pin.lat, lng: pin.lng,
-    label: pin.label, localidade: pin.localidade || '', observation: pin.observation || '',
+    label: pin.label, localidade: pin.localidade || '', endereco: pin.endereco || '', observation: pin.observation || '',
     operatorLat: pin.operatorLat, operatorLng: pin.operatorLng, photoUrl: pin.photoUrl,
     operator: pin.operator, locked: 1, piece: 1
   };
@@ -7924,7 +7985,7 @@ function renderTacticalMarkersTable() {
     .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
 
   if (rows.length === 0) {
-    const emptyHtml = '<tr><td colspan="10" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
+    const emptyHtml = '<tr><td colspan="11" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
     if (tbody) tbody.innerHTML = emptyHtml;
     if (tbodyModal) tbodyModal.innerHTML = emptyHtml;
     return;
@@ -7932,6 +7993,7 @@ function renderTacticalMarkersTable() {
 
   const rowsHtml = rows.map(pin => {
     const t = getTacticalType(pin.type);
+    const expirado = pinExpired(pin);
     const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '-';
     const coords = (typeof pin.lat === 'number' && typeof pin.lng === 'number')
       ? `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)}`
@@ -7947,11 +8009,13 @@ function renderTacticalMarkersTable() {
     // texto aparece e dá pra navegar (setas/arrastar) pelo conteúdo completo sem
     // precisar abrir mais nada.
     const localidadeCell = `<input type="text" readonly class="loc-cell-input" value="${escAttr(pin.localidade || '-')}" title="${escAttr(pin.localidade || '')}">`;
+    const enderecoCell = `<input type="text" readonly class="loc-cell-input" value="${escAttr(pin.endereco || '-')}" title="${escAttr(pin.endereco || '')}">`;
     return `
-      <tr style="border-bottom:1px solid var(--surface);" data-localidade="${escAttr(normalizeSearchText(pin.localidade))}">
-        <td style="white-space:nowrap;"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}</td>
+      <tr style="border-bottom:1px solid var(--surface);${expirado ? ' opacity:.55;' : ''}" data-localidade="${escAttr(normalizeSearchText((pin.localidade || '') + ' ' + (pin.endereco || '')))}">
+        <td style="white-space:nowrap;"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}${expirado ? ' <span style="font-size:10px; font-weight:800; color:var(--sem-hostile); border:1px solid var(--sem-hostile); border-radius:4px; padding:0 4px;">expirado</span>' : ''}</td>
         <td style="color:var(--ink); white-space:nowrap;">${pin.label || '-'}</td>
         <td style="color:var(--ink);">${localidadeCell}</td>
+        <td style="color:var(--ink);">${enderecoCell}</td>
         <td style="color:var(--muted); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${coords}</td>
         <td style="color:var(--sem-hostile); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${shooterCoords}</td>
         <td style="color:var(--muted); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.observation || '-'}</td>
@@ -8005,7 +8069,7 @@ function getFilteredPontosRows() {
   const rawQuery = input ? input.value.trim() : '';
   const q = normalizeSearchText(rawQuery);
   const rows = Object.values(tacticalMarkers)
-    .filter(pin => !q || normalizeSearchText(pin.localidade).includes(q))
+    .filter(pin => !q || normalizeSearchText((pin.localidade || '') + ' ' + (pin.endereco || '')).includes(q))
     .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
   return { rows, rawQuery };
 }
@@ -8036,7 +8100,8 @@ function shareFilteredPontos() {
     const coords = hasCoords ? `${pin.lat.toFixed(6)}, ${pin.lng.toFixed(6)}` : '-';
     const appPinUrl = hasCoords ? `${ASSET_BASE}?tab=pontos&targetLat=${pin.lat}&targetLng=${pin.lng}&pinId=${encodeURIComponent(pin.id)}` : '';
     const mapsLink = hasCoords ? `https://www.google.com/maps?q=${pin.lat},${pin.lng}` : '';
-    message += `${i + 1}. ${t.label} — ${pin.label || '-'}\n📍 ${pin.localidade || '-'} (${coords})`;
+    message += `${i + 1}. ${t.label}${pinExpired(pin) ? ' (expirado)' : ''} — ${pin.label || '-'}\n📍 ${pin.localidade || '-'} (${coords})`;
+    if (pin.endereco) message += `\n🛣️ ${pin.endereco}`;
     if (appPinUrl) message += `\n🔗 App: ${appPinUrl}`;
     if (mapsLink) message += `\n🗺️ Outro mapa: ${mapsLink}`;
     message += '\n\n';
@@ -8049,7 +8114,7 @@ function shareFilteredPontos() {
 // XLSX — mesmas colunas dos dois formatos, na mesma ordem da tabela em tela.
 function buildPontosExportRows() {
   const { rows } = getFilteredPontosRows();
-  const header = ['Tipo', 'Rótulo', 'Localidade', 'Coordenadas', 'Posição do Atirador', 'Observação', 'Operador', 'Data/Hora', 'Link GeoSniper', 'Link Mapa Externo'];
+  const header = ['Tipo', 'Rótulo', 'Localidade', 'Endereço', 'Coordenadas', 'Posição do Atirador', 'Observação', 'Operador', 'Data/Hora', 'Link GeoSniper', 'Link Mapa Externo'];
   const dataRows = rows.map(pin => {
     const t = getTacticalType(pin.type);
     const hasCoords = typeof pin.lat === 'number' && typeof pin.lng === 'number';
@@ -8059,7 +8124,7 @@ function buildPontosExportRows() {
     const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '-';
     const appPinUrl = hasCoords ? `${ASSET_BASE}?tab=pontos&targetLat=${pin.lat}&targetLng=${pin.lng}&pinId=${encodeURIComponent(pin.id)}` : '';
     const mapsLink = hasCoords ? `https://www.google.com/maps?q=${pin.lat},${pin.lng}` : '';
-    return [t.label, pin.label || '-', pin.localidade || '-', coords, shooterCoords, pin.observation || '-', pin.operator || '-', when, appPinUrl, mapsLink];
+    return [t.label + (pinExpired(pin) ? ' (expirado)' : ''), pin.label || '-', pin.localidade || '-', pin.endereco || '-', coords, shooterCoords, pin.observation || '-', pin.operator || '-', when, appPinUrl, mapsLink];
   });
   return { header, dataRows };
 }
@@ -8133,6 +8198,7 @@ function exportPontosTableXLSX() {
 function focusTacticalMarker(id) {
   const pin = tacticalMarkers[id];
   if (!pin || !mapRelevo) return;
+  if (pinExpired(pin)) { alert('Este ponto expirou e não aparece mais nos mapas. Os dados continuam na tabela.'); return; }
   openTab(null, 'tabRelevo');
   setTimeout(() => { mapRelevo.setView([pin.lat, pin.lng], 18); }, 150);
 }
@@ -8886,7 +8952,7 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
   tacticalPendingPhotoDataUrl = null;
 
   document.getElementById('tacticalPinModalIcon').src = t.icon;
-  document.getElementById('tacticalPinModalEyebrow').innerText = editingPin ? 'Completar Cadastro (Peça Travada)' : 'Novo Ponto Tático';
+  document.getElementById('tacticalPinModalEyebrow').innerText = editingPin ? 'Completar Cadastro (Peça Travada)' : (t.ttlHours ? `Novo Ponto Tático · vale por ${t.ttlHours} h` : 'Novo Ponto Tático');
   document.getElementById('tacticalPinModalTypeLabel').innerText = t.label;
   document.getElementById('tacticalPinLabel').value = (editingPin && editingPin.label) || t.label;
   // Pré-preenche com o último local pesquisado (aba Pesquisar) — o operador pode
@@ -8894,6 +8960,12 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
   // edição, prevalece o que a peça já tinha (mesmo que vazio).
   document.getElementById('tacticalPinLocalidade').value = editingPin ? (editingPin.localidade || '') : (lastLocationSearchName || '');
   document.getElementById('tacticalPinObservation').value = (editingPin && editingPin.observation) || '';
+  // Endereço (rua): vem do que o ponto já tem; se estiver vazio, o OpenStreetMap
+  // sugere (sem sobrescrever nada que o operador digitar). Sempre editável.
+  document.getElementById('tacticalPinEndereco').value = (editingPin && editingPin.endereco) || '';
+  tacticalEnderecoTouched = false;
+  setEnderecoHint('');
+  if (!(editingPin && editingPin.endereco)) buscarEnderecoDoPonto(false);
   const photoPreview = document.getElementById('tacticalPinPhotoPreview');
   if (editingPin && editingPin.photoUrl) {
     photoPreview.src = editingPin.photoUrl;
@@ -8907,8 +8979,91 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
   document.getElementById('tacticalPinModal').style.display = 'flex';
 }
 
+// ===== ENDEREÇO DO PONTO (OpenStreetMap / Nominatim) =====
+// Módulo à parte da Esri (mapas, busca e rotas): aqui só a geocodificação
+// REVERSA (coordenada -> rua) pelo Nominatim, cujos dados (ODbL) PODEM ser
+// guardados. Política de uso: no máximo 1 pedido por segundo, aplicativo
+// identificado (e-mail de contato + Referer do navegador), crédito
+// "© OpenStreetMap contributors". Se não vier rua, o campo fica vazio e o
+// operador digita; sem internet, idem.
+const OSM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse';
+const OSM_CONTATO = 'contato@geosniper.com.br';
+const OSM_INTERVALO_MS = 1100;
+let osmUltimoPedido = 0;
+let osmFila = Promise.resolve();
+const osmCache = {};
+let tacticalEnderecoTouched = false;
+let tacticalEnderecoSeq = 0;
+
+function osmFormatarEndereco(data) {
+  const a = (data && data.address) || {};
+  const rua = a.road || a.pedestrian || a.footway || a.path || a.living_street || a.residential || '';
+  const bairro = a.suburb || a.neighbourhood || a.quarter || a.city_district || '';
+  const cidade = a.city || a.town || a.village || a.municipality || '';
+  const uf = (a['ISO3166-2-lvl4'] || '').replace(/^BR-/, '');
+  if (!rua) return { rua: '', bairro, texto: '' };
+  const parte1 = rua + (a.house_number ? ', ' + a.house_number : '');
+  const parte2 = [bairro, cidade].filter(Boolean).join(', ');
+  const texto = parte1 + (parte2 ? ' - ' + parte2 : '') + (uf ? ' - ' + uf : '');
+  return { rua, bairro, texto };
+}
+
+// Fila de um pedido por vez, com intervalo mínimo entre eles (regra do Nominatim).
+function osmReverso(lat, lng) {
+  const chave = lat.toFixed(5) + ',' + lng.toFixed(5);
+  if (osmCache[chave]) return Promise.resolve(osmCache[chave]);
+  const tarefa = osmFila.then(async () => {
+    if (osmCache[chave]) return osmCache[chave];
+    const espera = osmUltimoPedido + OSM_INTERVALO_MS - Date.now();
+    if (espera > 0) await new Promise(r => setTimeout(r, espera));
+    osmUltimoPedido = Date.now();
+    const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 9000) : null;
+    try {
+      const url = `${OSM_REVERSE_URL}?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=pt-BR&email=${encodeURIComponent(OSM_CONTATO)}`;
+      const res = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+      if (!res.ok) throw new Error('OSM ' + res.status);
+      const r = osmFormatarEndereco(await res.json());
+      osmCache[chave] = r;
+      return r;
+    } finally { if (timer) clearTimeout(timer); }
+  });
+  osmFila = tarefa.catch(() => {});
+  return tarefa;
+}
+
+function setEnderecoHint(texto) {
+  const el = document.getElementById('tacticalPinEnderecoHint');
+  if (el) el.textContent = texto;
+}
+
+// forcar=true: botão 🔄 (operador pediu); false: busca automática ao abrir.
+function buscarEnderecoDoPonto(forcar) {
+  const pend = tacticalPendingPin;
+  const campo = document.getElementById('tacticalPinEndereco');
+  if (!pend || !campo || typeof pend.lat !== 'number' || typeof pend.lng !== 'number') return;
+  if (forcar && campo.value.trim() && tacticalEnderecoTouched && !confirm('Substituir o endereço digitado pelo que o OpenStreetMap encontrar?')) return;
+  const seq = ++tacticalEnderecoSeq;
+  setEnderecoHint('Buscando o endereço no OpenStreetMap…');
+  osmReverso(pend.lat, pend.lng).then((r) => {
+    if (seq !== tacticalEnderecoSeq || tacticalPendingPin !== pend) return; // modal fechou/mudou de ponto
+    if (r.texto) {
+      if (forcar || (!tacticalEnderecoTouched && !campo.value.trim())) { campo.value = r.texto; tacticalEnderecoTouched = false; }
+      setEnderecoHint('Sugerido pelo OpenStreetMap (© OpenStreetMap contributors). Você pode editar.');
+    } else {
+      setEnderecoHint(r.bairro
+        ? `O OpenStreetMap não tem a rua deste ponto (bairro: ${r.bairro}). Digite o endereço, se quiser.`
+        : 'O OpenStreetMap não tem a rua deste ponto. Digite o endereço, se quiser.');
+    }
+  }).catch(() => {
+    if (seq !== tacticalEnderecoSeq || tacticalPendingPin !== pend) return;
+    setEnderecoHint('Não foi possível consultar o OpenStreetMap agora (sem internet?). Digite o endereço, se quiser.');
+  });
+}
+
 function closeTacticalPinModal() {
   document.getElementById('tacticalPinModal').style.display = 'none';
+  tacticalEnderecoSeq++;
   tacticalPendingPin = null;
   tacticalPendingPhotoDataUrl = null;
 }
@@ -9013,6 +9168,7 @@ function saveTacticalPinEdit() {
 
   const label = document.getElementById('tacticalPinLabel').value.trim() || getTacticalType(pin.type).label;
   const localidade = document.getElementById('tacticalPinLocalidade').value.trim();
+  const endereco = document.getElementById('tacticalPinEndereco').value.trim();
   const observation = document.getElementById('tacticalPinObservation').value.trim();
   const photoToUpload = tacticalPendingPhotoDataUrl;
 
@@ -9021,13 +9177,13 @@ function saveTacticalPinEdit() {
     headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
     credentials: 'include',
     body: JSON.stringify({
-      label, observation, localidade,
+      label, observation, localidade, endereco,
       lat: pin.lat, lng: pin.lng,
       operatorLat: pin.operatorLat, operatorLng: pin.operatorLng
     })
   }).then(res => res.json()).then((resp) => {
     if (!resp || !resp.success) { console.error('Não foi possível salvar o cadastro da peça.'); return; }
-    Object.assign(pin, { label, observation, localidade, operator });
+    Object.assign(pin, { label, observation, localidade, endereco, operator });
     if (photoToUpload) {
       fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
         method: 'POST',
@@ -9059,6 +9215,7 @@ function saveTacticalPin() {
     lng: tacticalPendingPin.lng,
     label: document.getElementById('tacticalPinLabel').value.trim() || getTacticalType(tacticalPendingPin.type).label,
     localidade: document.getElementById('tacticalPinLocalidade').value.trim(),
+    endereco: document.getElementById('tacticalPinEndereco').value.trim(),
     observation: document.getElementById('tacticalPinObservation').value.trim(),
     // Posição do atirador/observador no momento em que marcou o ponto — usada pra
     // desenhar a linha de visada (atirador -> alvo) na aba Relevo. Só faz sentido
@@ -9442,13 +9599,16 @@ function initMaps(lat, lng) {
         const nativo = (typeof isNativeApp === 'function') && isNativeApp();
         let feats = [];
         if (esriKey) {
+          // prioriza resultados perto do que você está vendo no mapa (nomes de rua se repetem muito no Brasil)
+          let centroBusca = '';
+          try { const m0 = getMap && getMap(); if (m0) { const c0 = m0.getCenter(); centroBusca = '&location=' + encodeURIComponent(c0.lng.toFixed(5) + ',' + c0.lat.toFixed(5)); } } catch (e) {}
           // Esri World Geocoding Service, uso temporário (a chave não tem permissão de armazenar): o resultado só centraliza o mapa.
-          const url = 'https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&countryCode=BRA&langCode=pt&maxLocations=6&outFields=PlaceName,Place_addr&singleLine=' + encodeURIComponent(query) + '&token=' + encodeURIComponent(esriKey);
+          const url = 'https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&countryCode=BRA&langCode=pt&maxLocations=6&outFields=PlaceName,Place_addr&singleLine=' + encodeURIComponent(query) + centroBusca + '&token=' + encodeURIComponent(esriKey);
           const res = await fetch(url);
           if (!res.ok) throw new Error('Erro na busca de localidade');
           const data = await res.json();
           if (data.error) throw new Error(data.error.message || 'Erro na busca de localidade');
-          feats = (data.candidates || []).map(c => ({ text: (c.attributes && c.attributes.PlaceName) || (c.address || '').split(',')[0], place_name: c.address || '', center: [c.location.x, c.location.y] }));
+          feats = (data.candidates || []).map(c => { const at = c.attributes || {}; const nome = at.PlaceName || (c.address || '').split(',')[0]; const completo = at.PlaceName ? [at.PlaceName, at.Place_addr].filter(Boolean).join(', ') : (at.Place_addr || c.address || ''); return { text: nome, place_name: completo, sub: at.PlaceName ? (at.Place_addr || '') : (at.Place_addr || c.address || ''), center: [c.location.x, c.location.y] }; });
         } else if (nativo) {
           throw new Error('Busca de localidade indisponível sem a chave Esri neste app');
         } else {
@@ -9468,7 +9628,7 @@ function initMaps(lat, lng) {
 
         listEl.innerHTML = feats.map((f, i) => {
           const mainText = (f.text || f.place_name || '').replace(/</g, '&lt;');
-          const fullText = (f.place_name || '').replace(/</g, '&lt;');
+          const fullText = (f.sub !== undefined ? (f.sub === f.text ? '' : f.sub) : (f.place_name || '')).replace(/</g, '&lt;');
           return `
             <div class="location-search-item" data-idx="${i}">
               ${mainText}
@@ -9755,8 +9915,10 @@ function initMaps(lat, lng) {
     // em cima do ponto, e enquadra os dois no mapa. Some sozinho depois de
     // um tempo pra não poluir o mapa permanentemente — o marcador tático de
     // verdade (já sincronizado) continua lá.
-    function showSharedPointPath(map, lat, lng) {
+    function showSharedPointPath(map, lat, lng, opts) {
       if (!map || typeof lat !== 'number' || typeof lng !== 'number') return;
+      const persist = !!(opts && opts.persist);
+      clearTimeout(map._sharedPointTimer);
       if (map._sharedPointLayer) {
         map.removeLayer(map._sharedPointLayer);
         map._sharedPointLayer = null;
@@ -9774,7 +9936,13 @@ function initMaps(lat, lng) {
         fetchRoutes(currentPos[0], currentPos[1], lat, lng).then((routes) => {
           if (seq !== map._routeSeq || !map._sharedPointLayer || !(routes.walk || routes.drive)) return;
           if (straight) map._sharedPointLayer.removeLayer(straight);   // tem caminho real: some a linha reta
-          renderRoutes(map, routes, map._routeStore);
+          const h = renderRoutes(map, routes, map._routeStore);
+          if (persist && h && h.box) {
+            const x = document.createElement('button'); x.type = 'button'; x.className = 'route-legend-row'; x.textContent = '✕ Limpar caminho';
+            x.addEventListener('click', (ev) => { ev.stopPropagation(); clearTimeout(map._sharedPointTimer); if (map._sharedPointLayer) { map.removeLayer(map._sharedPointLayer); map._sharedPointLayer = null; } clearRoutes(map, map._routeStore); });
+            L.DomEvent.disableClickPropagation(x);
+            h.box.appendChild(x);
+          }
           const b2 = L.latLngBounds([currentPos, [lat, lng]]);
           [routes.walk, routes.drive].forEach(r => { if (r) r.coords.forEach(c => b2.extend(c)); });
           map.fitBounds(b2, { padding: [60, 60], maxZoom: 17 });
@@ -9794,13 +9962,13 @@ function initMaps(lat, lng) {
         map.setView([lat, lng], 17);
       }
 
-      setTimeout(() => {
+      map._sharedPointTimer = setTimeout(() => {
         if (map._sharedPointLayer) {
           map.removeLayer(map._sharedPointLayer);
           map._sharedPointLayer = null;
         }
         clearRoutes(map, map._routeStore);
-      }, 60000);
+      }, persist ? 600000 : 60000);
     }
 
     // Acha, dentro do grupo de camadas de uma aba, o marker Leaflet cujo pin
