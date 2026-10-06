@@ -1,10 +1,15 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "br.com.geosniper.app",
-    "sha256_cert_fingerprints": [
-      "65:64:97:7A:6C:07:D5:A9:1A:CF:E1:21:6D:B4:D0:C6:4D:F2:0F:E1:C3:46:01:E9:2B:A5:D9:5C:A7:F7:80:9E"
-    ]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.geosniper.app",
+      "sha256_cert_fingerprints": [
+        "40:AC:4B:38:8D:2B:F5:DB:73:AE:1C:F1:24:32:E5:D9:4B:2F:F6:E9:88:23:D4:68:6A:52:1C:57:84:90:10:60",
+        "65:64:97:7A:6C:07:D5:A9:1A:CF:E1:21:6D:B4:D0:C6:4D:F2:0F:E1:C3:46:01:E9:2B:A5:D9:5C:A7:F7:80:9E"
+      ]
+    }
   }
-}]
+]
