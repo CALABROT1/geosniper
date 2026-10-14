@@ -41,6 +41,7 @@
   <!-- Ajuda por aba (roteiro de utilização) -->
   <script src="ajuda.js" defer></script>
   <script src="home-hud.js" defer></script>
+  <script src="aeronaves.js" defer></script>
   <script src="ajuda-clips.js" defer></script>
 
   <!-- Leaflet CSS e JS com suporte a Rotação Nativa -->
@@ -3090,6 +3091,9 @@ body.nvg-red-mode .leaflet-tile-container img {
       // Bóia de ponto de encontro: qualquer operador coloca; vale por ttlHours
       // a partir da criação (depois some dos mapas e fica na tabela como "expirado").
       { id: 'rally',     label: 'P. Encontro', icon: 'icons/rally.png',   dock: 'h', ttlHours: 6 },
+      // Boia Aérea: ponto de referência para o tempo estimado das aeronaves (botão ✈ do mapa).
+      // Vale por ttlHours, como o P. Encontro.
+      { id: 'aerobuoy',  label: 'Boia Aérea',  icon: 'icons/aerobuoy.png', dock: 'h', ttlHours: 6 },
       // ===== Dock lateral (borda direita) — RISCOS =====
       { id: 'contencao', label: 'Ameaça',     icon: 'icons/armas.png',     dock: 'l' },
       { id: 'radinhos',  label: 'Rad.',       icon: 'icons/Radboca.png',   dock: 'l' },
@@ -3123,7 +3127,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       // Bloco 1 — preenchimento vermelho / risco
       'contencao', 'boca', 'barricade', 'radinhos', 'seteira', 'trilho', 'bunker', 'vala', 'barreira',
       // Bloco 2 — meios
-      'patrol', 'sniper', 'armored', 'heli', 'vtr1', 'cami1', 'intel', 'target', 'cam', 'cam2', 'aph', 'rally',
+      'patrol', 'sniper', 'armored', 'heli', 'vtr1', 'cami1', 'intel', 'target', 'cam', 'cam2', 'aph', 'rally', 'aerobuoy',
       // Bloco 3 — apoio / avanço
       'sote', 'sap', 'drone', 'saer', 'eab', 'canil', 'priority', 'contato', 'bloq', 'avanco-1', 'avanco2-1', 'avanco3-1', 'avanco4-1'
     ];
@@ -9309,6 +9313,7 @@ function initMaps(lat, lng) {
       startNormalCompassWatch();
     }
     tacticalLayerNormal.addTo(mapNormal);
+    if (window.GeoAeronaves) GeoAeronaves.attach(mapNormal, 'normal');
     // Recalcula o tamanho dos ícones táticos quando o operador dá zoom (pra eles
     // não parecerem cada vez menores conforme se aproxima).
     mapNormal.on('zoomend', refreshTacticalMarkersUI);
@@ -9323,6 +9328,7 @@ function initMaps(lat, lng) {
     positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
     tacticalLayerRelevo.addTo(mapRelevo);
+    if (window.GeoAeronaves) GeoAeronaves.attach(mapRelevo, 'relevo');
     mapRelevo.on('zoomend', refreshTacticalMarkersUI);
     tacticalDrawingLayerRelevo.addTo(mapRelevo);
     mapRelevo.on(L.Draw.Event.CREATED, handleDrawCreated);
@@ -9344,6 +9350,7 @@ function initMaps(lat, lng) {
       startEstrategiaCompassWatch();
     }
     tacticalLayerEstrategia.addTo(mapEstrategia);
+    if (window.GeoAeronaves) GeoAeronaves.attach(mapEstrategia, 'estrategia');
     mapEstrategia.on('zoomend', refreshTacticalMarkersUI);
     tacticalDrawingLayerEstrategia.addTo(mapEstrategia);
     mapEstrategia.on(L.Draw.Event.CREATED, handleDrawCreated);
