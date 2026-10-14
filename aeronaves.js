@@ -75,7 +75,8 @@
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // ---------- tipo da aeronave ----------
-  // O servidor manda `kind` (aviao | helicoptero | outro | desconhecido) a partir da categoria ADS-B.
+  // O servidor manda `kind` (aviao | jato | helicoptero | outro | desconhecido) a partir da base de aeronaves
+  // do OpenSky (tipo ICAO) e, na falta dela, da categoria ADS-B.
   function kindOf(a) {
     if (a.kind) return a.kind;
     var c = a.cat;
@@ -84,14 +85,14 @@
     if (c === 9 || c === 10 || c === 11 || (c >= 13 && c <= 20)) return 'outro';
     return 'desconhecido';
   }
-  var KIND_LABEL = { aviao: 'Avião', helicoptero: 'Helicóptero', outro: 'Outro tipo', desconhecido: 'Sem classificação' };
-  var KIND_ICON = { aviao: '✈', helicoptero: '🚁', outro: '◆', desconhecido: '•' };
+  var KIND_LABEL = { aviao: 'Avião', jato: 'Jato', helicoptero: 'Helicóptero', outro: 'Outro tipo', desconhecido: 'Sem classificação' };
+  var KIND_ICON = { aviao: '🛩', jato: '✈', helicoptero: '🚁', outro: '◆', desconhecido: '•' };
 
   // ---------- estado compartilhado entre os mapas ----------
   var S = {
     enabled: false, aircraft: [], byId: {}, status: 'ok', fetchedAt: 0, serverTime: 0, credits: null, error: '',
     selectedId: null, destId: null, follow: false, trail: true, trailPoints: null, trailFor: null, trailLoadedAt: 0,
-    showGround: false, kindFilter: 'todos', query: '', crumbs: {},
+    showGround: false, kindFilter: 'todos', terms: [], destManual: false, crumbs: {},
     pollTimer: null, tickTimer: null, inflight: false, collapsed: false, armedMap: null
   };
   try { S.collapsed = localStorage.getItem('geosniper_aero_collapsed') === '1'; } catch (e) {}
@@ -115,13 +116,24 @@
   }
 
   // ---------- filtros ----------
+  // minúsculas, sem acento e sem espaço/hífen/ponto ("PR-GXA" casa com "prgxa")
+  function norm(t) { return String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s._-]+/g, ''); }
+  function haystack(a) {
+    if (!a._hay) {
+      a._hay = [a.id, a.callsign, a.reg, a.model, a.typecode, a.operator, a.country, KIND_LABEL[kindOf(a)]].map(norm).join('|');
+    }
+    return a._hay;
+  }
   function passesFilters(a) {
     if (a.id === S.selectedId) return true;                       // a escolhida nunca some
     if (a.onGround && !S.showGround) return false;
-    if (S.kindFilter !== 'todos' && kindOf(a) !== S.kindFilter) return false;
-    if (S.query) {
-      var q = S.query;
-      if (a.id.toLowerCase().indexOf(q) < 0 && String(a.callsign || '').toLowerCase().indexOf(q) < 0) return false;
+    if (S.kindFilter !== 'todos') {
+      var k = kindOf(a);
+      if (S.kindFilter === 'aviao' ? (k !== 'aviao' && k !== 'jato') : k !== S.kindFilter) return false;
+    }
+    if (S.terms.length) {
+      var h = haystack(a);
+      for (var i = 0; i < S.terms.length; i++) if (h.indexOf(S.terms[i]) < 0) return false;
     }
     return true;
   }
@@ -157,6 +169,8 @@
         if (!last || last.t !== a.lastContact) { arr.push({ t: a.lastContact, lat: a.lat, lon: a.lon }); if (arr.length > CRUMBS_MAX) arr.shift(); }
       });
       S.fetchedAt = t; S.status = d.status || 'ok'; S.credits = d.creditsRemaining; S.error = '';
+      S.hasKinds = S.aircraft.some(function (a) { return a.kind !== undefined || a.cat !== undefined; });
+      if (!S.hasKinds) S.kindFilter = 'todos';
       if (S.selectedId && !S.byId[S.selectedId]) { S.selectedId = null; clearRoute(); drawTrail(); }
       if (S.selectedId && S.trail && t - S.trailLoadedAt > TRAIL_REFRESH_MS) loadTrail();
     } catch (e) {
@@ -194,7 +208,7 @@
       Object.keys(views).forEach(function (k) {
         var v = views[k];
         Object.keys(v.markers).forEach(function (id) { v.layer.removeLayer(v.markers[id]); });
-        v.markers = {}; v.layer.clearLayers(); v.route.clearLayers(); v.trailLayer.clearLayers();
+        v.markers = {}; v.buoyTags = {}; v.layer.clearLayers(); v.route.clearLayers(); v.trailLayer.clearLayers();
         if (v.map.hasLayer(v.layer)) v.map.removeLayer(v.layer);
         if (v.map.hasLayer(v.route)) v.map.removeLayer(v.route);
         if (v.map.hasLayer(v.trailLayer)) v.map.removeLayer(v.trailLayer);
@@ -256,6 +270,80 @@
     });
     Object.keys(v.markers).forEach(function (id) { if (!keep[id]) { v.layer.removeLayer(v.markers[id]); delete v.markers[id]; } });
   }
+  // Etiqueta ao lado de cada Boia Aérea: a aeronave que chega primeiro e em quanto tempo.
+  function drawBuoyTags(v) {
+    var keep = {};
+    var visible = v.map.getContainer().offsetParent !== null;
+    if (S.enabled && visible) {
+      pins().forEach(function (pin) {
+        if (pin.type !== BUOY_TYPE || pinGone(pin) || typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
+        var best = null;
+        S.aircraft.forEach(function (a) {
+          if (a.onGround || !(a.speed > 1)) return;
+          var p = live(a), ap = approach({ lat: p.lat, lon: p.lon, track: a.track, speed: a.speed }, { lat: pin.lat, lon: pin.lng });
+          if (ap.closing === true && ap.direct != null && (!best || ap.direct < best.t)) best = { a: a, t: ap.direct };
+        });
+        if (!best || best.t > 3600) return;
+        keep[pin.id] = true;
+        var html = '<span class="aero-buoy-tag">✈ ' + esc(best.a.callsign || best.a.id.toUpperCase()) + ' · ' + fmtDur(best.t) + '</span>';
+        var icon = L.divIcon({ className: 'aero-divicon', html: html, iconSize: [0, 0], iconAnchor: [-24, 38] });
+        var mk = v.buoyTags[pin.id];
+        if (!mk) { v.buoyTags[pin.id] = L.marker([pin.lat, pin.lng], { icon: icon, interactive: false, keyboard: false, zIndexOffset: 600 }).addTo(v.layer); }
+        else { mk.setIcon(icon); }
+      });
+    }
+    Object.keys(v.buoyTags).forEach(function (id) { if (!keep[id]) { v.layer.removeLayer(v.buoyTags[id]); delete v.buoyTags[id]; } });
+  }
+
+  // ---------- balão da Boia Aérea: chegada de aeronaves e passagens (dados do servidor, com contagem regressiva local) ----------
+  var buoyData = {};   // id da boia -> { at, data, loading, err }
+  async function fetchBuoy(id) {
+    var rec = buoyData[id] || (buoyData[id] = { at: 0, data: null, loading: false, err: false });
+    if (rec.loading) return;
+    rec.loading = true;
+    try {
+      var r = await fetch(API + '/api/aircraft/buoy/' + encodeURIComponent(id), { credentials: 'include', headers: unitHeaders() });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      rec.data = await r.json(); rec.at = now(); rec.err = false;
+    } catch (e) { rec.err = true; rec.at = now(); }
+    finally { rec.loading = false; }
+    renderBuoyPopups();
+  }
+  function hhmm(sec) { return new Date(sec * 1000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+  function buoyEtaHtml(rec) {
+    if (rec.err && !rec.data) return '<div class="aero-bp"><div class="aero-bp-title">✈ Chegada de aeronaves</div>indisponível agora</div>';
+    var d = rec.data, elapsed = (now() - rec.at) / 1000;
+    var rows = (d.approaching || []).map(function (x) { return { x: x, eta: x.etaS - elapsed }; }).filter(function (r) { return r.eta > -20; });
+    var h = '<div class="aero-bp"><div class="aero-bp-title">✈ Chegada de aeronaves' + (d.status && d.status !== 'ok' ? ' · dados ' + esc(d.status) : '') + '</div>';
+    if (!rows.length) h += '<div>Nenhuma aeronave em rota para esta boia.</div>';
+    rows.slice(0, 5).forEach(function (r) {
+      var x = r.x, k = x.kind || 'desconhecido';
+      var det = [fmtDist(x.distanceM), KIND_LABEL[k] || '', typeof x.speed === 'number' ? Math.round(x.speed * 3.6) + ' km/h' : '', x.model || ''].filter(Boolean).join(' · ');
+      h += '<div class="aero-bp-row"><b>' + esc(x.callsign || x.id.toUpperCase()) + '</b><span class="eta">' + (r.eta <= 0 ? 'agora' : fmtDur(r.eta)) + '</span><small>' + esc(det) + (x.missM != null ? ' · passa a ' + fmtDist(x.missM) : '') + '</small></div>';
+    });
+    var passes = d.passes || [];
+    h += '<div class="aero-bp-sep"></div><div class="aero-bp-title">Passagens a menos de ' + fmtDist(d.radiusM || 5000) + ' (24 h): ' + passes.length + '</div>';
+    passes.slice(0, 3).forEach(function (p) {
+      h += '<div class="aero-bp-row"><b>' + esc(p.callsign || String(p.icao24).toUpperCase()) + '</b><span class="eta" style="color:#e8efe3">' + hhmm(p.min_at) + '</span><small>mais perto: ' + fmtDist(p.min_dist_m) + (KIND_LABEL[p.kind] ? ' · ' + KIND_LABEL[p.kind] : '') + '</small></div>';
+    });
+    return h + '</div>';
+  }
+  function renderBuoyPopups() {
+    if (typeof document === 'undefined') return;
+    var els = document.querySelectorAll('.aero-buoy-eta[data-pin]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], id = el.getAttribute('data-pin'), rec = buoyData[id];
+      if (!rec || !rec.data) {
+        el.innerHTML = '<div class="aero-bp"><div class="aero-bp-title">✈ Chegada de aeronaves</div>' + (rec && rec.err ? 'indisponível agora' : 'calculando…') + '</div>';
+        if (!rec || (!rec.loading && now() - rec.at > 8000)) fetchBuoy(id);
+        continue;
+      }
+      el.innerHTML = buoyEtaHtml(rec);
+      if (!rec.loading && now() - rec.at > 20000) fetchBuoy(id);
+    }
+  }
+  if (typeof document !== 'undefined') setInterval(renderBuoyPopups, 1000);
+
   function destinationPoint() {
     if (S.destId === 'me') return myPos() ? { lat: myPos().lat, lon: myPos().lon, name: 'Minha posição' } : null;
     var p = pins().filter(function (x) { return x.id === S.destId; })[0];
@@ -272,6 +360,7 @@
       var ahead = destPoint(p.lat, p.lon, a.track, 40000);
       L.polyline([[p.lat, p.lon], [ahead.lat, ahead.lon]], { color: '#ffffff', weight: 2, opacity: 0.85, dashArray: '2 7', interactive: false }).addTo(v.route);
     }
+    ensureDest(a);   // a linha até a boia não pode depender do painel ter sido redesenhado
     var dest = destinationPoint();
     if (dest) L.polyline([[p.lat, p.lon], [dest.lat, dest.lon]], { color: '#38bdf8', weight: 2.5, opacity: 0.95, dashArray: '8 6', interactive: false }).addTo(v.route);
   }
@@ -328,7 +417,14 @@
     '.aero-mk.gnd{opacity:.8}' +
     '.aero-mk.sel svg{filter:drop-shadow(0 0 5px #facc15)}' +
     '.aero-mk-tag{position:absolute;left:30px;top:6px;white-space:nowrap;background:rgba(6,20,10,.82);color:#fff;border:1px solid rgba(255,255,255,.55);border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;line-height:15px;pointer-events:none}' +
-    '.aero-mk.sel .aero-mk-tag{background:#facc15;color:#1a1500;border-color:#1a1500}';
+    '.aero-mk.sel .aero-mk-tag{background:#facc15;color:#1a1500;border-color:#1a1500}' +
+    '.aero-buoy-tag{display:inline-block;white-space:nowrap;background:#38bdf8;color:#04121c;border:1px solid #04121c;border-radius:8px;padding:0 6px;font-size:10.5px;font-weight:800;line-height:16px;box-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none}' +
+    '.aero-bp{margin-top:8px;padding:6px 7px;border-radius:8px;background:#0f1a12;color:#e8efe3;font-size:11px}' +
+    '.aero-bp-title{font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:#9fb09a;margin-bottom:3px}' +
+    '.aero-bp-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:2px 0}' +
+    '.aero-bp-row b{font-size:12px}.aero-bp-row .eta{margin-left:auto;font-weight:900;font-variant-numeric:tabular-nums;color:#38bdf8}' +
+    '.aero-bp-row small{flex-basis:100%;color:#9fb09a;font-size:10px}' +
+    '.aero-bp-sep{border-top:1px solid #3a4a3a;margin:6px 0 4px}';
   function injectCss() {
     if (document.getElementById('aeroStyles')) return;
     var st = document.createElement('style'); st.id = 'aeroStyles'; st.textContent = CSS; document.head.appendChild(st);
@@ -345,10 +441,14 @@
     list.sort(function (x, y) { return (y.buoy - x.buoy) || (x.d - y.d); });
     return list.slice(0, 60);
   }
+  // Destino do tempo estimado: a Boia Aérea mais próxima, a menos que o operador tenha escolhido outro.
   function ensureDest(a) {
     var opts = destOptions(a);
     var valid = S.destId === 'me' ? !!myPos() : opts.some(function (o) { return o.id === S.destId; });
-    if (!valid) S.destId = opts.length ? opts[0].id : (myPos() ? 'me' : null);
+    var buoy = opts.length && opts[0].buoy ? opts[0] : null;
+    if (!valid || (!S.destManual && buoy && S.destId !== buoy.id)) {
+      S.destId = buoy ? buoy.id : (opts.length ? opts[0].id : (myPos() ? 'me' : null));
+    }
     return opts;
   }
 
@@ -383,11 +483,16 @@
     return h;
   }
   function typeOptionsHtml() {
-    var c = { aviao: 0, helicoptero: 0, desconhecido: 0 };
+    var c = { aviao: 0, jato: 0, helicoptero: 0, outro: 0, desconhecido: 0 };
     S.aircraft.forEach(function (a) { var k = kindOf(a); if (c[k] !== undefined) c[k]++; });
-    function opt(v, txt) { return '<option value="' + v + '"' + (S.kindFilter === v ? ' selected' : '') + '>' + txt + '</option>'; }
-    return opt('todos', 'Todas (' + S.aircraft.length + ')') + opt('aviao', 'Somente aviões (' + c.aviao + ')') +
-      opt('helicoptero', 'Somente helicópteros (' + c.helicoptero + ')') + opt('desconhecido', 'Sem classificação (' + c.desconhecido + ')');
+    var total = S.aircraft.length;
+    if (S.hasKinds === false && total) return '<option value="todos" selected>Todas (' + total + ') — tipo indisponível</option>';
+    function opt(v, txt, n) {
+      if (n === 0 && S.kindFilter !== v) return '';
+      return '<option value="' + v + '"' + (S.kindFilter === v ? ' selected' : '') + '>' + txt + ' (' + n + ')</option>';
+    }
+    return opt('todos', 'Todas', total) + opt('aviao', 'Aviões e jatos', c.aviao + c.jato) + opt('jato', 'Somente jatos', c.jato) +
+      opt('helicoptero', 'Somente helicópteros', c.helicoptero) + opt('outro', 'Outros tipos', c.outro) + opt('desconhecido', 'Sem classificação', c.desconhecido);
   }
 
   function detailHtml(a) {
@@ -399,6 +504,8 @@
     var h = '<div style="display:flex;align-items:baseline;gap:6px;margin-top:8px;flex-wrap:wrap"><b style="font-size:14px">' + esc(a.callsign || a.id.toUpperCase()) + '</b>' +
       '<span style="color:var(--muted,#9fb09a)">ICAO24 ' + esc(a.id.toUpperCase()) + (a.country ? ' · ' + esc(a.country) : '') + '</span></div>';
     h += '<div class="aero-foot" style="margin-top:2px">' + KIND_ICON[kind] + ' ' + KIND_LABEL[kind] + '</div>';
+    var info = [a.model, a.typecode ? '(' + a.typecode + ')' : '', a.reg, a.operator].filter(Boolean).join(' · ');
+    if (info) h += '<div class="aero-foot" style="margin-top:2px">' + esc(info) + '</div>';
     h += '<div class="aero-grid">' +
       '<div><small>Posição</small><span class="v">' + fmtCoord(p.lat) + ', ' + fmtCoord(p.lon) + '</span></div>' +
       '<div><small>Altitude</small><span class="v">' + (a.onGround ? 'no solo' : (altM == null ? '—' : altM.toLocaleString('pt-BR') + ' m · ' + altFt.toLocaleString('pt-BR') + ' ft')) + '</span></div>' +
@@ -473,7 +580,7 @@
     body.scrollTop = top;
   }
 
-  function render() { Object.keys(views).forEach(function (k) { var v = views[k]; renderPanel(v); drawMarkers(v); drawRoute(v); drawTrail(); }); }
+  function render() { Object.keys(views).forEach(function (k) { var v = views[k]; renderPanel(v); drawMarkers(v); drawBuoyTags(v); drawRoute(v); drawTrail(); }); }
   function tick() {
     if (!S.enabled) return;
     if (S.follow && S.selectedId && S.byId[S.selectedId]) {
@@ -532,7 +639,7 @@
   function onPanelChange(v, ev) {
     var t = ev.target;
     v.touchAt = 0;
-    if (t.matches('[data-aero-dest]')) { S.destId = t.value; t.blur(); render(); return; }
+    if (t.matches('[data-aero-dest]')) { S.destId = t.value; S.destManual = true; t.blur(); render(); return; }
     if (t.matches('[data-aero-type]')) { S.kindFilter = t.value; t.blur(); render(); return; }
     if (t.matches('[data-aero-ground]')) { S.showGround = !!t.checked; render(); return; }
     if (t.matches('[data-aero-pick]')) {
@@ -542,7 +649,10 @@
     }
   }
   function onPanelInput(v, ev) {
-    if (ev.target.matches('[data-aero-search]')) { S.query = String(ev.target.value || '').trim().toLowerCase(); render(); }
+    if (ev.target.matches('[data-aero-search]')) {
+      S.terms = String(ev.target.value || '').split(/[\s,;]+/).map(norm).filter(Boolean);
+      render();
+    }
   }
 
   // Boia Aérea: toque no mapa -> abre o cadastro de marcador normal do app com o tipo da boia.
@@ -566,7 +676,7 @@
     var old = views[name];
     if (old) { try { old.fab.remove(); old.panel.remove(); } catch (e) {} }
     var container = map.getContainer();
-    var v = { map: map, markers: {}, layer: L.layerGroup(), trailLayer: L.layerGroup(), route: L.layerGroup(), touchAt: 0, pressing: false };
+    var v = { map: map, markers: {}, buoyTags: {}, layer: L.layerGroup(), trailLayer: L.layerGroup(), route: L.layerGroup(), touchAt: 0, pressing: false };
 
     var fab = document.createElement('button');
     fab.type = 'button'; fab.className = 'aero-fab'; fab.title = 'Aeronaves (liga e desliga)'; fab.setAttribute('aria-label', 'Aeronaves'); fab.setAttribute('aria-pressed', 'false');
@@ -582,7 +692,7 @@
         '<div class="aero-controls">' +
           '<div class="aero-filters">' +
             '<select class="aero-select" data-aero-type aria-label="Tipo de aeronave"></select>' +
-            '<input class="aero-input" data-aero-search type="search" placeholder="Buscar ICAO24 / indicativo" aria-label="Buscar aeronave" autocomplete="off" autocapitalize="none" spellcheck="false">' +
+            '<input class="aero-input" data-aero-search type="search" placeholder="Buscar indicativo, ICAO24, modelo" aria-label="Buscar aeronave" autocomplete="off" autocapitalize="none" spellcheck="false">' +
           '</div>' +
           '<select class="aero-select" data-aero-pick aria-label="Selecionar aeronave"></select>' +
         '</div>' +
@@ -605,6 +715,7 @@
     views[name] = v;
     map.on('zoomend', function () { if (S.enabled) { Object.keys(v.markers).forEach(function (id) { v.layer.removeLayer(v.markers[id]); }); v.markers = {}; drawMarkers(v); } });
     map.on('dragstart', function () { if (S.follow) { S.follow = false; render(); } });
+    map.on('popupopen', function () { renderBuoyPopups(); });
     if (S.enabled) { fab.classList.add('on'); [v.layer, v.trailLayer, v.route].forEach(function (g) { g.addTo(map); }); render(); }
   }
 
