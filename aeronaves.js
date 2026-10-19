@@ -241,10 +241,12 @@
     }
     return '<svg viewBox="0 0 32 32" width="30" height="30" style="transform:rotate(' + rot + 'deg); display:block;" aria-hidden="true">' + body + '</svg>';
   }
-  function iconFor(a, p, selected, zoom) {
+  function iconFor(a, p, selected, zoom, brg) {
     var ground = a.onGround, kind = kindOf(a);
     var color = selected ? '#facc15' : (ground ? '#9aa5b1' : '#ffffff');
     var rot = typeof a.track === 'number' ? Math.round(a.track) : 0;
+    // mapa girado (⟲/⟳): o ícone fica em pé na tela, então o rumo desenhado soma o giro do mapa
+    if (typeof brg === 'number' && brg) rot = ((rot + Math.round(brg)) % 360 + 360) % 360;
     var label = (a.callsign || a.id.toUpperCase());
     var showLabel = selected || (typeof zoom !== 'number' || zoom >= 9);
     var altTxt = (typeof a.alt === 'number' && !ground) ? ' · ' + Math.round(a.alt).toLocaleString('pt-BR') + ' m' : (ground ? ' · solo' : '');
@@ -254,17 +256,17 @@
   }
   function drawMarkers(v) {
     if (!S.enabled || !v.map.getContainer() || v.map.getContainer().offsetParent === null) return;
-    var zoom = v.map.getZoom(), keep = {};
+    var zoom = v.map.getZoom(), keep = {}, brg = (typeof v.map.getBearing === 'function') ? v.map.getBearing() : 0;
     visibleAircraft().forEach(function (a) {
       var p = live(a), sel = a.id === S.selectedId; keep[a.id] = true;
       var mk = v.markers[a.id];
       if (!mk) {
-        mk = L.marker([p.lat, p.lon], { icon: iconFor(a, p, sel, zoom), keyboard: false, zIndexOffset: sel ? 1000 : 0 }).addTo(v.layer);
+        mk = L.marker([p.lat, p.lon], { icon: iconFor(a, p, sel, zoom, brg), keyboard: false, zIndexOffset: sel ? 1000 : 0 }).addTo(v.layer);
         mk.on('click', function () { select(a.id); });
         v.markers[a.id] = mk;
       } else {
         mk.setLatLng([p.lat, p.lon]);
-        mk.setIcon(iconFor(a, p, sel, zoom));
+        mk.setIcon(iconFor(a, p, sel, zoom, brg));
         mk.setZIndexOffset(sel ? 1000 : 0);
       }
     });
@@ -714,6 +716,7 @@
     v.fab = fab; v.panel = panel;
     views[name] = v;
     map.on('zoomend', function () { if (S.enabled) { Object.keys(v.markers).forEach(function (id) { v.layer.removeLayer(v.markers[id]); }); v.markers = {}; drawMarkers(v); } });
+    map.on('rotate', function () { if (S.enabled) drawMarkers(v); });
     map.on('dragstart', function () { if (S.follow) { S.follow = false; render(); } });
     map.on('popupopen', function () { renderBuoyPopups(); });
     if (S.enabled) { fab.classList.add('on'); [v.layer, v.trailLayer, v.route].forEach(function (g) { g.addTo(map); }); render(); }

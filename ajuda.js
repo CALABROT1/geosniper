@@ -117,7 +117,8 @@
         'Toque no marcador para abrir o cartão do ponto: rótulo, endereço, observação, quem marcou, foto, <b>🧭 Caminho até aqui</b> (traça, a partir de <b>onde você está</b>, o caminho <b>a pé</b> em branco tracejado e <b>de carro</b> em âmbar, com distância e tempo; só você vê), <b>📲 Compartilhar no WhatsApp</b> (quem receber abre o ponto no mapa, com o caminho até ele) e <b>🗑️ Excluir</b> (precisa da permissão Excluir).',
         'O marcador <b>P. Encontro</b> (bóia, na barra de baixo) marca um ponto de encontro: qualquer operador com a permissão Criar pode colocar. Ele vale por <b>6 horas</b>: o cartão mostra quem criou, a hora de criação e a hora em que expira. Depois disso some dos mapas e fica na tabela da aba Pontos como <b>expirado</b>.',
         'O marcador <b>Alvo</b> é especial: quando alguém compartilha um Alvo, quem abre e tem a aba Medir recebe o balão com as correções para o equipamento dele; sem a aba Medir, vê um marcador comum.',
-        'Use as ferramentas de desenho (lápis) para traçar áreas e caminhos sobre o mapa.'
+        'Use as ferramentas de desenho (lápis) para traçar áreas e caminhos sobre o mapa.',
+        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual). Para ampliar ou reduzir, use o gesto de pinça.'
       ],
       ve: 'Todos da unidade veem os mesmos pontos. Você só precisa estar com o app aberto e com internet para enviar e receber.',
       pular: 'Marcar sem informar rótulo usa o nome do tipo de marcador.',
@@ -151,7 +152,8 @@
         'Para mudar a posição, <b>destrave</b> pelo selo, arraste e trave de novo: a equipe vê a alteração na hora.',
         'Toque numa peça travada para abrir o cartão: <b>🧭 Caminho até aqui</b> traça as rotas a pé (branco tracejado) e de carro (âmbar) a partir de onde você está. A peça <b>P. Encontro</b> (bóia) vale 6 horas e depois some do mapa.',
         'No painel <b>Desenho</b>, use caminho, caneta, retângulo, círculo, seta, tracejada, curva e envolvimento para traçar rotas e áreas. "Medir" mede distâncias no mapa e "Apagar" remove desenhos. Escolha a cor.',
-        'Os painéis flutuam: arraste pelo cabeçalho, redimensione pelas bordas e minimize com ▾.'
+        'Os painéis flutuam: arraste pelo cabeçalho, redimensione pelas bordas e minimize com ▾.',
+        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual). Para ampliar ou reduzir, use o gesto de pinça.'
       ],
       ve: 'Todos veem, todos se localizam e todos compartilham: peças travadas aparecem para a unidade inteira. Quem coordena pode posicionar, mover e retirar peças à distância.',
       pular: 'Peças não travadas ficam só no seu aparelho e não são registradas.',

@@ -56,9 +56,8 @@
        dele — o conteúdo/API é o mesmo Leaflet 1.9.4, só a forma de build
        muda. -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.js"></script>
-  <!-- Rotação de mapa (aba Medir) — habilita mapMedir.setBearing(graus).
-       Não usada em nenhum outro mapa (Marker/Relevo/Raios seguem sem
-       rotate:true), então não interfere no Leaflet.Draw usado por eles. -->
+  <!-- Rotação de mapa (abas Medir, Marker e Estratégia) — habilita setBearing(graus)
+       só nos mapas criados com rotate:true. Raios e Relevo seguem sem rotate:true. -->
   <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
@@ -289,6 +288,8 @@
        atual do zoom (🔍 X.XXx) continua embaixo, só sem os botões. */
     .main-reticle-wrap { position: relative; display: inline-block; max-width: 100%; }
     .main-reticle-canvas { transition: transform 0.2s ease; transform-origin: 50% 100%; }
+    /* Os botões －/＋ ficam sempre por cima do canvas ampliado e não saem do lugar quando o zoom aumenta */
+    .main-reticle-wrap .dist-panel-reticle-zoom-btn { z-index: 5; }
     /* Botões －/＋ do retículo — círculo prateado (mesmo acabamento metálico
        dos docks) grudado nos lados do retículo, mais pra baixo (perto da
        borda inferior do círculo) pra não ficar embaixo do texto de guiagem.
@@ -1082,6 +1083,94 @@
       box-shadow: 0 2px 6px rgba(58, 105, 150, 0.2);
     }
 
+    /* ===== Botão CALCULAR da aba Balística — acabamento metálico azul, ícone de calculadora que se move enquanto calcula ===== */
+    .btn-calc-pro {
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 52px; padding: 12px 14px; margin-top: 18px;
+      background: linear-gradient(180deg, #4d82b4 0%, var(--action) 48%, var(--action-dim) 100%);
+      border: 1px solid rgba(166, 205, 238, 0.55); border-bottom-color: rgba(8, 20, 34, 0.7);
+      border-radius: 12px; color: #fff; font-size: 12.5px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; text-align: center; line-height: 1.25;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 6px 16px rgba(34, 66, 98, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.32), inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-calc-pro::before {
+      content: ''; position: absolute; top: 0; bottom: 0; left: -45%; width: 40%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.34), transparent);
+      transform: skewX(-18deg); opacity: 0; pointer-events: none;
+    }
+    .btn-calc-pro:hover { filter: brightness(1.07); }
+    .btn-calc-pro:active {
+      transform: translateY(2px) scale(0.99);
+      box-shadow: 0 2px 8px rgba(34, 66, 98, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+    }
+    .btn-calc-pro .calc-ico { width: 24px; height: 24px; flex: 0 0 auto; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)); transform-origin: 50% 60%; }
+    .btn-calc-pro .calc-ico .ck { fill: #fff; opacity: 0.5; }
+    .btn-calc-pro.calculating::before { animation: calcShine 0.9s ease-out infinite; }
+    .btn-calc-pro.calculating .calc-ico { animation: calcWobble 0.45s ease-in-out infinite; }
+    .btn-calc-pro.calculating .calc-ico .cd { animation: calcDisplay 0.45s ease-in-out infinite; }
+    .btn-calc-pro.calculating .calc-ico .ck { animation: calcKey 0.9s ease-in-out infinite; }
+    .btn-calc-pro.calculating .calc-ico .k2 { animation-delay: 0.1s; }
+    .btn-calc-pro.calculating .calc-ico .k3 { animation-delay: 0.2s; }
+    .btn-calc-pro.calculating .calc-ico .k4 { animation-delay: 0.3s; }
+    .btn-calc-pro.calculating .calc-ico .k5 { animation-delay: 0.4s; }
+    .btn-calc-pro.calculating .calc-ico .k6 { animation-delay: 0.5s; }
+    .btn-calc-pro.calculating .calc-ico .k7 { animation-delay: 0.6s; }
+    .btn-calc-pro.calculating .calc-ico .k8 { animation-delay: 0.7s; }
+    .btn-calc-pro.calculating .calc-ico .k9 { animation-delay: 0.8s; }
+    @keyframes calcKey { 0%, 55%, 100% { opacity: 0.4; } 25% { opacity: 1; fill: #ffe39a; } }
+    @keyframes calcDisplay { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes calcWobble { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+    @keyframes calcShine { 0% { left: -45%; opacity: 0; } 20% { opacity: 1; } 100% { left: 120%; opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .btn-calc-pro.calculating::before, .btn-calc-pro.calculating .calc-ico, .btn-calc-pro.calculating .calc-ico * { animation: none !important; }
+    }
+    /* Botão secundário (card de tiro / tabela) — mesmo acabamento, em contorno dourado */
+    .btn-calc-secondary {
+      width: 100%; margin-top: 12px; min-height: 48px; padding: 11px 12px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(180deg, rgba(195, 154, 79, 0.16), rgba(195, 154, 79, 0.04));
+      color: var(--accent); border: 1px solid rgba(195, 154, 79, 0.7); border-radius: 12px;
+      font-weight: 800; font-size: 12.5px; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.35);
+      transition: transform 0.12s ease, filter 0.2s ease, box-shadow 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-calc-secondary:hover { filter: brightness(1.12); }
+    .btn-calc-secondary:active { transform: translateY(1px) scale(0.99); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.4); }
+
+    /* ===== Aba Balística, card de configurações: campos editáveis em destaque; perfil ativo em somente leitura ===== */
+    .cfg-readonly { background: rgba(0, 0, 0, 0.22); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+    .cfg-readonly-title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-weight: 800; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; }
+    .cfg-readonly-sub { font-weight: 700; text-transform: none; letter-spacing: 0; opacity: 0.85; }
+    .cfg-readonly-text { font-size: 12px; color: var(--muted); }
+    .cfg-edit-hint { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--accent); margin: 2px 0 12px; letter-spacing: 0.3px; }
+    .cfg-card .form-group label { color: #c9c6ad; }
+    .cfg-card .form-group input, .cfg-card .form-group select {
+      min-height: 48px; padding: 11px 14px; font-size: 15px; font-weight: 700; color: #fff;
+      background-color: #262a1b; border: 1.5px solid #77795c; border-radius: 10px;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    .cfg-card .form-group input:hover, .cfg-card .form-group select:hover { border-color: #a19e78; }
+    .cfg-card .form-group input:focus, .cfg-card .form-group select:focus {
+      border-color: var(--accent); background-color: #2c3120;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(195, 154, 79, 0.28);
+    }
+    .cfg-card .form-group select {
+      -webkit-appearance: none; appearance: none; padding-right: 40px; cursor: pointer; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='%23c39a4f' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+      background-repeat: no-repeat; background-position: right 12px center; background-size: 20px 20px;
+    }
+    .cfg-card .cfg-input-wrap { position: relative; }
+    .cfg-card .cfg-input-wrap input {
+      padding-right: 74px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23c39a4f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 20l4.2-1 10-10a2 2 0 0 0-2.8-2.8l-10 10L4 20z'/></svg>");
+      background-repeat: no-repeat; background-position: right 12px center; background-size: 18px 18px;
+    }
+    .cfg-card .cfg-unit { position: absolute; right: 38px; top: 50%; transform: translateY(-50%); font-weight: 800; font-size: 14px; color: var(--accent); pointer-events: none; }
+
     .rotate-controls {
       position: fixed;
       bottom: 20px;
@@ -1358,6 +1447,24 @@ body.nvg-red-mode .btn-sensor {
   color: #ffffff !important;
   border: 1px solid #ff0000 !important;
 }
+
+body.nvg-red-mode .cfg-card .form-group input,
+body.nvg-red-mode .cfg-card .form-group select {
+  background-color: #1a0000 !important;
+  border-color: #880000 !important;
+  color: #ff6666 !important;
+  box-shadow: none !important;
+}
+body.nvg-red-mode .cfg-card .form-group select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='%23ff6666' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>") !important;
+  background-repeat: no-repeat !important; background-position: right 12px center !important; background-size: 20px 20px !important;
+}
+body.nvg-red-mode .cfg-card .cfg-input-wrap input {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23ff6666' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 20l4.2-1 10-10a2 2 0 0 0-2.8-2.8l-10 10L4 20z'/></svg>") !important;
+  background-repeat: no-repeat !important; background-position: right 12px center !important; background-size: 18px 18px !important;
+}
+body.nvg-red-mode .cfg-card .cfg-unit, body.nvg-red-mode .cfg-edit-hint { color: #ff6666 !important; }
+body.nvg-red-mode .btn-calc-secondary { background: #1a0000 !important; color: #ff6666 !important; border: 1px solid #880000 !important; }
 
 /* Aplica filtro vermelho tático nos tiles do mapa */
 body.nvg-red-mode .leaflet-tile-container img {
@@ -1955,13 +2062,15 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div class="ballistics-grid">
 
     <!-- CARD 1: CONFIGURAÇÕES & BOTÕES DE AÇÃO -->
-    <div class="card">
+    <div class="card cfg-card">
       <h3>🎯 Configurações de Tiro & Projétil</h3>
 
-      <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:14px;">
-        <div style="font-weight:800; color:var(--accent); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; font-size:11px;">📋 Perfil Ativo (definido na aba Equipamento)</div>
-        <div id="balProfileMirrorText" style="font-size:12px; color:var(--muted);">Carregando perfil...</div>
+      <div class="cfg-readonly" title="Somente leitura: o perfil é escolhido na aba Equipamento">
+        <div class="cfg-readonly-title"><span aria-hidden="true">🔒</span> Perfil Ativo <span class="cfg-readonly-sub">(definido na aba Equipamento)</span></div>
+        <div id="balProfileMirrorText" class="cfg-readonly-text">Carregando perfil...</div>
       </div>
+
+      <div class="cfg-edit-hint"><span aria-hidden="true">✎</span> Toque nos campos destacados para editar</div>
 
       <div class="form-row">
         <div class="form-group">
@@ -1976,7 +2085,7 @@ body.nvg-red-mode .leaflet-tile-container img {
         </div>
         <div class="form-group">
           <label>Distância do Alvo (Metros) <span id="balZeroLabel" style="color:var(--accent); font-weight:normal;">[Zeragem: 100m]</span></label>
-          <input type="number" id="balDistance" value="600" step="25">
+          <div class="cfg-input-wrap"><input type="number" id="balDistance" value="600" step="25"><span class="cfg-unit" aria-hidden="true">m</span></div>
         </div>
       </div>
 
@@ -2010,8 +2119,23 @@ body.nvg-red-mode .leaflet-tile-container img {
       </div>
 
       <!-- BOTÕES DE AÇÃO -->
-      <button onclick="runBallistics()" class="btn-calc">⚡ CALCULAR SOLUÇÃO & RETÍCULO</button>
-      <button onclick="openTrajectoryModal()" style="width: 100%; margin-top: 10px; background: var(--surface); color: var(--accent); border: 1px solid var(--accent); padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;">📊 GERAR CARD DE TIRO / TABELA DE TRAJETÓRIA</button>
+      <button type="button" onclick="runBallisticsFromButton(this)" class="btn-calc btn-calc-pro" id="btnCalcBallistics">
+        <svg class="calc-ico" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="2" width="16" height="20" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <rect class="cd" x="7" y="5" width="10" height="4" rx="1" fill="currentColor"/>
+          <rect class="ck k1" x="7" y="11.6" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k2" x="10.9" y="11.6" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k3" x="14.8" y="11.6" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k4" x="7" y="14.8" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k5" x="10.9" y="14.8" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k6" x="14.8" y="14.8" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k7" x="7" y="18" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k8" x="10.9" y="18" width="2.2" height="2.2" rx="0.6"/>
+          <rect class="ck k9" x="14.8" y="18" width="2.2" height="2.2" rx="0.6"/>
+        </svg>
+        <span class="calc-label">Calcular solução &amp; retículo</span>
+      </button>
+      <button type="button" onclick="openTrajectoryModal()" class="btn-calc-secondary"><span aria-hidden="true">📊</span><span>Gerar card de tiro / tabela de trajetória</span></button>
     </div>
 
     <!-- CARD 2: PAINEL DE RESULTADOS & CANVAS DO RETÍCULO -->
@@ -3065,6 +3189,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     // habilitado; as outras abas nem chamam essas funções.
     const MEDIR_ROTATE_STEP_DEG = 22.5;
     let medirMapBearing = 0;
+    const mapTabBearings = { normal: 0, estrategia: 0 };
     let weaponsCatalog = {};
 
     // ===== SISTEMA DE PONTOS TÁTICOS (COP) =====
@@ -3267,7 +3392,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       // cone sem nenhuma outra rotação por baixo). A rosa-dos-ventos e o
       // texto de leitura ficam FORA do mapa (presos ao canto da tela), por
       // isso continuam mostrando o rumo verdadeiro, sem esse ajuste.
-      const mapBearingNow = (mapKey === 'medir') ? medirMapBearing : 0;
+      const mapBearingNow = (mapKey === 'medir') ? medirMapBearing : (mapTabBearings[mapKey] || 0);
       const coneAngle = ((headingDeg + mapBearingNow) % 360 + 360) % 360;
 
       const marker = markers[markerKey];
@@ -3515,6 +3640,45 @@ body.nvg-red-mode .leaflet-tile-container img {
       mapMedir.setBearing(medirMapBearing);
       const readout = document.getElementById('medirBearingReadout');
       if (readout) readout.textContent = `${Math.round(medirMapBearing)}°`;
+    }
+
+    // Botões ⟲/⟳ de girar o mapa nas abas Marker e Estratégia — mesmo controle e mesmo passo (22,5°)
+    // da aba Medir. Esses mapas são criados com rotate:true, sem gesto de dois dedos (touchRotate:false),
+    // e sem os botões de zoom +/− nem o ícone ▲▼ do plugin (zoom segue pelo gesto de pinça). O dock fica
+    // no canto superior esquerdo, com fundo sólido pra um toque fora do centro dos botões não "vazar" pro mapa.
+    function ensureTabRotateControls(map, key) {
+      if (!map) return;
+      const container = map.getContainer();
+      if (!container) return;
+      let group = document.getElementById(`${key}RotateGroup`);
+      if (!group) {
+        group = document.createElement('div');
+        group.id = `${key}RotateGroup`;
+        group.className = 'map-rotate-group';
+        group.style.cssText = 'position:absolute; top:58px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+        group.innerHTML = `
+          <div style="display:flex; gap:5px;">
+            <button type="button" class="btn-medir-rotate" onclick="rotateTabMap('${key}', -${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa -22.5°" aria-label="Girar o mapa para a esquerda">⟲</button>
+            <button type="button" class="btn-medir-rotate" onclick="rotateTabMap('${key}', ${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa +22.5°" aria-label="Girar o mapa para a direita">⟳</button>
+          </div>
+          <div id="${key}BearingReadout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">0°</div>
+        `;
+        container.appendChild(group);
+        if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(group);
+        if (L.DomEvent && L.DomEvent.disableScrollPropagation) L.DomEvent.disableScrollPropagation(group);
+      }
+      // O mapa novo sempre nasce com bearing 0 (o container é reaproveitado entre inicializações).
+      const readout = document.getElementById(`${key}BearingReadout`);
+      if (readout) readout.textContent = '0°';
+    }
+
+    function rotateTabMap(key, deltaDeg) {
+      const map = key === 'normal' ? mapNormal : (key === 'estrategia' ? mapEstrategia : null);
+      if (!map || typeof map.setBearing !== 'function') return;
+      mapTabBearings[key] = (((mapTabBearings[key] || 0) + deltaDeg) % 360 + 360) % 360;
+      map.setBearing(mapTabBearings[key]);
+      const readout = document.getElementById(`${key}BearingReadout`);
+      if (readout) readout.textContent = `${Math.round(mapTabBearings[key])}°`;
     }
 
     // Mapas. Regras:
@@ -7459,6 +7623,14 @@ function positionDrawToolbar(map, toolbarEl, side) {
     const r = searchBox.getBoundingClientRect();
     if (r.height > 0) bottoms.push(r.bottom);
   }
+  // Controle de girar o mapa (abas Marker e Estratégia): a barra de desenho fica logo abaixo dele.
+  if (side !== 'right') {
+    const rotGroup = container.querySelector('.map-rotate-group');
+    if (rotGroup) {
+      const r = rotGroup.getBoundingClientRect();
+      bottoms.push(r.height > 0 ? r.bottom : containerRect.top + 150);
+    }
+  }
   const maxBottom = bottoms.length ? Math.max(...bottoms) : (containerRect.top + 80);
   const topPos = Math.max(8, Math.round(maxBottom - containerRect.top) + 12);
   toolbarEl.style.top = topPos + 'px';
@@ -9301,8 +9473,11 @@ function initMaps(lat, lng) {
     // 2. MAPA NORMAL (Aba Mapa)
     const layersNormal = createTileLayers();
     if (mapNormal) mapNormal.remove();
-    mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], tapTolerance: 28 }).setView(currentPos, 14);
+    // rotate:true + botões ⟲/⟳ próprios (ver ensureTabRotateControls); sem botões de zoom +/− nem o ▲▼ do plugin.
+    mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], tapTolerance: 28, zoomControl: false, rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 14);
     L.control.layers(layersNormal).addTo(mapNormal);
+    mapTabBearings.normal = 0;
+    ensureTabRotateControls(mapNormal, 'normal');
     positionDrawToolbar(mapNormal, document.getElementById('drawToolbarNormal'), 'left');
     // Na aba Marker o marcador do operador também é o pontinho azul com cone
     // de direção (igual na Medir) — mapa continua fixo (norte sempre pra
@@ -9340,8 +9515,10 @@ function initMaps(lat, lng) {
     // painel (ver setupTacticalPiecePanel) lança a peça ali.
     const layersEstrategia = createTileLayers();
     if (mapEstrategia) mapEstrategia.remove();
-    mapEstrategia = L.map('mapEstrategia', { layers: [defaultSatLayer(layersEstrategia)], tapTolerance: 28 }).setView(currentPos, 14);
+    mapEstrategia = L.map('mapEstrategia', { layers: [defaultSatLayer(layersEstrategia)], tapTolerance: 28, zoomControl: false, rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 14);
     L.control.layers(layersEstrategia).addTo(mapEstrategia);
+    mapTabBearings.estrategia = 0;
+    ensureTabRotateControls(mapEstrategia, 'estrategia');
     // Mesmo pontinho azul com cone de direção da aba Marker (ver comentário
     // em markers.normal acima) — necessário pra bússola da aba Estratégia
     // ter o que girar.
@@ -10108,6 +10285,24 @@ async function getBallisticSolutionForDistance(dist) {
   const profile = document.getElementById('eqProfile')?.value || '--';
   el.innerHTML = `<b style="color:var(--ink);">${weight}gr</b> · ${fps} FPS · BC ${bc} · Perfil ${profile}`;
 }
+
+   // Botão CALCULAR da aba Balística: roda o mesmo runBallistics() de sempre e só acrescenta a animação
+   // do ícone de calculadora (classe .calculating), que dura pelo menos ~1 s e para quando o cálculo termina.
+   function runBallisticsFromButton(btn) {
+     const t0 = performance.now();
+     if (btn) { btn.classList.remove('calculating'); void btn.offsetWidth; btn.classList.add('calculating'); }
+     let res;
+     try { res = runBallistics(); }
+     finally {
+       if (btn && !(res && typeof res.then === 'function')) setTimeout(() => btn.classList.remove('calculating'), 1100);
+     }
+     if (btn && res && typeof res.then === 'function') {
+       res.then(() => {}, () => {}).then(() => {
+         setTimeout(() => btn.classList.remove('calculating'), Math.max(0, 1100 - (performance.now() - t0)));
+       });
+     }
+     return res;
+   }
 
    async function runBallistics(preserveTurretDial = false) {
   refreshBalisticaProfileMirror();
@@ -11833,7 +12028,7 @@ let reticleExpandState = { style: 'mildot', targetTypeId: 'humano', zoomMain: 1,
 
 function openReticleExpandModal() {
   if (!lastReticleRenderArgs) {
-    alert('⚠️ Calcule uma solução balística primeiro (⚡ CALCULAR SOLUÇÃO & RETÍCULO).');
+    alert('⚠️ Calcule uma solução balística primeiro (CALCULAR SOLUÇÃO & RETÍCULO).');
     return;
   }
   reticleExpandState.style = lastReticleRenderArgs[4] || 'mildot';
@@ -11951,7 +12146,8 @@ function positionMainReticleZoomButtons() {
   if (!halfWidth) return; // canvas ainda não tem layout (aba escondida) — tenta de novo no próximo zoom/render
   const radiusFraction = 0.68;
   const restGap = 6;
-  const offset = (halfWidth * radiusFraction + restGap) * mainReticleZoom;
+  // Fixos nos lados do círculo: não se afastam mais do centro quando o zoom aumenta (antes saíam da tela).
+  const offset = halfWidth * radiusFraction + restGap;
   minusBtn.style.left = `calc(50% - ${offset}px)`;
   plusBtn.style.left = `calc(50% + ${offset}px)`;
 }
@@ -12112,7 +12308,7 @@ function toggleMedirFloatReticle(which) {
     return;
   }
   if (!lastReticleRenderArgs) {
-    alert('⚠️ Calcule uma solução balística primeiro — marque um ponto na aba Medir ou toque em ⚡ CALCULAR SOLUÇÃO na aba Balística.');
+    alert('⚠️ Calcule uma solução balística primeiro — marque um ponto na aba Medir ou toque em CALCULAR SOLUÇÃO na aba Balística.');
     return;
   }
   panel.classList.remove('collapsed');
@@ -12528,7 +12724,7 @@ function renderLeadReadout(distanceMeters) {
   box.style.display = 'block';
 
   if (!tFlight || !distanceMeters) {
-    box.innerHTML = `<div class="diag-lead-empty">⚠️ Calcule uma solução balística primeiro (⚡ CALCULAR SOLUÇÃO & RETÍCULO) pra ver os ajustes de deslocamento.</div>`;
+    box.innerHTML = `<div class="diag-lead-empty">⚠️ Calcule uma solução balística primeiro (CALCULAR SOLUÇÃO & RETÍCULO) pra ver os ajustes de deslocamento.</div>`;
     return;
   }
 
@@ -12571,7 +12767,7 @@ function renderLeadReadout(distanceMeters) {
         <tbody>${diagRows}</tbody>
       </table>
     </div>
-    <div class="diag-lead-note">Mesma interceptação do Horizontal, com um terceiro passo: do cruzamento, o componente vertical a 45° abre pra cima E pra baixo — os quatro vértices (dois lados × duas direções) formam as pernas do relógio (1h30/4h30/7h30/10h30). "Por eixo" é o valor de cada passo — lateral e vertical, mesmo número (45° reparte igual). Se faltar ângulo de sítio ou outro fator na aba Equipamento, o tempo de voo usado aqui é o mesmo já calculado em ⚡ CALCULAR SOLUÇÃO — os fatores informados já estão embutidos nele.</div>
+    <div class="diag-lead-note">Mesma interceptação do Horizontal, com um terceiro passo: do cruzamento, o componente vertical a 45° abre pra cima E pra baixo — os quatro vértices (dois lados × duas direções) formam as pernas do relógio (1h30/4h30/7h30/10h30). "Por eixo" é o valor de cada passo — lateral e vertical, mesmo número (45° reparte igual). Se faltar ângulo de sítio ou outro fator na aba Equipamento, o tempo de voo usado aqui é o mesmo já calculado em CALCULAR SOLUÇÃO — os fatores informados já estão embutidos nele.</div>
   `;
 }
 
