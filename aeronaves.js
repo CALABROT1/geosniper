@@ -13,6 +13,7 @@
   var REGION = 'RJ';
   var POLL_MS = 20000;          // o servidor só consulta o OpenSky a cada 30 s e divide a resposta entre todos
   var TICK_MS = 1000;
+  var EMPTY_HOLD_MS = 90000;    // lista vazia do OpenSky: mantém a última por até esse tempo
   var MAX_EXTRAPOLATE_S = 90;   // até quanto tempo se projeta a posição a partir do último contato
   var TRAIL_MINUTES = 30;       // quanto histórico pedir ao servidor para a rota percorrida
   var TRAIL_REFRESH_MS = 60000;
@@ -118,6 +119,20 @@
   // ---------- filtros ----------
   // minúsculas, sem acento e sem espaço/hífen/ponto ("PR-GXA" casa com "prgxa")
   function norm(t) { return String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s._-]+/g, ''); }
+  // Número de voo "comercial" (IATA, ex.: AR1268, LA3321, G31020) -> indicativo de rádio (ICAO, ex.: ARG1268, TAM3321, GLO1020).
+  // O transponder manda o indicativo ICAO; o passageiro e a escala usam o número IATA. A busca aceita os dois.
+  var IATA_TO_ICAO = {
+    ar: ['ARG'], la: ['LAN', 'TAM', 'LPE', 'LNE'], jj: ['TAM'], g3: ['GLO'], ad: ['AZU'], '2z': ['PTB'], av: ['AVA'], cm: ['CMP'],
+    aa: ['AAL'], ua: ['UAL'], dl: ['DAL'], ac: ['ACA'], am: ['AMX'], af: ['AFR'], kl: ['KLM'], lh: ['DLH'], ba: ['BAW'], ib: ['IBE'],
+    ux: ['AEA'], tp: ['TAP'], az: ['ITY', 'AZA'], ek: ['UAE'], qr: ['QTR'], tk: ['THY'], lx: ['SWR'], os: ['AUA'], sn: ['BEL'],
+    at: ['RAM'], et: ['ETH'], sa: ['SAA'], cx: ['CPA'], jl: ['JAL'], nh: ['ANA'], ke: ['KAL'], qf: ['QFA'], ey: ['ETD'], ai: ['AIC'],
+    h2: ['SKU'], ja: ['JAT'], fx: ['FDX'], '5y': ['GTI'], ups: ['UPS'], '5x': ['UPS'], dhl: ['DHK'], ec: ['EJU']
+  };
+  function termAlternatives(t) {
+    var out = [t], m = /^([a-z0-9]{2})(\d{1,4}[a-z]?)$/.exec(t);
+    if (m && IATA_TO_ICAO[m[1]]) IATA_TO_ICAO[m[1]].forEach(function (c) { out.push(c.toLowerCase() + m[2]); });
+    return out;
+  }
   function haystack(a) {
     if (!a._hay) {
       a._hay = [a.id, a.callsign, a.reg, a.model, a.typecode, a.operator, a.country, KIND_LABEL[kindOf(a)]].map(norm).join('|');
@@ -133,7 +148,11 @@
     }
     if (S.terms.length) {
       var h = haystack(a);
-      for (var i = 0; i < S.terms.length; i++) if (h.indexOf(S.terms[i]) < 0) return false;
+      for (var i = 0; i < S.terms.length; i++) {
+        var alts = termAlternatives(S.terms[i]), hit = false;
+        for (var j = 0; j < alts.length; j++) if (h.indexOf(alts[j]) >= 0) { hit = true; break; }
+        if (!hit) return false;
+      }
     }
     return true;
   }
@@ -157,6 +176,12 @@
       if (!r.ok) throw new Error('HTTP ' + r.status);
       var d = await r.json();
       var t = Date.now();
+      if (typeof d.metaBase === 'boolean') S.metaBase = d.metaBase;
+      if (!(d.aircraft && d.aircraft.length) && S.aircraft.length && S.fetchedAt && t - S.fetchedAt < EMPTY_HOLD_MS) {
+        // O OpenSky às vezes devolve lista vazia por instantes: mantém a última lista (posições seguem estimadas) em vez de apagar mapa e seletor.
+        S.status = 'atrasado'; S.error = ''; S.emptyHeld = true;
+      } else {
+      S.emptyHeld = false;
       S.serverTime = d.serverTime || t;
       S.aircraft = (d.aircraft || []).map(function (a) {
         a.ageS = Math.max(0, S.serverTime / 1000 - (a.lastContact || S.serverTime / 1000)); return a;
@@ -173,6 +198,7 @@
       if (!S.hasKinds) S.kindFilter = 'todos';
       if (S.selectedId && !S.byId[S.selectedId]) { S.selectedId = null; clearRoute(); drawTrail(); }
       if (S.selectedId && S.trail && t - S.trailLoadedAt > TRAIL_REFRESH_MS) loadTrail();
+      }
     } catch (e) {
       S.error = 'Sem conexão com o servidor.';
     } finally { S.inflight = false; }
@@ -457,6 +483,7 @@
   function statusLine() {
     var n = S.aircraft.length, age = S.fetchedAt ? Math.round((now() - S.fetchedAt) / 1000) : null;
     if (S.error) return S.error;
+    if (S.emptyHeld) return '⚠ OpenSky sem dados agora — mantendo o último dado';
     if (S.status === 'cota') return '⚠ cota diária do OpenSky esgotada — último dado';
     if (S.status === 'atrasado') return '⚠ dados atrasados';
     if (S.status === 'indisponivel') return '⚠ sem dados do OpenSky';
@@ -474,7 +501,7 @@
     rows.sort(function (x, y) { return (x.d == null ? 1e12 : x.d) - (y.d == null ? 1e12 : y.d); });
     var total = S.aircraft.length;
     var h = '<option value="">' + (rows.length ? 'Selecione a aeronave (' + rows.length + (rows.length !== total ? ' de ' + total : '') + ')'
-      : (total ? 'Nenhuma aeronave com esse filtro' : 'Nenhuma aeronave no momento')) + '</option>';
+      : (total ? 'Nenhuma aeronave com esse filtro' : (S.fetchedAt ? 'Nenhuma aeronave recebida agora (atualiza sozinho)' : 'Consultando…'))) + '</option>';
     rows.slice(0, 150).forEach(function (r) {
       var a = r.a;
       var alt = a.onGround ? 'solo' : (typeof a.alt === 'number' ? Math.round(a.alt).toLocaleString('pt-BR') + ' m' : '—');
@@ -490,7 +517,7 @@
     var total = S.aircraft.length;
     if (S.hasKinds === false && total) return '<option value="todos" selected>Todas (' + total + ') — tipo indisponível</option>';
     function opt(v, txt, n) {
-      if (n === 0 && S.kindFilter !== v) return '';
+      if (n === 0 && S.kindFilter !== v && v !== 'helicoptero') return '';
       return '<option value="' + v + '"' + (S.kindFilter === v ? ' selected' : '') + '>' + txt + ' (' + n + ')</option>';
     }
     return opt('todos', 'Todas', total) + opt('aviao', 'Aviões e jatos', c.aviao + c.jato) + opt('jato', 'Somente jatos', c.jato) +
@@ -554,6 +581,32 @@
     return !!(ae && v.panel.contains(ae) && ae.matches && ae.matches('select,input'));
   }
 
+  // Atualiza as opções de um seletor. Se ele está em foco (o operador pode estar escolhendo), só mexe quando a LISTA muda
+  // (aeronave entrou ou saiu) e o operador não tocou nele há mais de 4 s. Antes, um seletor em foco ficava congelado e
+  // continuava mostrando "Nenhuma aeronave" mesmo com aeronaves no mapa.
+  function optionKeys(html) { return (html.match(/value="[^"]*"/g) || []).join('|'); }
+  function refreshSelect(el, html, v) {
+    if (document.activeElement === el) {
+      if (optionKeys(html) === optionKeys(el.innerHTML) || now() - (v.touchAt || 0) < 4000) return;
+    }
+    if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
+  }
+  function helicopterHint() {
+    var heli = 0, groundHeli = 0, unknown = 0;
+    S.aircraft.forEach(function (a) {
+      var k = kindOf(a);
+      if (k === 'helicoptero') { heli++; if (a.onGround) groundHeli++; }
+      else if (k === 'desconhecido') unknown++;
+    });
+    var out = [];
+    if (!S.showGround && groundHeli) out.push(groundHeli + (groundHeli === 1 ? ' helicóptero no solo está escondido' : ' helicópteros no solo estão escondidos') + ': marque "mostrar aeronaves no solo".');
+    if (S.kindFilter === 'helicoptero' && !heli) out.push('Nenhum helicóptero transmitindo posição agora. Muitos helicópteros não transmitem ADS-B ou voam baixo demais para os receptores do OpenSky.');
+    if (S.metaBase === false && (S.kindFilter === 'helicoptero' || S.kindFilter === 'desconhecido') && S.aircraft.length) {
+      out.push('O servidor ainda não tem a base de aeronaves: o tipo vem só da categoria informada pelo transponder, e muitos helicópteros não informam categoria (' + unknown + ' sem classificação agora).');
+    }
+    return out.join(' ');
+  }
+
   function renderPanel(v) {
     var panel = v.panel, q = function (s) { return panel.querySelector(s); };
     var compact = v.map.getContainer().clientHeight < 400;   // mapas baixos (aba Pontos): encosta embaixo
@@ -571,8 +624,10 @@
 
     // controles fixos: só as opções são atualizadas, e nunca enquanto o próprio elemento está em uso
     var typeEl = q('[data-aero-type]'), pickEl = q('[data-aero-pick]'), gndEl = q('[data-aero-ground]');
-    if (document.activeElement !== typeEl) typeEl.innerHTML = typeOptionsHtml();
-    if (document.activeElement !== pickEl) pickEl.innerHTML = pickerOptionsHtml();
+    refreshSelect(typeEl, typeOptionsHtml(), v);
+    refreshSelect(pickEl, pickerOptionsHtml(), v);
+    var hintEl = q('[data-aero-hint]');
+    if (hintEl) { var ht = helicopterHint(); hintEl.textContent = ht; hintEl.style.display = ht ? '' : 'none'; }
     if (document.activeElement !== gndEl) gndEl.checked = S.showGround;
 
     if (interacting(v)) return;
@@ -582,7 +637,10 @@
     body.scrollTop = top;
   }
 
-  function render() { Object.keys(views).forEach(function (k) { var v = views[k]; renderPanel(v); drawMarkers(v); drawBuoyTags(v); drawRoute(v); drawTrail(); }); }
+  var warned = {};
+  function safe(fn, v) { try { fn(v); } catch (e) { var m = (e && e.message) || String(e); if (!warned[m]) { warned[m] = 1; try { console.warn('GeoAeronaves:', e); } catch (x) {} } } }
+  // Cada etapa roda isolada: se uma falhar (ex.: um mapa escondido), as outras e os outros mapas continuam atualizando.
+  function render() { Object.keys(views).forEach(function (k) { var v = views[k]; safe(renderPanel, v); safe(drawMarkers, v); safe(drawBuoyTags, v); safe(drawRoute, v); safe(drawTrail); }); }
   function tick() {
     if (!S.enabled) return;
     if (S.follow && S.selectedId && S.byId[S.selectedId]) {
@@ -697,6 +755,7 @@
             '<input class="aero-input" data-aero-search type="search" placeholder="Buscar indicativo, ICAO24, modelo" aria-label="Buscar aeronave" autocomplete="off" autocapitalize="none" spellcheck="false">' +
           '</div>' +
           '<select class="aero-select" data-aero-pick aria-label="Selecionar aeronave"></select>' +
+          '<div class="aero-foot" data-aero-hint style="display:none;margin-top:4px"></div>' +
         '</div>' +
         '<div class="aero-detail"></div>' +
         '<label class="aero-foot" style="display:flex;gap:6px;align-items:center;margin-top:8px;cursor:pointer"><input type="checkbox" data-aero-ground> mostrar aeronaves no solo</label>' +
