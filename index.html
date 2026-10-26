@@ -652,7 +652,7 @@
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
     #tabRelevo .tactical-table-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    #tabRelevo .tactical-table-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #tabRelevo .tactical-table-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
 
     /* aba Estratégia — mapa ocupa a aba inteira (o painel de baixo saiu);
        Peças e Desenho agora são 2 janelinhas FLUTUANTES independentes por
@@ -961,22 +961,33 @@
       .cd2-table-layout .cd2-table-scroll input[type=checkbox] { width: 24px; height: 24px; }
     }
 
-    .tactical-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tactical-table { width: 100%; min-width: 2050px; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
     .tactical-table thead th {
       position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 8px;
       text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; z-index: 1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .tactical-table td { padding: 8px 8px; line-height: 1.35; }
-    /* Tipo e Rótulo só precisam do espaço do próprio conteúdo — sem isso o
-       navegador espalhava sobra de largura entre as colunas e ficava um vão
-       grande entre a 1ª e a 2ª coluna. Localidade fica com largura fixa e
-       trunca com "..." (o campo agora é um <input readonly> — ver abaixo). */
-    .tactical-table th:nth-child(1), .tactical-table td:nth-child(1) { width: 1%; white-space: nowrap; }
-    .tactical-table th:nth-child(2), .tactical-table td:nth-child(2) { width: 1%; white-space: nowrap; }
-    .tactical-table th:nth-child(3), .tactical-table td:nth-child(3) { width: 180px; }
-    .tactical-table th:nth-child(4), .tactical-table td:nth-child(4) { width: 180px; }
+    .tactical-table td { padding: 8px 8px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Larguras fixas por coluna (table-layout: fixed): o texto aparece só até onde a coluna alcança e termina em "..."
+       (o conteúdo inteiro fica no title da célula e no campo da Localidade/Endereço, que é um <input readonly>).
+       Ordem: Tipo, Rótulo, Localidade, Endereço, Coordenadas, Posição do Atirador, Observação, Operador, Unidade,
+       Responsável, Data/Hora, Foto 1, Foto 2, Ações. A tabela rola na horizontal dentro do próprio painel. */
+    .tactical-table th:nth-child(1)  { width: 150px; }
+    .tactical-table th:nth-child(2)  { width: 150px; }
+    .tactical-table th:nth-child(3)  { width: 170px; }
+    .tactical-table th:nth-child(4)  { width: 190px; }
+    .tactical-table th:nth-child(5)  { width: 170px; }
+    .tactical-table th:nth-child(6)  { width: 170px; }
+    .tactical-table th:nth-child(7)  { width: 200px; }
+    .tactical-table th:nth-child(8)  { width: 130px; }
+    .tactical-table th:nth-child(9)  { width: 120px; }
+    .tactical-table th:nth-child(10) { width: 140px; }
+    .tactical-table th:nth-child(11) { width: 150px; }
+    .tactical-table th:nth-child(12) { width: 80px; }
+    .tactical-table th:nth-child(13) { width: 80px; }
+    .tactical-table th:nth-child(14) { width: 150px; }
     .loc-cell-input {
-      display: block; width: 100%; max-width: 180px; border: none; background: transparent;
+      display: block; width: 100%; max-width: 100%; border: none; background: transparent;
       color: inherit; font: inherit; padding: 0; margin: 0; cursor: text;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
@@ -1318,6 +1329,16 @@
       color:#fff; font-size:22px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
     }
     .btn-medir-rotate:hover { background: var(--action-dim); }
+    /* Dock de giro do mapa (Medir, Marker, Estratégia e Pontos): botão de minimizar no topo. Minimizado, sobra só uma
+       pastilha pequena com "⟲⟳ ▸" pra reabrir. O "display" das duas fileiras vem de CLASSE (não de style inline) pra o
+       "display:none" do estado minimizado conseguir escondê-las. */
+    .rotate-dock-row { display: flex; gap: 5px; }
+    .rotate-dock-toggle {
+      width: 100%; height: 18px; min-height: 0; padding: 0; border: none; background: transparent;
+      color: var(--accent); font-size: 11px; font-weight: 900; line-height: 1; cursor: pointer; white-space: nowrap;
+    }
+    .map-rotate-group.rotate-dock-collapsed .rotate-dock-body { display: none; }
+    .map-rotate-group.rotate-dock-collapsed { padding: 3px 7px !important; gap: 0 !important; }
 
     /* Calibração de bússola em passos de 45° — usada nos cards de
        Telemetria (Balística e Equipamento). O operador compara o cone azul
@@ -1872,10 +1893,10 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="tactical-table-scroll">
       <table class="tactical-table">
         <thead>
-          <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
+          <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Foto 1</th><th>Foto 2</th><th>Ações</th></tr>
         </thead>
         <tbody id="tacticalMarkersTableBody">
-          <tr><td colspan="11" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
+          <tr><td colspan="14" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1976,7 +1997,7 @@ body.nvg-red-mode .leaflet-tile-container img {
   <div style="overflow-x:auto;">
     <table class="tactical-table" style="color:var(--ink);">
       <thead>
-        <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Data/Hora</th><th>Foto</th><th>Ações</th></tr>
+        <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Foto 1</th><th>Foto 2</th><th>Ações</th></tr>
       </thead>
       <tbody id="tacticalMarkersTableBodyModal">
         <!-- Espelha #tacticalMarkersTableBody, preenchido por renderTacticalMarkersTable() -->
@@ -2114,6 +2135,7 @@ body.nvg-red-mode .leaflet-tile-container img {
                 <option value="vortex_hsr5i_mrad">Vortex HSR-5i (MRAD)</option>
                 <option value="vortex_ebr2c_moa">Vortex EBR-2C (MOA)</option>
                 <option value="vortex_ebr2c_mrad">Vortex EBR-2C (MRAD)</option>
+                <option value="nikon_bdc800">Nikon BDC 800 (.308 · 16x)</option>
           </optgroup>
         </select>
       </div>
@@ -2541,6 +2563,7 @@ body.nvg-red-mode .leaflet-tile-container img {
                 <option value="vortex_hsr5i_mrad">Vortex HSR-5i (MRAD)</option>
                 <option value="vortex_ebr2c_moa">Vortex EBR-2C (MOA)</option>
                 <option value="vortex_ebr2c_mrad">Vortex EBR-2C (MRAD)</option>
+                <option value="nikon_bdc800">Nikon BDC 800 (.308 · 16x)</option>
               </optgroup>
             </select>
           </div>
@@ -3087,10 +3110,18 @@ body.nvg-red-mode .leaflet-tile-container img {
     <label style="font-size:11px; color:var(--muted); font-weight:700;">Operador</label>
     <input id="tacticalPinOperator" type="text" placeholder="Seu nome/codinome" style="width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px;">
 
-    <label style="font-size:11px; color:var(--muted); font-weight:700;">Foto (opcional)</label>
-    <button type="button" onclick="triggerTacticalPinPhoto()" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Foto</button>
-    <input id="tacticalPinPhotoInput" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this)" style="display:none;">
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Responsável (opcional)</label>
+    <input id="tacticalPinResponsavel" type="text" maxlength="80" placeholder="Quem responde por este ponto" style="width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px;">
+
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Foto 1 (opcional)</label>
+    <button type="button" onclick="triggerTacticalPinPhoto(1)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Foto 1</button>
+    <input id="tacticalPinPhotoInput" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this, 1)" style="display:none;">
     <img id="tacticalPinPhotoPreview" src="" style="display:none; width:100%; border-radius:8px; margin-bottom:12px; border:1px solid var(--line);">
+
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Foto 2 (opcional)</label>
+    <button type="button" onclick="triggerTacticalPinPhoto(2)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Foto 2</button>
+    <input id="tacticalPinPhotoInput2" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this, 2)" style="display:none;">
+    <img id="tacticalPinPhotoPreview2" src="" style="display:none; width:100%; border-radius:8px; margin-bottom:12px; border:1px solid var(--line);">
 
     <div style="display:flex; gap:10px; margin-top:6px;">
       <button onclick="closeTacticalPinModal()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:700; cursor:pointer;">Cancelar</button>
@@ -3189,7 +3220,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     // habilitado; as outras abas nem chamam essas funções.
     const MEDIR_ROTATE_STEP_DEG = 22.5;
     let medirMapBearing = 0;
-    const mapTabBearings = { normal: 0, estrategia: 0 };
+    const mapTabBearings = { normal: 0, estrategia: 0, pontos: 0 };
     let weaponsCatalog = {};
 
     // ===== SISTEMA DE PONTOS TÁTICOS (COP) =====
@@ -3290,6 +3321,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     } catch (e) { console.warn('[Desenho] Não foi possível traduzir os textos do Leaflet.draw:', e); }
     let tacticalPendingPin = null;
     let tacticalPendingPhotoDataUrl = null;
+    let tacticalPendingPhotoDataUrl2 = null;
     let dockDragState = null;
     let tacticalMarkerDragState = null;
 
@@ -3503,35 +3535,61 @@ body.nvg-red-mode .leaflet-tile-container img {
     // não só por estética: sem uma área sólida por trás dos botões, um toque
     // um pouco fora do centro deles caía direto no mapa por baixo e criava
     // um ponto de medição indesejado.
+    // Dock de giro do mapa, igual nas abas Medir, Marker, Estratégia e Pontos: ⟲/⟳, rumo atual e botão de minimizar.
+    // Minimizado, a escolha fica guardada no aparelho (por aba). O dock tem fundo sólido pra um toque fora do centro dos
+    // botões não "vazar" pro clique do mapa por baixo.
+    const ROTATE_DOCK_STYLE = 'position:absolute; top:58px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:3px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
+    function buildRotateDock(container, key, callLeft, callRight) {
+      const group = document.createElement('div');
+      group.id = `${key}RotateGroup`;
+      group.className = 'map-rotate-group';
+      group.style.cssText = ROTATE_DOCK_STYLE;
+      group.innerHTML = `
+        <button type="button" class="rotate-dock-toggle" onclick="toggleRotateDockMinimize('${key}')" title="Minimizar" aria-label="Minimizar os botões de girar o mapa">▾</button>
+        <div class="rotate-dock-body rotate-dock-row">
+          <button type="button" class="btn-medir-rotate" onclick="${callLeft}" title="Girar mapa -22.5°" aria-label="Girar o mapa para a esquerda">⟲</button>
+          <button type="button" class="btn-medir-rotate" onclick="${callRight}" title="Girar mapa +22.5°" aria-label="Girar o mapa para a direita">⟳</button>
+        </div>
+        <div id="${key}BearingReadout" class="rotate-dock-body" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">0°</div>
+      `;
+      container.appendChild(group);
+      if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(group);
+      if (L.DomEvent && L.DomEvent.disableScrollPropagation) L.DomEvent.disableScrollPropagation(group);
+      let collapsed = false;
+      try { collapsed = localStorage.getItem(`geosniper_rotate_dock_${key}`) === '1'; } catch (e) {}
+      group.classList.toggle('rotate-dock-collapsed', collapsed);
+      syncRotateDockToggle(group);
+      return group;
+    }
+
+    function syncRotateDockToggle(group) {
+      const btn = group.querySelector('.rotate-dock-toggle');
+      if (!btn) return;
+      const collapsed = group.classList.contains('rotate-dock-collapsed');
+      btn.textContent = collapsed ? '⟲⟳ ▸' : '▾';
+      btn.title = collapsed ? 'Abrir os botões de girar o mapa' : 'Minimizar';
+      btn.setAttribute('aria-label', btn.title);
+    }
+
+    function toggleRotateDockMinimize(key) {
+      const group = document.getElementById(`${key}RotateGroup`);
+      if (!group) return;
+      const collapsed = group.classList.toggle('rotate-dock-collapsed');
+      try { localStorage.setItem(`geosniper_rotate_dock_${key}`, collapsed ? '1' : '0'); } catch (e) {}
+      syncRotateDockToggle(group);
+      // A barra de desenho da aba Marker fica logo abaixo do dock: acompanha a nova altura.
+      if (key === 'normal' && mapNormal && typeof positionDrawToolbar === 'function') {
+        positionDrawToolbar(mapNormal, document.getElementById('drawToolbarNormal'), 'left');
+      }
+    }
+
     function ensureMedirRotateControls() {
       if (!mapMedir || document.getElementById('medirRotateGroup')) return;
       const container = mapMedir.getContainer();
       if (!container) return;
 
-      // Antes ficava embaixo do grupo de calibração da bússola (◀ ▶), que
-      // também morava no canto esquerdo — agora que a bússola foi pro centro
-      // (embaixo da busca), esse dock de giro "subiu" pro canto esquerdo
-      // que sobrou, no mesmo top:58px (mesma folga da busca) usado por ela.
-      const group = document.createElement('div');
-      group.id = 'medirRotateGroup';
-      group.style.cssText = 'position:absolute; top:58px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
-      group.innerHTML = `
-        <div style="display:flex; gap:5px;">
-          <button type="button" class="btn-medir-rotate" onclick="rotateMedirMap(-${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa -22.5°">⟲</button>
-          <button type="button" class="btn-medir-rotate" onclick="rotateMedirMap(${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa +22.5°">⟳</button>
-        </div>
-        <div id="medirBearingReadout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">0°</div>
-      `;
-      container.appendChild(group);
-
-      // Impede que toques no dock (inclusive nas bordas, fora dos botões em
-      // si) vazem pro clique do Leaflet por baixo e criem ponto de medição.
-      if (L.DomEvent && L.DomEvent.disableClickPropagation) {
-        L.DomEvent.disableClickPropagation(group);
-      }
-      if (L.DomEvent && L.DomEvent.disableScrollPropagation) {
-        L.DomEvent.disableScrollPropagation(group);
-      }
+      // Fica no canto superior esquerdo, no mesmo top:58px (mesma folga da busca) das outras abas.
+      buildRotateDock(container, 'medir', `rotateMedirMap(-${MEDIR_ROTATE_STEP_DEG})`, `rotateMedirMap(${MEDIR_ROTATE_STEP_DEG})`);
     }
 
     function startNormalCompassWatch() { startCompassWatch('normal', 'normal', 'normalCompass'); }
@@ -3650,22 +3708,8 @@ body.nvg-red-mode .leaflet-tile-container img {
       if (!map) return;
       const container = map.getContainer();
       if (!container) return;
-      let group = document.getElementById(`${key}RotateGroup`);
-      if (!group) {
-        group = document.createElement('div');
-        group.id = `${key}RotateGroup`;
-        group.className = 'map-rotate-group';
-        group.style.cssText = 'position:absolute; top:58px; left:4px; z-index:1200; display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(15,23,42,0.92); border:1px solid var(--line); border-radius:10px; padding:7px 6px 6px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));';
-        group.innerHTML = `
-          <div style="display:flex; gap:5px;">
-            <button type="button" class="btn-medir-rotate" onclick="rotateTabMap('${key}', -${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa -22.5°" aria-label="Girar o mapa para a esquerda">⟲</button>
-            <button type="button" class="btn-medir-rotate" onclick="rotateTabMap('${key}', ${MEDIR_ROTATE_STEP_DEG})" title="Girar mapa +22.5°" aria-label="Girar o mapa para a direita">⟳</button>
-          </div>
-          <div id="${key}BearingReadout" style="font-size:13px; color:#eef7d8; font-weight:800; font-family: ${RETICLE_MONO}; text-shadow:0 1px 3px #000;">0°</div>
-        `;
-        container.appendChild(group);
-        if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(group);
-        if (L.DomEvent && L.DomEvent.disableScrollPropagation) L.DomEvent.disableScrollPropagation(group);
+      if (!document.getElementById(`${key}RotateGroup`)) {
+        buildRotateDock(container, key, `rotateTabMap('${key}', -${MEDIR_ROTATE_STEP_DEG})`, `rotateTabMap('${key}', ${MEDIR_ROTATE_STEP_DEG})`);
       }
       // O mapa novo sempre nasce com bearing 0 (o container é reaproveitado entre inicializações).
       const readout = document.getElementById(`${key}BearingReadout`);
@@ -3673,7 +3717,7 @@ body.nvg-red-mode .leaflet-tile-container img {
     }
 
     function rotateTabMap(key, deltaDeg) {
-      const map = key === 'normal' ? mapNormal : (key === 'estrategia' ? mapEstrategia : null);
+      const map = ({ normal: mapNormal, estrategia: mapEstrategia, pontos: mapRelevo })[key];
       if (!map || typeof map.setBearing !== 'function') return;
       mapTabBearings[key] = (((mapTabBearings[key] || 0) + deltaDeg) % 360 + 360) % 360;
       map.setBearing(mapTabBearings[key]);
@@ -7732,9 +7776,12 @@ function operatorColor(name) {
 function operatorChipHtml(name, full) {
   const n = String(name || '').trim();
   if (!n) return '';
-  const size = full ? 'font-size:12px; line-height:20px; padding:0 9px; border-radius:10px; white-space:nowrap;' : 'font-size:10px; line-height:16px; padding:0 6px; border-radius:8px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+  const size = full ? 'font-size:12px; line-height:20px; padding:0 9px; border-radius:10px; max-width:100%; box-sizing:border-box; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;' : 'font-size:10px; line-height:16px; padding:0 6px; border-radius:8px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
   return `<span style="display:inline-block; background:${operatorColor(n)}; color:#fff; font-weight:700; vertical-align:middle; ${size}" title="${operatorEsc(n)}">${operatorEsc(n)}</span>`;
 }
+
+// O ponto tem foto se tiver a Foto 1 ou a Foto 2 (selo de câmera no ícone).
+function pinHasPhoto(pin) { return !!(pin && (pin.photoUrl || pin.photoUrl2)); }
 
 // `zoom` (opcional): mais longe que o zoom 13 as etiquetas somem pra não poluir o mapa.
 function tacticalMarkerIcon(typeId, hasPhoto, size, pin, zoom) {
@@ -7837,9 +7884,10 @@ function caminhoAteAqui(pinId, btn) {
 function tacticalPopupHtml(pin) {
   const t = getTacticalType(pin.type);
   const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '';
-  const photo = pin.photoUrl
-    ? `<div onclick="viewTacticalPhoto('${pin.photoUrl}')" style="margin-top:6px; display:flex; align-items:center; gap:5px; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">📷 Ver foto</div>`
-    : '';
+  const bothPhotos = !!(pin.photoUrl && pin.photoUrl2);
+  const photo = [pin.photoUrl, pin.photoUrl2].map((url, i) => url
+    ? `<div onclick="viewTacticalPhoto('${url}')" style="margin-top:6px; display:flex; align-items:center; gap:5px; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">📷 Ver foto${bothPhotos ? ' ' + (i + 1) : ''}</div>`
+    : '').join('');
 
   // Peça do Dock Estratégico ainda em rascunho (verde, não sincronizada):
   // balão mínimo, só com o nome — nada de formulário/compartilhar/excluir
@@ -7871,6 +7919,7 @@ function tacticalPopupHtml(pin) {
       ${pin.piece ? `<div style="font-size:10px; color:var(--muted); margin-top:2px;">${pin.locked ? '🔴 Travado' : '🟢 Livre'}</div>` : ''}
       ${pin.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${pin.localidade}</div>` : ''}
       ${pin.endereco ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">🛣️ ${escAttr(pin.endereco)}</div>` : ''}
+      ${pin.responsavel ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">👤 Responsável: ${operatorEsc(pin.responsavel)}</div>` : ''}
       ${pin.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${pin.observation}</div>` : ''}
       ${rallyInfo || `<div style="font-size:10px; color:var(--muted); margin-top:6px;">${operatorChipHtml(pin.operator)}${when ? ' · ' + when : ''}</div>`}
       ${photo}
@@ -7897,8 +7946,8 @@ function refreshTacticalMarkersUI() {
   Object.values(tacticalMarkers).forEach(pin => {
     if (typeof pin.lat !== 'number' || typeof pin.lng !== 'number') return;
     if (pinExpired(pin)) return;   // P. Encontro vencido: some dos mapas, continua na tabela de Pontos
-    const iconNormal = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeNormal, pin, mapNormal ? mapNormal.getZoom() : undefined);
-    const iconRelevo = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeRelevo, pin, mapRelevo ? mapRelevo.getZoom() : undefined);
+    const iconNormal = tacticalMarkerIcon(pin.type, pinHasPhoto(pin), sizeNormal, pin, mapNormal ? mapNormal.getZoom() : undefined);
+    const iconRelevo = tacticalMarkerIcon(pin.type, pinHasPhoto(pin), sizeRelevo, pin, mapRelevo ? mapRelevo.getZoom() : undefined);
     const mkNormal = L.marker([pin.lat, pin.lng], { icon: iconNormal }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerNormal);
     mkNormal._pinId = pin.id;
     // aba Pontos (Relevo): só leitura/consulta pra QUALQUER marcador — dados
@@ -7915,7 +7964,7 @@ function refreshTacticalMarkersUI() {
     // igual já acontece em Normal/Relevo; só o selo de trava (exclusivo de
     // peça) continua condicional.
     if (tacticalLayerEstrategia && mapEstrategia) {
-      const iconEstrategia = tacticalMarkerIcon(pin.type, !!pin.photoUrl, sizeEstrategia, pin, mapEstrategia.getZoom());
+      const iconEstrategia = tacticalMarkerIcon(pin.type, pinHasPhoto(pin), sizeEstrategia, pin, mapEstrategia.getZoom());
       const mkEstrategia = L.marker([pin.lat, pin.lng], { icon: iconEstrategia }).bindPopup(tacticalPopupHtml(pin)).addTo(tacticalLayerEstrategia);
       mkEstrategia._pinId = pin.id;
       attachTacticalMarkerLongPressDrag(mkEstrategia, pin, mapEstrategia);
@@ -8071,7 +8120,7 @@ function attachTacticalMarkerLongPressDrag(marker, pin, map) {
         // Ao soltar, refreshTacticalMarkersUI() já reconstrói tudo do zero
         // no tamanho normal, então não precisa reverter manualmente aqui.
         const baseSize = tacticalIconSizeForZoom(map.getZoom());
-        const bigIcon = tacticalMarkerIcon(pin.type, !!pin.photoUrl, baseSize * 2, pin);
+        const bigIcon = tacticalMarkerIcon(pin.type, pinHasPhoto(pin), baseSize * 2, pin);
         marker.setIcon(bigIcon);
         const draggingEl = marker.getElement();
         if (draggingEl) draggingEl.classList.add('tactical-marker-dragging');
@@ -8192,7 +8241,7 @@ function renderTacticalMarkersTable() {
     .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
 
   if (rows.length === 0) {
-    const emptyHtml = '<tr><td colspan="11" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
+    const emptyHtml = '<tr><td colspan="14" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
     if (tbody) tbody.innerHTML = emptyHtml;
     if (tbodyModal) tbodyModal.innerHTML = emptyHtml;
     return;
@@ -8208,9 +8257,14 @@ function renderTacticalMarkersTable() {
     const shooterCoords = (pin.type === 'target' && typeof pin.operatorLat === 'number' && typeof pin.operatorLng === 'number')
       ? `${pin.operatorLat.toFixed(6)}, ${pin.operatorLng.toFixed(6)}`
       : '-';
-    const photo = pin.photoUrl
-      ? `<img src="${pin.photoUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:5px; cursor:pointer;" onclick="viewTacticalPhoto('${pin.photoUrl}')">`
+    const thumb = (url) => url
+      ? `<img src="${url}" style="width:40px; height:40px; object-fit:cover; border-radius:5px; cursor:pointer;" onclick="viewTacticalPhoto('${url}')">`
       : '<span style="color:var(--line);">—</span>';
+    const photo1 = thumb(pin.photoUrl);
+    const photo2 = thumb(pin.photoUrl2);
+    // Unidade = a unidade da conta (todos os pontos da tabela são dela); Responsável = campo opcional do cadastro do ponto.
+    const unidade = pin.unitName || getUnitName() || '-';
+    const responsavel = pin.responsavel || '-';
     // Localidade: campo <input readonly> em vez de texto solto — trunca com "..."
     // quando não cabe (igual antes), mas o operador pode clicar dentro, o cursor de
     // texto aparece e dá pra navegar (setas/arrastar) pelo conteúdo completo sem
@@ -8219,16 +8273,19 @@ function renderTacticalMarkersTable() {
     const enderecoCell = `<input type="text" readonly class="loc-cell-input" value="${escAttr(pin.endereco || '-')}" title="${escAttr(pin.endereco || '')}">`;
     return `
       <tr style="border-bottom:1px solid var(--surface);${expirado ? ' opacity:.55;' : ''}" data-localidade="${escAttr(normalizeSearchText((pin.localidade || '') + ' ' + (pin.endereco || '')))}">
-        <td style="white-space:nowrap;"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}${expirado ? ' <span style="font-size:10px; font-weight:800; color:var(--sem-hostile); border:1px solid var(--sem-hostile); border-radius:4px; padding:0 4px;">expirado</span>' : ''}</td>
-        <td style="color:var(--ink); white-space:nowrap;">${pin.label || '-'}</td>
+        <td style="color:var(--ink); white-space:nowrap;" title="${escAttr(t.label)}"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}${expirado ? ' <span style="font-size:10px; font-weight:800; color:var(--sem-hostile); border:1px solid var(--sem-hostile); border-radius:4px; padding:0 4px;">expirado</span>' : ''}</td>
+        <td style="color:var(--ink);" title="${escAttr(pin.label || '')}">${operatorEsc(pin.label || '-')}</td>
         <td style="color:var(--ink);">${localidadeCell}</td>
         <td style="color:var(--ink);">${enderecoCell}</td>
-        <td style="color:var(--muted); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${coords}</td>
-        <td style="color:var(--sem-hostile); font-size:12px; white-space:nowrap; font-family:var(--font-mono);">${shooterCoords}</td>
-        <td style="color:var(--muted); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pin.observation || '-'}</td>
+        <td style="color:var(--muted); font-size:12px; font-family:var(--font-mono);" title="${escAttr(coords)}">${coords}</td>
+        <td style="color:var(--sem-hostile); font-size:12px; font-family:var(--font-mono);" title="${escAttr(shooterCoords)}">${shooterCoords}</td>
+        <td style="color:var(--muted);" title="${escAttr(pin.observation || '')}">${operatorEsc(pin.observation || '-')}</td>
         <td style="color:var(--muted);">${operatorChipHtml(pin.operator, true) || '-'}</td>
-        <td style="color:var(--muted); font-size:12px; white-space:nowrap;">${when}</td>
-        <td style="text-align:center;">${photo}</td>
+        <td style="color:var(--ink);" title="${escAttr(unidade)}">${operatorEsc(unidade)}</td>
+        <td style="color:var(--ink);" title="${escAttr(responsavel)}">${operatorEsc(responsavel)}</td>
+        <td style="color:var(--muted); font-size:12px;" title="${escAttr(when)}">${when}</td>
+        <td style="text-align:center;">${photo1}</td>
+        <td style="text-align:center;">${photo2}</td>
         <td style="text-align:center; white-space:nowrap;">
           <button onclick="focusTacticalMarker('${pin.id}')" title="Ver no mapa" style="background:var(--action); color:#fff; border:none; border-radius:5px; padding:6px 9px; margin-right:4px; cursor:pointer; font-size:13px;">📍</button>
           <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" title="Compartilhar no WhatsApp" style="background:#25D366; color:#fff; border:none; border-radius:5px; padding:6px 9px; margin-right:4px; cursor:pointer; font-size:13px;">📲</button>
@@ -8321,7 +8378,7 @@ function shareFilteredPontos() {
 // XLSX — mesmas colunas dos dois formatos, na mesma ordem da tabela em tela.
 function buildPontosExportRows() {
   const { rows } = getFilteredPontosRows();
-  const header = ['Tipo', 'Rótulo', 'Localidade', 'Endereço', 'Coordenadas', 'Posição do Atirador', 'Observação', 'Operador', 'Data/Hora', 'Link GeoSniper', 'Link Mapa Externo'];
+  const header = ['Tipo', 'Rótulo', 'Localidade', 'Endereço', 'Coordenadas', 'Posição do Atirador', 'Observação', 'Operador', 'Unidade', 'Responsável', 'Data/Hora', 'Link GeoSniper', 'Link Mapa Externo'];
   const dataRows = rows.map(pin => {
     const t = getTacticalType(pin.type);
     const hasCoords = typeof pin.lat === 'number' && typeof pin.lng === 'number';
@@ -8331,7 +8388,7 @@ function buildPontosExportRows() {
     const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '-';
     const appPinUrl = hasCoords ? `${ASSET_BASE}?tab=pontos&targetLat=${pin.lat}&targetLng=${pin.lng}&pinId=${encodeURIComponent(pin.id)}` : '';
     const mapsLink = hasCoords ? `https://www.google.com/maps?q=${pin.lat},${pin.lng}` : '';
-    return [t.label + (pinExpired(pin) ? ' (expirado)' : ''), pin.label || '-', pin.localidade || '-', pin.endereco || '-', coords, shooterCoords, pin.observation || '-', pin.operator || '-', when, appPinUrl, mapsLink];
+    return [t.label + (pinExpired(pin) ? ' (expirado)' : ''), pin.label || '-', pin.localidade || '-', pin.endereco || '-', coords, shooterCoords, pin.observation || '-', pin.operator || '-', pin.unitName || getUnitName() || '-', pin.responsavel || '-', when, appPinUrl, mapsLink];
   });
   return { header, dataRows };
 }
@@ -9157,6 +9214,7 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
   const editingPin = editId ? tacticalMarkers[editId] : null;
   tacticalPendingPin = { type: typeId, lat, lng, editId: editingPin ? editId : null };
   tacticalPendingPhotoDataUrl = null;
+  tacticalPendingPhotoDataUrl2 = null;
 
   document.getElementById('tacticalPinModalIcon').src = t.icon;
   document.getElementById('tacticalPinModalEyebrow').innerText = editingPin ? 'Completar Cadastro (Peça Travada)' : (t.ttlHours ? `Novo Ponto Tático · vale por ${t.ttlHours} h` : 'Novo Ponto Tático');
@@ -9181,6 +9239,15 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
     photoPreview.style.display = 'none';
   }
   document.getElementById('tacticalPinPhotoInput').value = '';
+  const photoPreview2 = document.getElementById('tacticalPinPhotoPreview2');
+  if (editingPin && editingPin.photoUrl2) {
+    photoPreview2.src = editingPin.photoUrl2;
+    photoPreview2.style.display = 'block';
+  } else {
+    photoPreview2.style.display = 'none';
+  }
+  document.getElementById('tacticalPinPhotoInput2').value = '';
+  document.getElementById('tacticalPinResponsavel').value = (editingPin && editingPin.responsavel) || '';
   document.getElementById('tacticalPinOperator').value = localStorage.getItem('geosniper_operator_name') || '';
 
   document.getElementById('tacticalPinModal').style.display = 'flex';
@@ -9273,6 +9340,7 @@ function closeTacticalPinModal() {
   tacticalEnderecoSeq++;
   tacticalPendingPin = null;
   tacticalPendingPhotoDataUrl = null;
+  tacticalPendingPhotoDataUrl2 = null;
 }
 
 function compressDataUrl(dataUrl, maxDim, quality) {
@@ -9306,27 +9374,30 @@ function compressImageFile(file, maxDim, quality) {
   });
 }
 
-function applyTacticalPinPhoto(dataUrl) {
-  tacticalPendingPhotoDataUrl = dataUrl;
-  const preview = document.getElementById('tacticalPinPhotoPreview');
+function applyTacticalPinPhoto(dataUrl, slot) {
+  // slot 1 = Foto 1 (a de sempre); slot 2 = Foto 2 (segunda foto do ponto).
+  const second = slot === 2;
+  if (second) tacticalPendingPhotoDataUrl2 = dataUrl; else tacticalPendingPhotoDataUrl = dataUrl;
+  const preview = document.getElementById(second ? 'tacticalPinPhotoPreview2' : 'tacticalPinPhotoPreview');
   preview.src = dataUrl;
   preview.style.display = 'block';
 }
 
-function onTacticalPinPhotoSelected(input) {
+function onTacticalPinPhotoSelected(input, slot) {
   const file = input.files && input.files[0];
   if (!file) return;
 
   // Comprime antes de guardar: uma foto de câmera de celular pode vir com vários MB,
   // e isso tanto deixa o envio lento em campo quanto arrisca estourar limites do
   // servidor. Reduzida para no máximo 1280px no lado maior, qualidade 80%.
-  compressImageFile(file, 1280, 0.8).then(applyTacticalPinPhoto).catch(err => {
+  compressImageFile(file, 1280, 0.8).then(dataUrl => applyTacticalPinPhoto(dataUrl, slot)).catch(err => {
     console.error('Erro ao processar foto:', err);
     alert('⚠️ Não foi possível processar essa foto. Tente outra.');
   });
 }
 
-function triggerTacticalPinPhoto() {
+function triggerTacticalPinPhoto(slot) {
+  const inputId = slot === 2 ? 'tacticalPinPhotoInput2' : 'tacticalPinPhotoInput';
   // No app nativo, usamos o plugin @capacitor/camera pra abrir a câmera do
   // aparelho diretamente. O atributo HTML capture="environment" do <input
   // type=file> (mantido abaixo como fallback pro navegador) é conhecido por
@@ -9338,7 +9409,7 @@ function triggerTacticalPinPhoto() {
     Cam.getPhoto({ quality: 80, resultType: 'dataUrl', source: 'CAMERA', allowEditing: false, saveToGallery: false })
       .then((photo) => {
         if (!photo || !photo.dataUrl) return;
-        compressDataUrl(photo.dataUrl, 1280, 0.8).then(applyTacticalPinPhoto).catch(err => {
+        compressDataUrl(photo.dataUrl, 1280, 0.8).then(dataUrl => applyTacticalPinPhoto(dataUrl, slot)).catch(err => {
           console.error('Erro ao processar foto da câmera:', err);
           alert('⚠️ Não foi possível processar essa foto. Tente outra.');
         });
@@ -9350,15 +9421,29 @@ function triggerTacticalPinPhoto() {
         // Só cai pro seletor de arquivos se o plugin de fato falhou (ex: não
         // sincronizado, permissão negada) — não quando o usuário só cancelou.
         console.warn('GeoSniper: plugin nativo de câmera falhou, usando fallback do seletor de arquivos.', err);
-        const input = document.getElementById('tacticalPinPhotoInput');
+        const input = document.getElementById(inputId);
         if (input) input.click();
       });
     return;
   }
   // Fallback: navegador comum (site geosniper.com.br fora do app) — usa o
   // input de arquivo com capture="environment".
-  const input = document.getElementById('tacticalPinPhotoInput');
+  const input = document.getElementById(inputId);
   if (input) input.click();
+}
+
+// Envia a foto de um ponto já registrado: a Foto 1 pela rota de sempre e a Foto 2 pela rota própria (um servidor ainda
+// sem a atualização responde 404 à Foto 2 em vez de gravar por cima da Foto 1).
+function uploadTacticalPhoto(markerId, dataUrl, slot) {
+  return fetch('https://api.geosniper.com.br/api/' + (slot === 2 ? 'upload-tactical-image-2' : 'upload-tactical-image'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
+    credentials: 'include',
+    body: JSON.stringify({ imageBase64: dataUrl, markerId })
+  }).then(res => {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res;
+  });
 }
 
 // "Completar cadastro" de uma peça do Dock Estratégico já travada: ela já
@@ -9377,31 +9462,32 @@ function saveTacticalPinEdit() {
   const localidade = document.getElementById('tacticalPinLocalidade').value.trim();
   const endereco = document.getElementById('tacticalPinEndereco').value.trim();
   const observation = document.getElementById('tacticalPinObservation').value.trim();
+  const responsavel = document.getElementById('tacticalPinResponsavel').value.trim();
   const photoToUpload = tacticalPendingPhotoDataUrl;
+  const photoToUpload2 = tacticalPendingPhotoDataUrl2;
 
   fetch(`https://api.geosniper.com.br/api/admin/markers/${editId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
     credentials: 'include',
     body: JSON.stringify({
-      label, observation, localidade, endereco,
+      label, observation, localidade, endereco, responsavel,
       lat: pin.lat, lng: pin.lng,
       operatorLat: pin.operatorLat, operatorLng: pin.operatorLng
     })
   }).then(res => res.json()).then((resp) => {
     if (!resp || !resp.success) { console.error('Não foi possível salvar o cadastro da peça.'); return; }
-    Object.assign(pin, { label, observation, localidade, endereco, operator });
+    Object.assign(pin, { label, observation, localidade, endereco, responsavel, operator });
+    const uploads = [];
     if (photoToUpload) {
-      fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
-        credentials: 'include',
-        body: JSON.stringify({ imageBase64: photoToUpload, markerId: editId })
-      }).then(() => { pin.photoUrl = photoToUpload; refreshTacticalMarkersUI(); })
-        .catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
-    } else {
-      refreshTacticalMarkersUI();
+      uploads.push(uploadTacticalPhoto(editId, photoToUpload, 1).then(() => { pin.photoUrl = photoToUpload; })
+        .catch(err => console.error('Erro ao enviar foto do ponto tático:', err)));
     }
+    if (photoToUpload2) {
+      uploads.push(uploadTacticalPhoto(editId, photoToUpload2, 2).then(() => { pin.photoUrl2 = photoToUpload2; })
+        .catch(err => console.error('Erro ao enviar a foto 2 do ponto tático:', err)));
+    }
+    Promise.all(uploads).then(() => refreshTacticalMarkersUI());
   }).catch(err => console.error('Erro ao salvar cadastro da peça:', err));
 
   closeTacticalPinModal();
@@ -9424,6 +9510,7 @@ function saveTacticalPin() {
     localidade: document.getElementById('tacticalPinLocalidade').value.trim(),
     endereco: document.getElementById('tacticalPinEndereco').value.trim(),
     observation: document.getElementById('tacticalPinObservation').value.trim(),
+    responsavel: document.getElementById('tacticalPinResponsavel').value.trim(),
     // Posição do atirador/observador no momento em que marcou o ponto — usada pra
     // desenhar a linha de visada (atirador -> alvo) na aba Relevo. Só faz sentido
     // pro marcador "Alvo" (type 'target'), que é o marcador de alvo do sniper —
@@ -9435,20 +9522,21 @@ function saveTacticalPin() {
   };
 
   const photoToUpload = tacticalPendingPhotoDataUrl;
+  const photoToUpload2 = tacticalPendingPhotoDataUrl2;
 
   if (tacticalSocket) {
     // O servidor confirma (ack) que o ponto já foi gravado no banco antes de
-    // enviarmos a foto por uma chamada separada — sem essa confirmação, a foto
+    // enviarmos as fotos por chamadas separadas — sem essa confirmação, a foto
     // (via REST) podia chegar antes do ponto (via socket) existir e se perdia.
     tacticalSocket.emit('new-tactical-pin', pinData, (response) => {
-      if (response && response.success && photoToUpload) {
-        fetch('https://api.geosniper.com.br/api/upload-tactical-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
-          credentials: 'include',
-          body: JSON.stringify({ imageBase64: photoToUpload, markerId: id })
-        }).catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
-      } else if (photoToUpload) {
+      if (response && response.success) {
+        if (photoToUpload) {
+          uploadTacticalPhoto(id, photoToUpload, 1).catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
+        }
+        if (photoToUpload2) {
+          uploadTacticalPhoto(id, photoToUpload2, 2).catch(err => console.error('Erro ao enviar a foto 2 do ponto tático:', err));
+        }
+      } else if (photoToUpload || photoToUpload2) {
         console.error('Ponto tático não confirmado pelo servidor — foto não enviada.');
       }
     });
@@ -9474,7 +9562,7 @@ function initMaps(lat, lng) {
     const layersNormal = createTileLayers();
     if (mapNormal) mapNormal.remove();
     // rotate:true + botões ⟲/⟳ próprios (ver ensureTabRotateControls); sem botões de zoom +/− nem o ▲▼ do plugin.
-    mapNormal = L.map('mapNormal', { layers: [layersNormal["Mapa Vias"]], tapTolerance: 28, zoomControl: false, rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 14);
+    mapNormal = L.map('mapNormal', { layers: [defaultSatLayer(layersNormal)], tapTolerance: 28, zoomControl: false, rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 14);
     L.control.layers(layersNormal).addTo(mapNormal);
     mapTabBearings.normal = 0;
     ensureTabRotateControls(mapNormal, 'normal');
@@ -9499,8 +9587,11 @@ function initMaps(lat, lng) {
     // 3. RELEVO
     const layersRelevo = createTileLayers();
     if (mapRelevo) mapRelevo.remove();
-    mapRelevo = L.map('mapRelevo', { layers: [defaultSatLayer(layersRelevo)], tapTolerance: 28 }).setView(currentPos, 14);
+    // Mesmo controle de giro das outras abas (⟲/⟳ + minimizar); sem botões de zoom +/− nem o ▲▼ do plugin.
+    mapRelevo = L.map('mapRelevo', { layers: [defaultSatLayer(layersRelevo)], tapTolerance: 28, zoomControl: false, rotate: true, rotateControl: false, touchRotate: false, bearing: 0 }).setView(currentPos, 14);
     L.control.layers(layersRelevo).addTo(mapRelevo);
+    mapTabBearings.pontos = 0;
+    ensureTabRotateControls(mapRelevo, 'pontos');
     positionDrawToolbar(mapRelevo, document.getElementById('drawToolbarRelevo'), 'right');
     markers.relevo = L.marker(currentPos, { icon: opIcon }).addTo(mapRelevo);
     tacticalLayerRelevo.addTo(mapRelevo);
@@ -9919,16 +10010,18 @@ function initMaps(lat, lng) {
       // compartilhado, com o caminho até o ponto indicado no mapa. Chamadas
       // antigas (só lat/lng, sem pinType) continuam indo pra Medir — mesmo
       // comportamento de antes, nada quebra.
+      // `origem` = aba de onde o link está saindo. Link de Alvo (tab=medir) leva também from=<origem>: quem recebe e NÃO é
+      // atirador (sem a aba Medir) abre nessa mesma aba de origem, e não numa aba qualquer (ver checkSharedPointFromURL).
+      const activeTabName = document.querySelector('.tab-btn.active')?.getAttribute('data-tab')
+        || localStorage.getItem('geosniper_active_tab');
+      const origem = activeTabName === 'tabEstrategia' ? 'estrategia'
+        : activeTabName === 'tabRelevo' ? 'pontos'
+        : activeTabName === 'tabMedir' ? 'medir' : 'marker';
       let tab = 'medir';
-      if (pinType && pinType !== 'target') {
-        const activeTabName = document.querySelector('.tab-btn.active')?.getAttribute('data-tab')
-          || localStorage.getItem('geosniper_active_tab');
-        if (activeTabName === 'tabEstrategia') tab = 'estrategia';
-        else if (activeTabName === 'tabRelevo') tab = 'pontos';
-        else tab = 'marker';
-      }
+      if (pinType && pinType !== 'target') tab = origem === 'medir' ? 'marker' : origem;
       const idParam = pinId ? `&pinId=${encodeURIComponent(pinId)}` : '';
-      const shareUrl = `${ASSET_BASE}?tab=${tab}&targetLat=${lat}&targetLng=${lng}${idParam}`;
+      const fromParam = tab === 'medir' ? `&from=${origem}` : '';
+      const shareUrl = `${ASSET_BASE}?tab=${tab}&targetLat=${lat}&targetLng=${lng}${idParam}${fromParam}`;
       const message = tab === 'medir'
         ? `🎯 *GEOSNIPER - Localização de Alvo/Ponto*\n\nConfira a medição e coordenadas marcadas no mapa:\n${shareUrl}`
         : `📍 *GEOSNIPER - Marcador Compartilhado*\n\nConfira o marcador no mapa:\n${shareUrl}`;
@@ -9960,7 +10053,12 @@ function initMaps(lat, lng) {
       if (tab === 'medir') {
         const allowedTabs = typeof getPermissions === 'function' ? getPermissions() : ALL_TABS;
         if (allowedTabs.length && !allowedTabs.includes('tabMedir')) {
-          tab = 'marker';
+          // Não é atirador: abre na MESMA aba de onde o link foi compartilhado (from=), se ela estiver liberada;
+          // senão na primeira aba de mapa liberada (Marker, no padrão).
+          const MAP_TAB_OF = { marker: 'tabNormal', estrategia: 'tabEstrategia', pontos: 'tabRelevo' };
+          const from = urlParams.get('from');
+          if (from && MAP_TAB_OF[from] && allowedTabs.includes(MAP_TAB_OF[from])) tab = from;
+          else tab = ['marker', 'estrategia', 'pontos'].find(k => allowedTabs.includes(MAP_TAB_OF[k])) || 'marker';
         }
       }
 
@@ -11412,6 +11510,34 @@ function drawReticleGraduations(ctx, cx, cy, pxPerMrad, radius, style) {
       [1, -1].forEach(s => reticlePost(ctx, cx, cy, radius, s, 0, 9 * u, 0.5 * u, 0));
       reticlePost(ctx, cx, cy, radius, 0, 1, 11.1 * u, 0.5 * u, 0);
     }
+    ctx.restore();
+    return;
+  }
+
+  if (style === 'nikon_bdc800') {
+    // Nikon BDC 800 (luneta M-308 4-16x42 SF, segundo plano focal): cotas A-X da tabela oficial Nikon do BDC 800 (manual
+    // P-308 4-16x42), em polegadas a cada 100 jardas na ampliação de 16x, convertidas pra MRAD (1 mrad = 3,6 in/100 yd).
+    // Calibrado pra .308 Win, projétil HPBT 168 gr, ~2.680 fps, zero a 100 yd. Abaixo da cruz: círculos (200, 400, 600 e
+    // 800 yd), pontos (300, 500 e 700), hash marks (250 a 750), um hash adicional (além de 800) e a ponta do poste inferior
+    // (sem distância publicada). Valem a 16x: em outra ampliação M, as marcas valem S(16x) × 16 / M.
+    const IN = pxPerMrad / 3.6;
+    const pts = [[2.00, 'c'], [3.50, 'h'], [5.00, 'd'], [6.50, 'h'], [8.25, 'c'], [10.25, 'h'], [12.50, 'd'], [14.50, 'h'],
+                 [16.75, 'c'], [19.00, 'h'], [21.75, 'd'], [24.50, 'h'], [27.25, 'c'], [30.50, 'h']];
+    ctx.strokeStyle = '#12141a';
+    ctx.fillStyle = '#12141a';
+    pts.forEach(([inch, kind]) => {
+      const y = cy + inch * IN;
+      if (!withinGlass(cx, y)) return;
+      if (kind === 'c') {          // círculo: diâmetro externo 1,00 in e interno 0,60 in
+        ctx.lineWidth = Math.max(1.2, 0.2 * IN);
+        ctx.beginPath(); ctx.arc(cx, y, Math.max(2.2, 0.4 * IN), 0, Math.PI * 2); ctx.stroke();
+      } else if (kind === 'd') {   // ponto: diâmetro 0,75 in
+        reticleDot(ctx, withinGlass, cx, y, 0.375 * IN);
+      } else {                     // hash: largura 0,60 in, espessura 0,20 in
+        reticleMark(ctx, cx, cy, withinGlass, 0, 1, inch * IN, Math.max(5, 0.6 * IN), Math.max(1.1, 0.2 * IN));
+      }
+    });
+    reticlePost(ctx, cx, cy, radius, 0, 1, 33.8 * IN, Math.max(2.4, 1.0 * IN), 0);   // poste inferior (largura 1,00 in)
     ctx.restore();
     return;
   }

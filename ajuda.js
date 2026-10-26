@@ -82,7 +82,7 @@
         '<b>📌 Registrar ponto</b>: dê um rótulo, uma observação e, se quiser, uma foto. Ao salvar, o ponto é registrado e aparece para a sua equipe (aba Pontos).',
         '<b>Compartilhar alvo no WhatsApp</b>: quem receber e tiver a aba Medir liberada abre o balão com as correções calculadas para o <b>equipamento dele</b> e a distância <b>dele</b> até o alvo.',
         '<b>📷 Visada</b>: abre a câmera com o retículo para mirar no alvo marcado e registrar o ângulo e o azimute com foto de comprovação.',
-        'Gire o mapa com ⟲ ⟳ e ajuste a bússola em "Calibrar" se o cone não bater com a direção real.',
+        'Gire o mapa com ⟲ ⟳ (toque em ▾ para minimizar esses botões) e ajuste a bússola em "Calibrar" se o cone não bater com a direção real.',
         'Para recomeçar, limpe o ponto no balão (lixeira) e toque em outro lugar.'
       ],
       ve: 'A distância balística é em linha reta entre a sua posição (GPS) e o ponto tocado; os caminhos a pé e de carro são rotas reais, e o tempo e o comprimento delas são estimativas. A pé só até cerca de 43 km. Sem a chave do serviço de rotas ou sem internet, só aparece o caminho de carro, marcado como aproximado. A inclinação usada é a informada no Equipamento ou na Balística: o app não calcula o desnível pelo relevo.',
@@ -111,14 +111,14 @@
       passos: [
         'Escolha um marcador nas barras: <b>de baixo</b> (meios, como Patrulha, Desig, Alvo, Viatura) ou <b>da lateral</b> (riscos, como Ameaça, Seteira, Barricada, Bunker, Vala).',
         '<b>Arraste o ícone até o local no mapa e solte.</b> Um toque simples não marca.',
-        'Na janela, informe rótulo, localidade e observação e, se quiser, tire uma <b>foto</b>. O <b>endereço (rua)</b> vem sugerido pelo OpenStreetMap; se não vier, ou se estiver errado, <b>digite ou corrija à mão</b>. Toque em <b>Salvar ponto</b>.',
+        'Na janela, informe rótulo, localidade e observação, o <b>responsável</b> (opcional) e, se quiser, tire até <b>duas fotos</b> (Foto 1 e Foto 2). O <b>endereço (rua)</b> vem sugerido pelo OpenStreetMap; se não vier, ou se estiver errado, <b>digite ou corrija à mão</b>. Toque em <b>Salvar ponto</b>.',
         'O ponto aparece para toda a equipe em tempo real, com a etiqueta de quem marcou.',
         'Quando alguém compartilha um ponto, quem abre o link vê os caminhos <b>a pé</b> (branco tracejado) e <b>de carro</b> (âmbar) até ele, com distância e tempo.',
         'Toque no marcador para abrir o cartão do ponto: rótulo, endereço, observação, quem marcou, foto, <b>🧭 Caminho até aqui</b> (traça, a partir de <b>onde você está</b>, o caminho <b>a pé</b> em branco tracejado e <b>de carro</b> em âmbar, com distância e tempo; só você vê), <b>📲 Compartilhar no WhatsApp</b> (quem receber abre o ponto no mapa, com o caminho até ele) e <b>🗑️ Excluir</b> (precisa da permissão Excluir).',
         'O marcador <b>P. Encontro</b> (bóia, na barra de baixo) marca um ponto de encontro: qualquer operador com a permissão Criar pode colocar. Ele vale por <b>6 horas</b>: o cartão mostra quem criou, a hora de criação e a hora em que expira. Depois disso some dos mapas e fica na tabela da aba Pontos como <b>expirado</b>.',
-        'O marcador <b>Alvo</b> é especial: quando alguém compartilha um Alvo, quem abre e tem a aba Medir recebe o balão com as correções para o equipamento dele; sem a aba Medir, vê um marcador comum.',
+        'O marcador <b>Alvo</b> é especial: quando alguém compartilha um Alvo, quem abre e tem a aba Medir recebe o balão com as correções para o equipamento dele; sem a aba Medir, o ponto abre na <b>mesma aba de onde foi compartilhado</b>, com o caminho até ele.',
         'Use as ferramentas de desenho (lápis) para traçar áreas e caminhos sobre o mapa.',
-        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual). Para ampliar ou reduzir, use o gesto de pinça.'
+        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual); toque em <b>▾</b> para minimizar esses botões. Para ampliar ou reduzir, use o gesto de pinça.'
       ],
       ve: 'Todos da unidade veem os mesmos pontos. Você só precisa estar com o app aberto e com internet para enviar e receber.',
       pular: 'Marcar sem informar rótulo usa o nome do tipo de marcador.',
@@ -127,11 +127,12 @@
     },
 
     tabRelevo: {
-      title: 'Pontos', lead: 'Mapa e tabela de todos os pontos registrados pela unidade, com foto, operador e horário. Serve para consultar, compartilhar e exportar.',
+      title: 'Pontos', lead: 'Mapa e tabela de todos os pontos registrados pela unidade, com fotos, operador, unidade, responsável e horário. Serve para consultar, compartilhar e exportar.',
       antes: 'Pontos registrados nas abas Medir, Marker ou Estratégia (na Estratégia, a peça só é registrada quando é travada).',
       passos: [
-        'Abra a aba: o mapa mostra os pontos registrados. Toque num marcador para ver o rótulo, o endereço, a observação, quem marcou e a foto, e use <b>🧭 Caminho até aqui</b> para traçar as rotas a pé e de carro a partir de onde você está.',
-        'Abra a tabela em <b>⛶ Tela cheia</b>. Ela lista cada ponto: tipo, rótulo, localidade, <b>endereço</b>, coordenadas, posição do atirador, observação, operador, data e foto (toque na foto para ampliar). Um P. Encontro vencido continua na lista, esmaecido e marcado <b>expirado</b>.',
+        'Abra a aba: o mapa mostra os pontos registrados. Toque num marcador para ver o rótulo, o endereço, a observação, quem marcou e as fotos, e use <b>🧭 Caminho até aqui</b> para traçar as rotas a pé e de carro a partir de onde você está.',
+        'Abra a tabela em <b>⛶ Tela cheia</b>. Ela lista cada ponto: tipo, rótulo, localidade, <b>endereço</b>, coordenadas, posição do atirador, observação, operador, <b>unidade</b>, <b>responsável</b>, data, <b>Foto 1</b> e <b>Foto 2</b> (toque na foto para ampliar). Cada coluna tem largura fixa: texto comprido aparece cortado com "..."; deslize a tabela para o lado para ver todas as colunas. Um P. Encontro vencido continua na lista, esmaecido e marcado <b>expirado</b>.',
+        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual); toque em <b>▾</b> para minimizar esses botões. Para ampliar ou reduzir, use o gesto de pinça.',
         'Use <b>Filtrar por localidade ou rua</b> para reduzir a lista.',
         'Em cada linha: <b>📍</b> centraliza o ponto no mapa, o botão verde <b>compartilha no WhatsApp</b> e <b>🗑️</b> exclui (precisa da permissão Excluir).',
         '<b>Compartilhar filtrado</b> envia a lista filtrada pelo WhatsApp. <b>Salvar</b> grava a tabela filtrada em CSV neste aparelho. <b>Exportar tabela</b> gera uma planilha Excel (.xlsx) com links clicáveis.'
@@ -153,7 +154,7 @@
         'Toque numa peça travada para abrir o cartão: <b>🧭 Caminho até aqui</b> traça as rotas a pé (branco tracejado) e de carro (âmbar) a partir de onde você está. A peça <b>P. Encontro</b> (bóia) vale 6 horas e depois some do mapa.',
         'No painel <b>Desenho</b>, use caminho, caneta, retângulo, círculo, seta, tracejada, curva e envolvimento para traçar rotas e áreas. "Medir" mede distâncias no mapa e "Apagar" remove desenhos. Escolha a cor.',
         'Os painéis flutuam: arraste pelo cabeçalho, redimensione pelas bordas e minimize com ▾.',
-        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual). Para ampliar ou reduzir, use o gesto de pinça.'
+        'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual); toque em <b>▾</b> para minimizar esses botões. Para ampliar ou reduzir, use o gesto de pinça.'
       ],
       ve: 'Todos veem, todos se localizam e todos compartilham: peças travadas aparecem para a unidade inteira. Quem coordena pode posicionar, mover e retirar peças à distância.',
       pular: 'Peças não travadas ficam só no seu aparelho e não são registradas.',
