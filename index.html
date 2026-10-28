@@ -8555,8 +8555,16 @@ function coletaSelectAll(on) {
   renderColeta();
 }
 
+// Célula "Tipo" da tabela de Coleta: o marcador que o remetente lançou (ícone da peça) ou, nos desenhos, a cor + o nome da forma.
+function coletaTipoCell(p) {
+  if (p.kind === 'drawing') {
+    return `<td title="${escAttr(p.typeLabel || p.type)}"><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${escAttr(p.color || '#facc15')}; border:1px solid #fff; margin-right:6px; vertical-align:middle;"></span>${operatorEsc(p.typeLabel || p.type)}</td>`;
+  }
+  const t = getTacticalType(p.type || 'alvouni');
+  return `<td title="${escAttr(t.label)}"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${operatorEsc(t.label)}</td>`;
+}
+
 function renderColeta() {
-  const t = getTacticalType('alvouni');
   const html = coletaPoints.length ? coletaPoints.map(p => {
     const pending = p.status === 'pending';
     const hasCoord = typeof p.lat === 'number' && typeof p.lng === 'number';
@@ -8570,7 +8578,7 @@ function renderColeta() {
     const when = p.submittedAt ? new Date(p.submittedAt).toLocaleString('pt-BR') : '-';
     return `<tr class="${pending ? '' : 'coleta-done'}">
       <td>${pending ? `<input type="checkbox" ${coletaSelected.has(p.id) ? 'checked' : ''} onchange="coletaToggle('${p.id}', this.checked)">` : ''}</td>
-      <td title="${escAttr(t.label)}"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}</td>
+      ${coletaTipoCell(p)}
       <td><input type="text" readonly class="loc-cell-input" value="${escAttr(p.localidade || '-')}" title="${escAttr(p.localidade || '')}"></td>
       <td><input type="text" readonly class="loc-cell-input" value="${escAttr(p.endereco || '-')}" title="${escAttr(p.endereco || '')}"></td>
       <td style="font-family:var(--font-mono); font-size:12px;" title="${escAttr(coords)}">${coords}</td>
@@ -8727,7 +8735,7 @@ function clearColetaPreview() {
 function coletaPopupHtml(p) {
   const thumbs = (p.thumbs || []).map((s, i) => s ? `<img src="${s}" style="width:52px; height:52px; object-fit:cover; border-radius:5px; cursor:pointer;" onclick="viewColetaMedia('${p.id}', ${i + 1})">` : '').join('');
   return `<div style="min-width:190px; max-width:230px;">
-    <b style="color:var(--accent);">Alvo UNI</b> <span style="font-size:10px; color:#f2d168; font-weight:800;">prévia · não integrado</span>
+    <b style="color:var(--accent);">${operatorEsc(p.typeLabel || 'Alvo UNI')}</b> <span style="font-size:10px; color:#f2d168; font-weight:800;">prévia · não integrado</span>
     ${p.unidade ? `<div style="font-size:11px; color:var(--muted); margin-top:3px;">🏢 ${operatorEsc(p.unidade)}</div>` : ''}
     ${p.responsavel ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">👤 ${operatorEsc(p.responsavel)}</div>` : ''}
     ${p.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${operatorEsc(p.localidade)}</div>` : ''}
@@ -8750,15 +8758,23 @@ async function plotColetaOnMap() {
     const prontos = sel.filter(p => typeof p.lat === 'number' && typeof p.lng === 'number');
     clearColetaPreview();
     if (!prontos.length) { coletaMsg('⚠️ Nenhum ponto pôde ser localizado. Confira o endereço ou defina as coordenadas (botão 📍).', true); return; }
-    const t = getTacticalType('alvouni');
     const size = tacticalIconSizeForZoom(mapRelevo.getZoom());
-    coletaPreviewLayer = L.layerGroup(prontos.map(p => L.marker([p.lat, p.lng], {
-      icon: L.divIcon({
-        className: 'tactical-marker-divicon coleta-preview-icon',
-        html: `<div style="position:relative; width:${size}px; height:${size}px;"><span class="cp-ring"></span><img src="${t.icon}" style="width:${size}px; height:${size}px; object-fit:contain; display:block;"></div>`,
-        iconSize: [size, size], iconAnchor: [size / 2, size], popupAnchor: [0, -size + 4]
-      })
-    }).bindPopup(coletaPopupHtml(p)))).addTo(mapRelevo);
+    // Marcadores com o ícone da peça que o remetente escolheu; desenhos como a própria forma (mais um ponto central clicável).
+    coletaPreviewLayer = L.layerGroup(prontos.flatMap(p => {
+      if (p.kind === 'drawing' && p.shape) {
+        const shape = buildDrawingLeafletLayer({ shapeType: p.type, data: p.shape, color: p.color || '#facc15' });
+        const anchor = L.circleMarker([p.lat, p.lng], { radius: 9, color: '#f2d168', weight: 2, dashArray: '3,3', fillColor: p.color || '#facc15', fillOpacity: 0.7 }).bindPopup(coletaPopupHtml(p));
+        return shape ? [shape, anchor] : [anchor];
+      }
+      const t = getTacticalType(p.type || 'alvouni');
+      return [L.marker([p.lat, p.lng], {
+        icon: L.divIcon({
+          className: 'tactical-marker-divicon coleta-preview-icon',
+          html: `<div style="position:relative; width:${size}px; height:${size}px;"><span class="cp-ring"></span><img src="${t.icon}" style="width:${size}px; height:${size}px; object-fit:contain; display:block;"></div>`,
+          iconSize: [size, size], iconAnchor: [size / 2, size], popupAnchor: [0, -size + 4]
+        })
+      }).bindPopup(coletaPopupHtml(p))];
+    })).addTo(mapRelevo);
     closePontosTableModal();
     mapRelevo.fitBounds(L.latLngBounds(prontos.map(p => [p.lat, p.lng])), { padding: [60, 60], maxZoom: 17 });
     coletaMsg(`🗺️ ${prontos.length} ponto(s) plotado(s) no mapa (prévia).${falhas.length ? ` ${falhas.length} sem localização: confira o endereço.` : ''}`, falhas.length > 0);
