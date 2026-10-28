@@ -111,7 +111,7 @@
       passos: [
         'Escolha um marcador nas barras: <b>de baixo</b> (meios, como Patrulha, Desig, Alvo, Viatura) ou <b>da lateral</b> (riscos, como Ameaça, Seteira, Barricada, Bunker, Vala).',
         '<b>Arraste o ícone até o local no mapa e solte.</b> Um toque simples não marca.',
-        'Na janela, informe rótulo, localidade e observação, o <b>responsável</b> (opcional) e, se quiser, tire até <b>duas fotos</b> (Foto 1 e Foto 2). O <b>endereço (rua)</b> vem sugerido pelo OpenStreetMap; se não vier, ou se estiver errado, <b>digite ou corrija à mão</b>. Toque em <b>Salvar ponto</b>.',
+        'Na janela, informe rótulo, localidade e observação, o <b>responsável</b> (opcional) e, se quiser, tire até <b>três mídias</b> (fotos: Mídia 1, 2 e 3). O <b>endereço (rua)</b> vem sugerido pelo OpenStreetMap; se não vier, ou se estiver errado, <b>digite ou corrija à mão</b>. Toque em <b>Salvar ponto</b>.',
         'O ponto aparece para toda a equipe em tempo real, com a etiqueta de quem marcou.',
         'Quando alguém compartilha um ponto, quem abre o link vê os caminhos <b>a pé</b> (branco tracejado) e <b>de carro</b> (âmbar) até ele, com distância e tempo.',
         'Toque no marcador para abrir o cartão do ponto: rótulo, endereço, observação, quem marcou, foto, <b>🧭 Caminho até aqui</b> (traça, a partir de <b>onde você está</b>, o caminho <b>a pé</b> em branco tracejado e <b>de carro</b> em âmbar, com distância e tempo; só você vê), <b>📲 Compartilhar no WhatsApp</b> (quem receber abre o ponto no mapa, com o caminho até ele) e <b>🗑️ Excluir</b> (precisa da permissão Excluir).',
@@ -127,20 +127,22 @@
     },
 
     tabRelevo: {
-      title: 'Pontos', lead: 'Mapa e tabela de todos os pontos registrados pela unidade, com fotos, operador, unidade, responsável e horário. Serve para consultar, compartilhar e exportar.',
+      title: 'Pontos', lead: 'Mapa e tabela de todos os pontos registrados pela unidade, com mídias (fotos), operador, unidade, responsável e horário. Recebe também os pontos que outras unidades enviam (aba Coleta). Serve para consultar, compartilhar e exportar.',
       antes: 'Pontos registrados nas abas Medir, Marker ou Estratégia (na Estratégia, a peça só é registrada quando é travada).',
       passos: [
-        'Abra a aba: o mapa mostra os pontos registrados. Toque num marcador para ver o rótulo, o endereço, a observação, quem marcou e as fotos, e use <b>🧭 Caminho até aqui</b> para traçar as rotas a pé e de carro a partir de onde você está.',
-        'Abra a tabela em <b>⛶ Tela cheia</b>. Ela lista cada ponto: tipo, rótulo, localidade, <b>endereço</b>, coordenadas, posição do atirador, observação, operador, <b>unidade</b>, <b>responsável</b>, data, <b>Foto 1</b> e <b>Foto 2</b> (toque na foto para ampliar). Cada coluna tem largura fixa: texto comprido aparece cortado com "..."; deslize a tabela para o lado para ver todas as colunas. Um P. Encontro vencido continua na lista, esmaecido e marcado <b>expirado</b>.',
+        'Abra a aba: o mapa mostra os pontos registrados. Toque num marcador para ver o rótulo, o endereço, a observação, quem marcou e as mídias, e use <b>🧭 Caminho até aqui</b> para traçar as rotas a pé e de carro a partir de onde você está. No balão, <b>🖼️ Mídia 1</b> mostra a foto principal do ponto e <b>ℹ️ Informações</b> volta aos dados; marque <b>Mostrar a Mídia 1 no mapa no lugar do marcador</b> para ver a miniatura da foto no mapa (vale só neste aparelho).',
+        'Abra a tabela em <b>⛶ Tela cheia</b>. Ela lista cada ponto: tipo, rótulo, localidade, <b>endereço</b>, coordenadas, posição do atirador, observação, operador, <b>unidade</b>, <b>responsável</b>, data, <b>Mídia 1</b>, <b>Mídia 2</b> e <b>Mídia 3</b> (toque na foto para ampliar). Cada coluna tem largura fixa: texto comprido aparece cortado com "..."; deslize a tabela para o lado para ver todas as colunas. Um P. Encontro vencido continua na lista, esmaecido e marcado <b>expirado</b>.',
         'Gire o mapa com os botões <b>⟲ ⟳</b> do canto superior esquerdo (passos de 22,5°; o número abaixo mostra o giro atual); toque em <b>▾</b> para minimizar esses botões. Para ampliar ou reduzir, use o gesto de pinça.',
         'Use <b>Filtrar por localidade ou rua</b> para reduzir a lista.',
         'Em cada linha: <b>📍</b> centraliza o ponto no mapa, o botão verde <b>compartilha no WhatsApp</b> e <b>🗑️</b> exclui (precisa da permissão Excluir).',
-        '<b>Compartilhar filtrado</b> envia a lista filtrada pelo WhatsApp. <b>Salvar</b> grava a tabela filtrada em CSV neste aparelho. <b>Exportar tabela</b> gera uma planilha Excel (.xlsx) com links clicáveis.'
+        '<b>Compartilhar filtrado</b> envia a lista filtrada pelo WhatsApp. <b>Salvar</b> grava a tabela filtrada em CSV neste aparelho. <b>Exportar tabela</b> gera uma planilha Excel (.xlsx) com links clicáveis.',
+        'Ao lado da tabela fica a aba <b>📥 Coleta</b>: ela recebe os pontos que <b>outras unidades enviam por um link, sem precisar de login</b>. O administrador toca em <b>📲 Compartilhar link</b>, informa para quem é, a validade e o limite de pontos e envia pelo WhatsApp. Cada link é de um destinatário; em <b>🔗 Links</b> dá para cancelar um deles (o que já foi enviado continua na coleta). O link só aparece na hora em que é criado.',
+        'O que chega fica <b>aguardando</b>, sem aparecer nos mapas. <b>🗺️ Plotar no mapa</b> mostra uma prévia (pontos sem coordenadas são localizados pelo endereço, no OpenStreetMap). <b>✅ Integrar à tabela principal</b> cria os marcadores <b>Alvo UNI</b>, que passam a aparecer para a unidade toda. <b>📍</b> define as coordenadas à mão e <b>🗑️</b> descarta um ponto. Quem usa o link pode corrigir ou excluir os seus pontos até a integração.'
       ],
       ve: 'Os pontos são da unidade inteira e chegam em tempo real. Nesta aba os pontos são só para consulta: para criar ou mover, use Medir, Marker ou Estratégia.',
       pular: 'Nada a preencher: a aba só mostra o que foi registrado.',
       dica: 'A importação de pontos a partir de um arquivo ainda não existe: hoje só é possível exportar.',
-      falha: 'Tabela vazia: ninguém registrou pontos ainda, ou o filtro de localidade está escondendo as linhas. "Operação não permitida" ao excluir: a sua conta não tem a permissão Excluir.'
+      falha: 'Tabela vazia: ninguém registrou pontos ainda, ou o filtro de localidade está escondendo as linhas. Ponto da coleta “sem coordenadas”: o endereço não foi achado no OpenStreetMap; corrija o endereço pelo link do remetente ou defina as coordenadas com 📍. "Operação não permitida" ao excluir: a sua conta não tem a permissão Excluir.'
     },
 
     tabEstrategia: {

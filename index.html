@@ -961,7 +961,7 @@
       .cd2-table-layout .cd2-table-scroll input[type=checkbox] { width: 24px; height: 24px; }
     }
 
-    .tactical-table { width: 100%; min-width: 2050px; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+    .tactical-table { width: 100%; min-width: 2130px; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
     .tactical-table thead th {
       position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 8px;
       text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; z-index: 1;
@@ -971,7 +971,7 @@
     /* Larguras fixas por coluna (table-layout: fixed): o texto aparece só até onde a coluna alcança e termina em "..."
        (o conteúdo inteiro fica no title da célula e no campo da Localidade/Endereço, que é um <input readonly>).
        Ordem: Tipo, Rótulo, Localidade, Endereço, Coordenadas, Posição do Atirador, Observação, Operador, Unidade,
-       Responsável, Data/Hora, Foto 1, Foto 2, Ações. A tabela rola na horizontal dentro do próprio painel. */
+       Responsável, Data/Hora, Mídia 1, Mídia 2, Mídia 3, Ações. A tabela rola na horizontal dentro do próprio painel. */
     .tactical-table th:nth-child(1)  { width: 150px; }
     .tactical-table th:nth-child(2)  { width: 150px; }
     .tactical-table th:nth-child(3)  { width: 170px; }
@@ -985,13 +985,70 @@
     .tactical-table th:nth-child(11) { width: 150px; }
     .tactical-table th:nth-child(12) { width: 80px; }
     .tactical-table th:nth-child(13) { width: 80px; }
-    .tactical-table th:nth-child(14) { width: 150px; }
+    .tactical-table th:nth-child(14) { width: 80px; }
+    .tactical-table th:nth-child(15) { width: 150px; }
     .loc-cell-input {
       display: block; width: 100%; max-width: 100%; border: none; background: transparent;
       color: inherit; font: inherit; padding: 0; margin: 0; cursor: text;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .loc-cell-input:focus { outline: 1px solid var(--accent); background: rgba(255,255,255,0.06); border-radius: 3px; }
+    /* Sub-abas da tabela de Pontos: "Pontos" (tabela principal) e "Coleta" (pontos recebidos de outras unidades, em triagem). */
+    .pontos-subtabs { display: inline-flex; gap: 6px; }
+    .pontos-subtab {
+      background: var(--surface); color: var(--muted); border: 1px solid var(--line); border-radius: 6px;
+      padding: 5px 9px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: none; letter-spacing: 0;
+    }
+    .pontos-subtab.on { background: var(--action); color: #fff; border-color: var(--action); }
+    .subtab-badge { display: inline-block; margin-left: 5px; min-width: 16px; padding: 0 5px; border-radius: 9px; background: var(--sem-hostile); color: #fff; font-size: 10px; line-height: 16px; text-align: center; }
+    .pontos-hide { display: none !important; }
+    .coleta-panel { display: none; flex-direction: column; flex: 1; min-height: 0; }
+    .coleta-panel.on { display: flex; }
+    #tabRelevo .tactical-table-wrap.collapsed .coleta-panel { display: none !important; }
+    .coleta-toolbar { display: flex; flex-wrap: nowrap; gap: 5px; padding: 6px 8px; flex-shrink: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .coleta-btn { flex: 0 0 auto; white-space: nowrap; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: 800; cursor: pointer; text-transform: none; letter-spacing: 0; }
+    .coleta-btn.share { background: #25D366; color: #fff; border-color: #25D366; }
+    .coleta-btn.ok { background: var(--action); color: #fff; border-color: var(--action); }
+    .coleta-status { padding: 2px 12px 6px; font-size: 12px; color: var(--accent); flex-shrink: 0; display: none; }
+    .coleta-status.bad { color: var(--sem-hostile); }
+    .coleta-links { padding: 0 12px 8px; font-size: 12px; flex-shrink: 0; color: var(--muted); }
+    .coleta-link-row { display: flex; gap: 8px; align-items: center; padding: 3px 0; border-bottom: 1px solid var(--surface); }
+    .coleta-link-row span.grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .coleta-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
+    .coleta-table { width: 100%; min-width: 1780px; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+    .coleta-table th {
+      position: sticky; top: 0; background: var(--surface); color: var(--muted); padding: 8px; text-align: left; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.4px; z-index: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .coleta-table td { padding: 8px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 1px solid var(--surface); color: var(--ink); }
+    .coleta-table th:nth-child(1) { width: 40px; }
+    .coleta-table th:nth-child(2) { width: 130px; }
+    .coleta-table th:nth-child(3) { width: 170px; }
+    .coleta-table th:nth-child(4) { width: 200px; }
+    .coleta-table th:nth-child(5) { width: 200px; }
+    .coleta-table th:nth-child(6) { width: 220px; }
+    .coleta-table th:nth-child(7) { width: 130px; }
+    .coleta-table th:nth-child(8) { width: 140px; }
+    .coleta-table th:nth-child(9) { width: 150px; }
+    .coleta-table th:nth-child(10), .coleta-table th:nth-child(11), .coleta-table th:nth-child(12) { width: 80px; }
+    .coleta-table th:nth-child(13) { width: 140px; }
+    .coleta-done { opacity: .6; }
+    .coleta-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 5px; cursor: pointer; vertical-align: middle; }
+    .coleta-badge { font-size: 10px; font-weight: 800; border-radius: 999px; padding: 1px 8px; border: 1px solid var(--line); }
+    .coleta-badge.pend { color: #f2d168; border-color: #8a742a; }
+    .coleta-badge.done { color: var(--sem-good); border-color: var(--sem-good); }
+    .coleta-badge.warn { color: var(--sem-hostile); border-color: var(--sem-hostile); }
+    .coleta-empty { padding: 16px; text-align: center; color: var(--muted); white-space: normal; }
+    .coleta-modal { position: fixed; inset: 0; background: rgba(15,23,42,0.92); z-index: 10001; display: none; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
+    .coleta-modal-card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 18px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+    .coleta-modal-card label { display: block; font-size: 11px; color: var(--muted); font-weight: 700; margin: 10px 0 4px; }
+    .coleta-modal-card input, .coleta-modal-card select { width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--line); color: #fff; border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+    .coleta-preview-icon { filter: drop-shadow(0 0 0 #fff); }
+    .coleta-preview-icon .cp-ring { position: absolute; inset: -4px; border: 2px dashed #f2d168; border-radius: 10px; pointer-events: none; }
+    /* Balão do marcador: alterna entre as informações cadastradas e a Mídia 1. */
+    .pin-view-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+    .pin-view-tabs button { flex: 1; background: var(--surface); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 4px 2px; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .pin-view-tabs button.on { background: var(--action); color: #fff; border-color: var(--action); }
 
     .ballistics-grid {
       display: grid;
@@ -1884,7 +1941,10 @@ body.nvg-red-mode .leaflet-tile-container img {
   </div>
   <div class="tactical-table-wrap">
     <div class="tactical-table-header">
-      <span>📋 PONTOS TÁTICOS REGISTRADOS</span>
+      <span class="pontos-subtabs">
+        <button type="button" class="pontos-subtab on" data-subtab="main" onclick="setPontosSubtab('main')">📋 Pontos</button>
+        <button type="button" class="pontos-subtab" data-subtab="coleta" onclick="setPontosSubtab('coleta')">📥 Coleta<span class="subtab-badge" style="display:none;"></span></button>
+      </span>
       <div class="tactical-table-header-actions">
         <button onclick="openPontosTableModal()" style="background:var(--action); color:#fff; border:none; border-radius:6px; padding:5px 10px; font-weight:800; font-size:12px; cursor:pointer; text-transform:none; letter-spacing:0;">⛶ Tela Cheia</button>
         <button type="button" class="dock-toggle-btn" data-table-toggle aria-label="Minimizar tabela">▾</button>
@@ -1893,13 +1953,14 @@ body.nvg-red-mode .leaflet-tile-container img {
     <div class="tactical-table-scroll">
       <table class="tactical-table">
         <thead>
-          <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Foto 1</th><th>Foto 2</th><th>Ações</th></tr>
+          <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Mídia 1</th><th>Mídia 2</th><th>Mídia 3</th><th>Ações</th></tr>
         </thead>
         <tbody id="tacticalMarkersTableBody">
-          <tr><td colspan="14" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
+          <tr><td colspan="15" style="padding:16px; text-align:center; color:var(--muted);">Carregando pontos táticos...</td></tr>
         </tbody>
       </table>
     </div>
+    <div class="coleta-panel" id="coletaPanel"></div>
   </div>
 </div>
 
@@ -1988,16 +2049,21 @@ body.nvg-red-mode .leaflet-tile-container img {
     <h3 style="color:var(--accent); margin:0; font-size:18px;">📋 PONTOS TÁTICOS REGISTRADOS</h3>
     <button onclick="closePontosTableModal()" style="background:var(--sem-hostile); color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer;">❌ FECHAR</button>
   </div>
-  <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
+  <div class="pontos-subtabs" style="margin-bottom:12px;">
+    <button type="button" class="pontos-subtab on" data-subtab="main" onclick="setPontosSubtab('main')">📋 Pontos</button>
+    <button type="button" class="pontos-subtab" data-subtab="coleta" onclick="setPontosSubtab('coleta')">📥 Coleta<span class="subtab-badge" style="display:none;"></span></button>
+  </div>
+  <div class="coleta-panel" id="coletaPanelModal" style="overflow:auto;"></div>
+  <div id="pontosModalMainBar" style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
     <input id="pontosLocalidadeFilter" type="text" placeholder="🔎 Filtrar por localidade ou rua..." oninput="filterPontosTableByLocalidade()" style="flex:1; min-width:180px; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:9px 12px; font-size:13px;">
     <button onclick="shareFilteredPontos()" style="background:#25D366; color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">📲 Compartilhar Filtrado</button>
     <button onclick="savePontosTableCSV()" title="Salva a tabela filtrada (.csv) neste aparelho" style="background:var(--action); color:#fff; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">💾 Salvar</button>
     <button onclick="exportPontosTableXLSX()" title="Exporta a tabela filtrada como planilha Excel (.xlsx), com links clicáveis" style="background:var(--accent); color:#15160f; border:none; padding:9px 14px; border-radius:6px; font-weight:800; font-size:14px; cursor:pointer; white-space:nowrap;">📊 Exportar Tabela</button>
   </div>
-  <div style="overflow-x:auto;">
+  <div id="pontosModalMainTable" style="overflow-x:auto;">
     <table class="tactical-table" style="color:var(--ink);">
       <thead>
-        <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Foto 1</th><th>Foto 2</th><th>Ações</th></tr>
+        <tr><th>Tipo</th><th>Rótulo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Posição do Atirador</th><th>Observação</th><th>Operador</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Mídia 1</th><th>Mídia 2</th><th>Mídia 3</th><th>Ações</th></tr>
       </thead>
       <tbody id="tacticalMarkersTableBodyModal">
         <!-- Espelha #tacticalMarkersTableBody, preenchido por renderTacticalMarkersTable() -->
@@ -3113,15 +3179,20 @@ body.nvg-red-mode .leaflet-tile-container img {
     <label style="font-size:11px; color:var(--muted); font-weight:700;">Responsável (opcional)</label>
     <input id="tacticalPinResponsavel" type="text" maxlength="80" placeholder="Quem responde por este ponto" style="width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 10px; margin:4px 0 12px; font-size:13px;">
 
-    <label style="font-size:11px; color:var(--muted); font-weight:700;">Foto 1 (opcional)</label>
-    <button type="button" onclick="triggerTacticalPinPhoto(1)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Foto 1</button>
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Mídia 1 (opcional)</label>
+    <button type="button" onclick="triggerTacticalPinPhoto(1)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Mídia 1</button>
     <input id="tacticalPinPhotoInput" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this, 1)" style="display:none;">
     <img id="tacticalPinPhotoPreview" src="" style="display:none; width:100%; border-radius:8px; margin-bottom:12px; border:1px solid var(--line);">
 
-    <label style="font-size:11px; color:var(--muted); font-weight:700;">Foto 2 (opcional)</label>
-    <button type="button" onclick="triggerTacticalPinPhoto(2)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Foto 2</button>
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Mídia 2 (opcional)</label>
+    <button type="button" onclick="triggerTacticalPinPhoto(2)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Mídia 2</button>
     <input id="tacticalPinPhotoInput2" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this, 2)" style="display:none;">
     <img id="tacticalPinPhotoPreview2" src="" style="display:none; width:100%; border-radius:8px; margin-bottom:12px; border:1px solid var(--line);">
+
+    <label style="font-size:11px; color:var(--muted); font-weight:700;">Mídia 3 (opcional)</label>
+    <button type="button" onclick="triggerTacticalPinPhoto(3)" style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:9px; margin:4px 0 12px; font-size:12px; font-weight:700; cursor:pointer;">📷 Tirar Mídia 3</button>
+    <input id="tacticalPinPhotoInput3" type="file" accept="image/*" capture="environment" onchange="onTacticalPinPhotoSelected(this, 3)" style="display:none;">
+    <img id="tacticalPinPhotoPreview3" src="" style="display:none; width:100%; border-radius:8px; margin-bottom:12px; border:1px solid var(--line);">
 
     <div style="display:flex; gap:10px; margin-top:6px;">
       <button onclick="closeTacticalPinModal()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:700; cursor:pointer;">Cancelar</button>
@@ -3265,6 +3336,8 @@ body.nvg-red-mode .leaflet-tile-container img {
       // renderizando certo no mapa/tabela se já existirem).
       { id: 'boca',      label: 'Boca',       icon: 'icons/boca.png',      dock: null },
       { id: 'intel',     label: 'Intel',      icon: 'icons/intel.png',     dock: null },
+      // Só nasce na integração da aba Pontos > Coleta (pontos de outras unidades): nunca aparece nos docks.
+      { id: 'alvouni',   label: 'Alvo UNI',   icon: 'icons/alvouni.png',   dock: null },
       // Exclusivos do Dock Estratégico (aba Pontos) — não entram no dock 'h'
       // nem no 'l', só aparecem via ESTRATEGICO_ORDER logo abaixo.
       { id: 'heli',        label: 'Helicóptero', icon: 'icons/heli.png',        dock: null },
@@ -3320,8 +3393,7 @@ body.nvg-red-mode .leaflet-tile-container img {
       }
     } catch (e) { console.warn('[Desenho] Não foi possível traduzir os textos do Leaflet.draw:', e); }
     let tacticalPendingPin = null;
-    let tacticalPendingPhotoDataUrl = null;
-    let tacticalPendingPhotoDataUrl2 = null;
+    let tacticalPendingMedia = [null, null, null];   // Mídia 1, 2 e 3 do ponto em cadastro (data URLs)
     let dockDragState = null;
     let tacticalMarkerDragState = null;
 
@@ -7143,6 +7215,7 @@ function initTacticalSocket() {
     tacticalMarkers = {};
     (rows || []).forEach(r => { tacticalMarkers[r.id] = r; });
     refreshTacticalMarkersUI();
+    if (isUnitAdmin()) loadColeta();
   });
 
   tacticalSocket.on('tactical-pin-added', (pin) => {
@@ -7169,6 +7242,9 @@ function initTacticalSocket() {
     delete tacticalMarkers[id];
     refreshTacticalMarkersUI();
   });
+
+  // Chegou, mudou ou saiu um ponto da Coleta de outras unidades.
+  tacticalSocket.on('coleta-changed', () => { if (isUnitAdmin()) loadColeta(); });
 
   // ===== Desenhos (retângulo/círculo/caminho/caneta) — mesma sincronização dos pontos táticos =====
   tacticalSocket.on('init-tactical-drawings', (rows) => {
@@ -7780,8 +7856,30 @@ function operatorChipHtml(name, full) {
   return `<span style="display:inline-block; background:${operatorColor(n)}; color:#fff; font-weight:700; vertical-align:middle; ${size}" title="${operatorEsc(n)}">${operatorEsc(n)}</span>`;
 }
 
-// O ponto tem foto se tiver a Foto 1 ou a Foto 2 (selo de câmera no ícone).
-function pinHasPhoto(pin) { return !!(pin && (pin.photoUrl || pin.photoUrl2)); }
+// Mídia 1 no lugar do marcador (preferência deste aparelho, por ponto) e alternância Informações/Mídia 1 no balão.
+function mediaMarkerSet() {
+  try { return JSON.parse(localStorage.getItem('geosniper_media_markers') || '{}') || {}; } catch (e) { return {}; }
+}
+function mediaMarkerOn(id) { return !!mediaMarkerSet()[id]; }
+function toggleMediaMarker(pinId, on, el) {
+  const set = mediaMarkerSet();
+  if (on) set[pinId] = 1; else delete set[pinId];
+  try { localStorage.setItem('geosniper_media_markers', JSON.stringify(set)); } catch (e) {}
+  const mapId = el && el.closest ? (el.closest('.leaflet-container') || {}).id : '';
+  refreshTacticalMarkersUI();
+  // O refresh recria os marcadores e fecha o balão: reabre o do mesmo ponto na mesma aba.
+  const layer = ({ mapNormal: tacticalLayerNormal, mapRelevo: tacticalLayerRelevo, mapEstrategia: tacticalLayerEstrategia })[mapId];
+  if (layer) setTimeout(() => focusAndOpenTacticalMarkerPopup(layer, pinId), 0);
+}
+function setPinPopupView(btn, view) {
+  const root = btn.closest('[data-pin-root]');
+  if (!root) return;
+  root.querySelectorAll('[data-pin-pane]').forEach(p => { p.style.display = p.getAttribute('data-pin-pane') === view ? '' : 'none'; });
+  root.querySelectorAll('[data-pin-tab]').forEach(b => b.classList.toggle('on', b.getAttribute('data-pin-tab') === view));
+}
+
+// O ponto tem mídia se tiver a Mídia 1, 2 ou 3 (selo de câmera no ícone).
+function pinHasPhoto(pin) { return !!(pin && (pin.photoUrl || pin.photoUrl2 || pin.photoUrl3)); }
 
 // `zoom` (opcional): mais longe que o zoom 13 as etiquetas somem pra não poluir o mapa.
 function tacticalMarkerIcon(typeId, hasPhoto, size, pin, zoom) {
@@ -7798,6 +7896,21 @@ function tacticalMarkerIcon(typeId, hasPhoto, size, pin, zoom) {
   const opTag = showTag
     ? `<span class="tactical-op-tag" style="position:absolute; left:${Math.round(s * 0.82)}px; top:${Math.round(s * 0.18)}px; background:${operatorColor(opName)}; color:#fff; border:1px solid rgba(255,255,255,0.85); border-radius:9px; padding:0 6px; font-size:10px; font-weight:700; line-height:15px; max-width:96px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.6); pointer-events:none;">${operatorEsc(opName)}</span>`
     : '';
+  // Mídia 1 no lugar do marcador (escolha feita no balão do ponto; vale só neste aparelho): miniatura da foto com o ícone do tipo no canto.
+  if (pin && pin.photoUrl && mediaMarkerOn(pin.id)) {
+    const big = Math.round(s * 1.15), mini = Math.round(s * 0.5);
+    return L.divIcon({
+      className: 'tactical-marker-divicon',
+      html: `<div style="position:relative; width:${big}px; height:${big}px;">
+               <img src="${pin.photoUrl}" style="width:${big}px; height:${big}px; object-fit:cover; display:block; border:2px solid #fff; border-radius:8px; box-shadow:0 1px 5px rgba(0,0,0,0.7);">
+               <img src="${t.icon}" style="position:absolute; left:-6px; bottom:-6px; width:${mini}px; height:${mini}px; object-fit:contain; filter:drop-shadow(0 1px 2px #000);">
+               ${opTag}
+             </div>`,
+      iconSize: [big, big],
+      iconAnchor: [big / 2, big],
+      popupAnchor: [0, -big + 4]
+    });
+  }
   if (!hasPhoto && !isPiece && !showTag) {
     return L.icon({ iconUrl: t.icon, iconSize: [s, s], iconAnchor: [s / 2, s], popupAnchor: [0, -s + 4], className: 'tactical-marker-icon' });
   }
@@ -7884,9 +7997,10 @@ function caminhoAteAqui(pinId, btn) {
 function tacticalPopupHtml(pin) {
   const t = getTacticalType(pin.type);
   const when = pin.timestamp ? new Date(pin.timestamp).toLocaleString('pt-BR') : '';
-  const bothPhotos = !!(pin.photoUrl && pin.photoUrl2);
-  const photo = [pin.photoUrl, pin.photoUrl2].map((url, i) => url
-    ? `<div onclick="viewTacticalPhoto('${url}')" style="margin-top:6px; display:flex; align-items:center; gap:5px; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">📷 Ver foto${bothPhotos ? ' ' + (i + 1) : ''}</div>`
+  const mediaUrls = [pin.photoUrl, pin.photoUrl2, pin.photoUrl3];
+  const manyMedia = mediaUrls.filter(Boolean).length > 1;
+  const photo = mediaUrls.map((url, i) => url
+    ? `<div onclick="viewTacticalPhoto('${url}')" style="margin-top:6px; display:flex; align-items:center; gap:5px; color:var(--accent); font-size:11px; font-weight:700; cursor:pointer;">📷 Ver mídia${manyMedia ? ' ' + (i + 1) : ''}</div>`
     : '').join('');
 
   // Peça do Dock Estratégico ainda em rascunho (verde, não sincronizada):
@@ -7914,13 +8028,19 @@ function tacticalPopupHtml(pin) {
        <div style="font-size:11px; margin-top:3px; font-weight:700; color:${Date.now() >= expMs ? 'var(--sem-hostile)' : 'var(--accent)'};">${Date.now() >= expMs ? '⌛ Expirado às ' : '⏳ Expira às '}${fmtQuando(expMs)}</div>`
     : '';
   return `
-    <div style="min-width:170px; max-width:220px;">
-      <b style="color:var(--accent);">${t.label}${pin.label && pin.label !== t.label ? ' — ' + pin.label : ''}</b><br>
+    <div data-pin-root style="min-width:190px; max-width:230px;">
+      <div class="pin-view-tabs">
+        <button type="button" data-pin-tab="info" class="on" onclick="setPinPopupView(this, 'info')">ℹ️ Informações</button>
+        <button type="button" data-pin-tab="media" onclick="setPinPopupView(this, 'media')">🖼️ Mídia 1</button>
+      </div>
+      <div data-pin-pane="info">
+      <b style="color:var(--accent);">${t.label}${pin.label && pin.label !== t.label ? ' — ' + operatorEsc(pin.label) : ''}</b><br>
       ${pin.piece ? `<div style="font-size:10px; color:var(--muted); margin-top:2px;">${pin.locked ? '🔴 Travado' : '🟢 Livre'}</div>` : ''}
-      ${pin.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${pin.localidade}</div>` : ''}
+      ${pin.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${operatorEsc(pin.localidade)}</div>` : ''}
       ${pin.endereco ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">🛣️ ${escAttr(pin.endereco)}</div>` : ''}
+      ${pin.unitName ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">🏢 Unidade: ${operatorEsc(pin.unitName)}</div>` : ''}
       ${pin.responsavel ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">👤 Responsável: ${operatorEsc(pin.responsavel)}</div>` : ''}
-      ${pin.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${pin.observation}</div>` : ''}
+      ${pin.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${operatorEsc(pin.observation)}</div>` : ''}
       ${rallyInfo || `<div style="font-size:10px; color:var(--muted); margin-top:6px;">${operatorChipHtml(pin.operator)}${when ? ' · ' + when : ''}</div>`}
       ${photo}
       ${completeBtn}
@@ -7928,6 +8048,13 @@ function tacticalPopupHtml(pin) {
       <button onclick="caminhoAteAqui('${pin.id}', this)" style="margin-top:8px; width:100%; background:var(--surface); color:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🧭 Caminho até aqui</button>
       <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" style="margin-top:8px; width:100%; background:#25D366; color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">📲 Compartilhar no WhatsApp</button>
       <button onclick="deleteTacticalMarker('${pin.id}')" style="margin-top:6px; width:100%; background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir</button>
+      </div>
+      <div data-pin-pane="media" style="display:none;">
+        ${pin.photoUrl
+          ? `<img src="${pin.photoUrl}" alt="Mídia 1" onclick="viewTacticalPhoto('${pin.photoUrl}')" style="width:100%; border-radius:6px; cursor:pointer; display:block;">`
+          : '<div style="font-size:12px; color:var(--muted); padding:8px 0;">Este ponto não tem a Mídia 1.</div>'}
+      </div>
+      ${pin.photoUrl ? `<label style="display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; color:var(--muted); cursor:pointer;"><input type="checkbox" ${mediaMarkerOn(pin.id) ? 'checked' : ''} onchange="toggleMediaMarker('${pin.id}', this.checked, this)"> Mostrar a Mídia 1 no mapa no lugar do marcador</label>` : ''}
     </div>
   `;
 }
@@ -8241,7 +8368,7 @@ function renderTacticalMarkersTable() {
     .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
 
   if (rows.length === 0) {
-    const emptyHtml = '<tr><td colspan="14" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
+    const emptyHtml = '<tr><td colspan="15" style="padding:16px; text-align:center; color:var(--muted);">Nenhum ponto tático registrado ainda.</td></tr>';
     if (tbody) tbody.innerHTML = emptyHtml;
     if (tbodyModal) tbodyModal.innerHTML = emptyHtml;
     return;
@@ -8262,6 +8389,7 @@ function renderTacticalMarkersTable() {
       : '<span style="color:var(--line);">—</span>';
     const photo1 = thumb(pin.photoUrl);
     const photo2 = thumb(pin.photoUrl2);
+    const photo3 = thumb(pin.photoUrl3);
     // Unidade = a unidade da conta (todos os pontos da tabela são dela); Responsável = campo opcional do cadastro do ponto.
     const unidade = pin.unitName || getUnitName() || '-';
     const responsavel = pin.responsavel || '-';
@@ -8286,6 +8414,7 @@ function renderTacticalMarkersTable() {
         <td style="color:var(--muted); font-size:12px;" title="${escAttr(when)}">${when}</td>
         <td style="text-align:center;">${photo1}</td>
         <td style="text-align:center;">${photo2}</td>
+        <td style="text-align:center;">${photo3}</td>
         <td style="text-align:center; white-space:nowrap;">
           <button onclick="focusTacticalMarker('${pin.id}')" title="Ver no mapa" style="background:var(--action); color:#fff; border:none; border-radius:5px; padding:6px 9px; margin-right:4px; cursor:pointer; font-size:13px;">📍</button>
           <button onclick="sharePointWhatsApp(${pin.lat}, ${pin.lng}, '${pin.type}', '${pin.id}')" title="Compartilhar no WhatsApp" style="background:#25D366; color:#fff; border:none; border-radius:5px; padding:6px 9px; margin-right:4px; cursor:pointer; font-size:13px;">📲</button>
@@ -8299,8 +8428,372 @@ function renderTacticalMarkersTable() {
   if (tbodyModal) tbodyModal.innerHTML = rowsHtml;
 }
 
+const COLETA_SHARE_MODAL_HTML = `<div id="coletaShareModal" class="coleta-modal" role="dialog" aria-label="Compartilhar link de coleta">
+  <div class="coleta-modal-card">
+    <h3 style="margin:0 0 6px; color:var(--accent); font-size:16px;">📲 Compartilhar link de coleta</h3>
+    <p style="margin:0; font-size:12px; color:var(--muted); line-height:1.4;">Gera um link para a outra unidade preencher pontos e fotos <b>sem login</b>. O que ela enviar fica aqui, em triagem, até você integrar. Crie <b>um link por destinatário</b>: cada um pode ser cancelado separadamente. O link aparece só agora; depois só dá para cancelá-lo.</p>
+    <label for="coletaShareLabel">Para quem (rótulo)</label>
+    <input id="coletaShareLabel" type="text" maxlength="60" placeholder="Ex.: 3º BPM">
+    <label for="coletaShareHours">Validade</label>
+    <select id="coletaShareHours"><option value="24">24 horas</option><option value="72" selected>72 horas</option><option value="168">7 dias</option></select>
+    <label for="coletaShareMax">Limite de pontos neste link</label>
+    <input id="coletaShareMax" type="number" min="1" max="100" value="30">
+    <div id="coletaShareResult" style="display:none; margin-top:12px;"></div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button type="button" onclick="closeColetaShare()" style="flex:1; background:var(--line); color:#fff; border:none; border-radius:8px; padding:10px; font-weight:700; cursor:pointer;">Fechar</button>
+      <button type="button" id="coletaShareGo" onclick="createColetaLink()" style="flex:2; background:#25D366; color:#fff; border:none; border-radius:8px; padding:10px; font-weight:800; cursor:pointer;">Gerar link</button>
+    </div>
+  </div>
+</div>`;
+
+// ===== COLETA DE PONTOS DE OUTRAS UNIDADES (aba Pontos > "Coleta") =====
+// O administrador gera um link por destinatário (WhatsApp). Quem recebe preenche pontos e fotos SEM login numa página própria da
+// API (coleta.html); o que chega fica aqui em triagem. "Plotar no mapa" mostra a prévia; "Integrar" cria os marcadores Alvo UNI
+// na tabela principal. Pontos sem coordenadas são localizados pelo endereço (OpenStreetMap, 1 consulta por segundo).
+const COLETA_API = UNIT_API_BASE + '/api/coleta';
+let coletaPoints = [];
+let coletaLinks = [];
+let coletaSelected = new Set();
+const coletaSeen = new Set();
+let coletaBusy = false;
+let coletaPreviewLayer = null;
+let pontosSubtab = 'main';
+
+// Só o administrador da unidade gera links, integra ou descarta (o servidor confere de novo). Sem a informação do papel
+// (login antigo em cache), mostra os botões e deixa o servidor decidir.
+function isUnitAdmin() {
+  const role = localStorage.getItem('geosniper_user_role');
+  return !role || role === 'unit_admin' || role === 'solo';
+}
+
+function coletaFetch(method, path, body) {
+  return fetch(COLETA_API + path, {
+    method,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  }).then(res => res.json().catch(() => ({})).then(data => {
+    if (!res.ok) throw new Error(data.error || ('Erro ' + res.status));
+    return data;
+  }));
+}
+
+function coletaMsg(text, bad) {
+  document.querySelectorAll('.coleta-status').forEach(el => {
+    el.textContent = text || '';
+    el.classList.toggle('bad', !!bad);
+    el.style.display = text ? 'block' : 'none';
+  });
+}
+
+function coletaPanelHtml(sfx) {
+  return `
+    <div class="coleta-toolbar">
+      <button type="button" class="coleta-btn share" onclick="openColetaShareModal()">📲 Compartilhar link</button>
+      <button type="button" class="coleta-btn" onclick="plotColetaOnMap()">🗺️ Plotar no mapa</button>
+      <button type="button" class="coleta-btn ok" onclick="integrateColeta()">✅ Integrar à tabela principal</button>
+      <button type="button" class="coleta-btn" onclick="toggleColetaLinks()">🔗 Links</button>
+      <button type="button" class="coleta-btn" onclick="clearColetaPreview()" title="Tirar a prévia do mapa">🧹</button>
+      <button type="button" class="coleta-btn" onclick="loadColeta()" title="Atualizar">🔄</button>
+    </div>
+    <div class="coleta-status"></div>
+    <div class="coleta-links" id="coletaLinks${sfx}" style="display:none;"></div>
+    <div class="coleta-scroll">
+      <table class="coleta-table">
+        <thead><tr><th><input type="checkbox" onchange="coletaSelectAll(this.checked)" title="Selecionar os que aguardam integração"></th><th>Tipo</th><th>Localidade</th><th>Endereço</th><th>Coordenadas</th><th>Observação</th><th>Unidade</th><th>Responsável</th><th>Data/Hora</th><th>Mídia 1</th><th>Mídia 2</th><th>Mídia 3</th><th>Situação</th></tr></thead>
+        <tbody id="coletaTableBody${sfx}"><tr><td colspan="13" class="coleta-empty">Abra esta aba para carregar a coleta.</td></tr></tbody>
+      </table>
+    </div>`;
+}
+
+function initColetaPanels() {
+  const a = document.getElementById('coletaPanel');
+  if (a) a.innerHTML = coletaPanelHtml('');
+  const b = document.getElementById('coletaPanelModal');
+  if (b) b.innerHTML = coletaPanelHtml('Modal');
+  if (!document.getElementById('coletaShareModal')) document.body.insertAdjacentHTML('beforeend', COLETA_SHARE_MODAL_HTML);
+  setPontosSubtab(pontosSubtab, true);
+}
+
+function setPontosSubtab(name, silent) {
+  pontosSubtab = name === 'coleta' ? 'coleta' : 'main';
+  const coleta = pontosSubtab === 'coleta';
+  document.querySelectorAll('.pontos-subtab').forEach(b => b.classList.toggle('on', b.getAttribute('data-subtab') === pontosSubtab));
+  const mainScroll = document.querySelector('#tabRelevo .tactical-table-scroll');
+  if (mainScroll) mainScroll.classList.toggle('pontos-hide', coleta);
+  ['coletaPanel', 'coletaPanelModal'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('on', coleta); });
+  ['pontosModalMainBar', 'pontosModalMainTable'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('pontos-hide', coleta); });
+  if (coleta && !silent) loadColeta();
+}
+
+function coletaBadge() {
+  const pending = coletaPoints.filter(p => p.status === 'pending').length;
+  document.querySelectorAll('.subtab-badge').forEach(el => { el.textContent = pending; el.style.display = pending ? 'inline-block' : 'none'; });
+}
+
+async function loadColeta() {
+  try {
+    const [pts, links] = await Promise.all([coletaFetch('GET', '/points'), coletaFetch('GET', '/links')]);
+    coletaPoints = pts;
+    coletaLinks = links;
+    const pendentes = new Set(pts.filter(p => p.status === 'pending').map(p => p.id));
+    // Todo ponto novo que chega já vem marcado para integração; o que o administrador desmarcou continua desmarcado.
+    pts.forEach(p => { if (p.status === 'pending' && !coletaSeen.has(p.id)) { coletaSeen.add(p.id); coletaSelected.add(p.id); } });
+    coletaSelected = new Set([...coletaSelected].filter(id => pendentes.has(id)));
+    renderColeta();
+    renderColetaLinks();
+    coletaBadge();
+    if (!coletaBusy) coletaMsg('');
+  } catch (err) {
+    if (pontosSubtab === 'coleta') coletaMsg('⚠️ ' + err.message, true);
+  }
+}
+
+function coletaToggle(id, on) { if (on) coletaSelected.add(id); else coletaSelected.delete(id); }
+function coletaSelectAll(on) {
+  coletaSelected = new Set(on ? coletaPoints.filter(p => p.status === 'pending').map(p => p.id) : []);
+  renderColeta();
+}
+
+function renderColeta() {
+  const t = getTacticalType('alvouni');
+  const html = coletaPoints.length ? coletaPoints.map(p => {
+    const pending = p.status === 'pending';
+    const hasCoord = typeof p.lat === 'number' && typeof p.lng === 'number';
+    const coords = hasCoord ? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}` : '—';
+    const thumb = (src, n) => src ? `<img src="${src}" class="coleta-thumb" onclick="viewColetaMedia('${p.id}', ${n})" title="Abrir a mídia ${n}">` : '<span style="color:var(--line);">—</span>';
+    const situacao = !pending ? '<span class="coleta-badge done">Integrado</span>'
+      : (hasCoord ? '<span class="coleta-badge pend">Aguardando</span>' : '<span class="coleta-badge warn" title="Será localizado pelo endereço ao plotar ou integrar">Sem coordenadas</span>');
+    const acoes = pending && isUnitAdmin()
+      ? ` <button type="button" class="coleta-btn" style="padding:2px 6px;" title="Definir as coordenadas à mão" onclick="setColetaCoords('${p.id}')">📍</button> <button type="button" class="coleta-btn" style="padding:2px 6px;" title="Descartar este ponto" onclick="discardColeta('${p.id}')">🗑️</button>`
+      : '';
+    const when = p.submittedAt ? new Date(p.submittedAt).toLocaleString('pt-BR') : '-';
+    return `<tr class="${pending ? '' : 'coleta-done'}">
+      <td>${pending ? `<input type="checkbox" ${coletaSelected.has(p.id) ? 'checked' : ''} onchange="coletaToggle('${p.id}', this.checked)">` : ''}</td>
+      <td title="${escAttr(t.label)}"><img src="${t.icon}" style="width:22px; height:22px; vertical-align:middle; margin-right:5px;">${t.label}</td>
+      <td><input type="text" readonly class="loc-cell-input" value="${escAttr(p.localidade || '-')}" title="${escAttr(p.localidade || '')}"></td>
+      <td><input type="text" readonly class="loc-cell-input" value="${escAttr(p.endereco || '-')}" title="${escAttr(p.endereco || '')}"></td>
+      <td style="font-family:var(--font-mono); font-size:12px;" title="${escAttr(coords)}">${coords}</td>
+      <td title="${escAttr(p.observation || '')}">${operatorEsc(p.observation || '-')}</td>
+      <td title="${escAttr(p.unidade || '')}">${operatorEsc(p.unidade || '-')}</td>
+      <td title="${escAttr(p.responsavel || '')}">${operatorEsc(p.responsavel || '-')}</td>
+      <td style="font-size:12px;" title="${escAttr(when)}">${when}</td>
+      <td style="text-align:center;">${thumb(p.thumbs && p.thumbs[0], 1)}</td>
+      <td style="text-align:center;">${thumb(p.thumbs && p.thumbs[1], 2)}</td>
+      <td style="text-align:center;">${thumb(p.thumbs && p.thumbs[2], 3)}</td>
+      <td>${situacao}${acoes}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="13" class="coleta-empty">Nenhum ponto recebido ainda. Use “Compartilhar link” para pedir pontos a outra unidade.</td></tr>';
+  ['coletaTableBody', 'coletaTableBodyModal'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+}
+
+function viewColetaMedia(id, n) {
+  coletaFetch('GET', `/points/${id}/media/${n}`).then(r => viewTacticalPhoto(r.dataUrl)).catch(err => coletaMsg('⚠️ ' + err.message, true));
+}
+
+// ---- links ----
+function toggleColetaLinks() {
+  document.querySelectorAll('.coleta-links').forEach(el => { el.style.display = el.style.display === 'none' ? 'block' : 'none'; });
+}
+
+function renderColetaLinks() {
+  const now = Date.now();
+  const html = coletaLinks.length ? coletaLinks.map(l => {
+    const vencido = Date.parse(l.expiresAt) <= now;
+    const estado = l.revoked ? 'cancelado' : (vencido ? 'expirado' : 'ativo');
+    const cancelar = (!l.revoked && !vencido && isUnitAdmin()) ? `<button type="button" class="coleta-btn" style="padding:2px 8px;" onclick="revokeColetaLink('${l.id}')">Cancelar</button>` : '';
+    return `<div class="coleta-link-row"><span class="grow" title="${escAttr(l.label)}"><b>${operatorEsc(l.label || 'Coleta')}</b> · ${estado} · até ${new Date(l.expiresAt).toLocaleString('pt-BR')} · ${l.entries}/${l.maxEntries} pontos</span>${cancelar}</div>`;
+  }).join('') : 'Nenhum link criado ainda.';
+  document.querySelectorAll('.coleta-links').forEach(el => { el.innerHTML = html; });
+}
+
+function revokeColetaLink(id) {
+  if (!confirm('Cancelar este link? Quem tem o link deixa de conseguir enviar ou editar pontos (o que já foi enviado continua aqui).')) return;
+  coletaFetch('DELETE', `/links/${id}`).then(loadColeta).catch(err => coletaMsg('⚠️ ' + err.message, true));
+}
+
+function openColetaShareModal() {
+  const res = document.getElementById('coletaShareResult');
+  if (res) { res.style.display = 'none'; res.innerHTML = ''; }
+  const go = document.getElementById('coletaShareGo');
+  if (go) { go.disabled = false; go.textContent = 'Gerar link'; }
+  document.getElementById('coletaShareModal').style.display = 'flex';
+}
+function closeColetaShare() { document.getElementById('coletaShareModal').style.display = 'none'; }
+
+async function createColetaLink() {
+  const go = document.getElementById('coletaShareGo');
+  go.disabled = true;
+  try {
+    const r = await coletaFetch('POST', '/links', {
+      label: document.getElementById('coletaShareLabel').value.trim(),
+      hours: parseInt(document.getElementById('coletaShareHours').value, 10),
+      maxEntries: parseInt(document.getElementById('coletaShareMax').value, 10) || 30
+    });
+    const quando = new Date(r.expiresAt).toLocaleString('pt-BR');
+    const message = `📥 *GEOSNIPER - Coleta de pontos*\n\n${r.label}: preencha os pontos e as fotos pelo link abaixo (não precisa de login). Vale até ${quando}.\n${r.url}`;
+    const box = document.getElementById('coletaShareResult');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Link criado (válido até ${quando}):</div>
+      <input id="coletaShareUrl" type="text" readonly value="${escAttr(r.url)}" onclick="this.select()">
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('coletaShareUrl').value)" style="flex:1; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:9px; font-weight:700; cursor:pointer;">Copiar</button>
+        <button type="button" id="coletaShareWa" style="flex:2; background:#25D366; color:#fff; border:none; border-radius:8px; padding:9px; font-weight:800; cursor:pointer;">📲 Enviar pelo WhatsApp</button>
+      </div>`;
+    document.getElementById('coletaShareWa').onclick = () => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+    go.textContent = 'Gerar outro link';
+    go.disabled = false;
+    loadColeta();
+  } catch (err) {
+    alert('⚠️ ' + err.message);
+    go.disabled = false;
+  }
+}
+
+// ---- georreferência pelo endereço (Nominatim, mesma fila de 1 consulta por segundo da busca de rua) ----
+function osmBuscar(texto) {
+  const chave = 'b:' + texto.toLowerCase();
+  if (osmCache[chave] !== undefined) return Promise.resolve(osmCache[chave]);
+  const tarefa = osmFila.then(async () => {
+    if (osmCache[chave] !== undefined) return osmCache[chave];
+    const espera = osmUltimoPedido + OSM_INTERVALO_MS - Date.now();
+    if (espera > 0) await new Promise(r => setTimeout(r, espera));
+    osmUltimoPedido = Date.now();
+    const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 9000) : null;
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&accept-language=pt-BR&email=${encodeURIComponent(OSM_CONTATO)}&q=${encodeURIComponent(texto)}`;
+      const res = await fetch(url, ctrl ? { signal: ctrl.signal } : undefined);
+      if (!res.ok) throw new Error('OSM ' + res.status);
+      const lista = await res.json();
+      const hit = lista && lista[0];
+      const r = hit ? { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) } : null;
+      osmCache[chave] = r;
+      return r;
+    } finally { if (timer) clearTimeout(timer); }
+  });
+  osmFila = tarefa.catch(() => {});
+  return tarefa;
+}
+
+// Acha as coordenadas dos pontos que ainda não têm e grava no servidor; devolve os que não deu para localizar.
+async function geocodeColetaPoints(points) {
+  const faltam = points.filter(p => p.status === 'pending' && !(typeof p.lat === 'number' && typeof p.lng === 'number'));
+  const falhas = [];
+  for (let i = 0; i < faltam.length; i++) {
+    const p = faltam[i];
+    coletaMsg(`🔎 Localizando pelo endereço (${i + 1}/${faltam.length})…`);
+    const consulta = [p.endereco, p.localidade].filter(Boolean).join(', ');
+    let hit = null;
+    try {
+      hit = consulta ? await osmBuscar(consulta) : null;
+      if (!hit && p.endereco && p.localidade) hit = await osmBuscar(p.endereco);
+    } catch (err) { /* sem internet ou limite do OSM: segue como "não localizado" */ }
+    if (hit && isFinite(hit.lat) && isFinite(hit.lng)) {
+      try {
+        await coletaFetch('PUT', `/points/${p.id}/geo`, { lat: hit.lat, lng: hit.lng, source: 'endereço' });
+        p.lat = hit.lat; p.lng = hit.lng; p.geoSource = 'endereço';
+      } catch (err) { falhas.push(p); }
+    } else {
+      falhas.push(p);
+    }
+  }
+  return falhas;
+}
+
+function setColetaCoords(id) {
+  const p = coletaPoints.find(x => x.id === id);
+  if (!p) return;
+  const atual = (typeof p.lat === 'number' && typeof p.lng === 'number') ? `${p.lat}, ${p.lng}` : '';
+  const txt = prompt('Coordenadas do ponto (latitude, longitude):', atual);
+  if (txt === null) return;
+  const m = txt.trim().match(/^(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)$/);
+  const lat = m ? parseFloat(m[1].replace(',', '.')) : NaN, lng = m ? parseFloat(m[2].replace(',', '.')) : NaN;
+  if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) { alert('Não entendi as coordenadas. Use o formato -22.906800, -43.172900.'); return; }
+  coletaFetch('PUT', `/points/${id}/geo`, { lat, lng, source: 'manual' }).then(loadColeta).catch(err => coletaMsg('⚠️ ' + err.message, true));
+}
+
+function discardColeta(id) {
+  if (!confirm('Descartar este ponto? Ele sai da coleta e não será integrado.')) return;
+  coletaFetch('DELETE', `/points/${id}`).then(() => { clearColetaPreview(); return loadColeta(); }).catch(err => coletaMsg('⚠️ ' + err.message, true));
+}
+
+// ---- prévia no mapa e integração ----
+function clearColetaPreview() {
+  if (coletaPreviewLayer && mapRelevo) mapRelevo.removeLayer(coletaPreviewLayer);
+  coletaPreviewLayer = null;
+}
+
+function coletaPopupHtml(p) {
+  const thumbs = (p.thumbs || []).map((s, i) => s ? `<img src="${s}" style="width:52px; height:52px; object-fit:cover; border-radius:5px; cursor:pointer;" onclick="viewColetaMedia('${p.id}', ${i + 1})">` : '').join('');
+  return `<div style="min-width:190px; max-width:230px;">
+    <b style="color:var(--accent);">Alvo UNI</b> <span style="font-size:10px; color:#f2d168; font-weight:800;">prévia · não integrado</span>
+    ${p.unidade ? `<div style="font-size:11px; color:var(--muted); margin-top:3px;">🏢 ${operatorEsc(p.unidade)}</div>` : ''}
+    ${p.responsavel ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">👤 ${operatorEsc(p.responsavel)}</div>` : ''}
+    ${p.localidade ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-weight:700;">📍 ${operatorEsc(p.localidade)}</div>` : ''}
+    ${p.endereco ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">🛣️ ${operatorEsc(p.endereco)}</div>` : ''}
+    ${p.observation ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">${operatorEsc(p.observation)}</div>` : ''}
+    ${thumbs ? `<div style="display:flex; gap:4px; margin-top:6px;">${thumbs}</div>` : ''}
+    ${isUnitAdmin() ? `<button onclick="integrateColeta(['${p.id}'])" style="margin-top:8px; width:100%; background:var(--action); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">✅ Integrar este ponto</button>
+    <button onclick="discardColeta('${p.id}')" style="margin-top:6px; width:100%; background:var(--sem-hostile-dim); color:#fff; border:none; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Descartar</button>` : ''}
+  </div>`;
+}
+
+async function plotColetaOnMap() {
+  if (coletaBusy) return;
+  const sel = coletaPoints.filter(p => p.status === 'pending' && coletaSelected.has(p.id));
+  if (!sel.length) { alert('Marque ao menos um ponto que aguarda integração.'); return; }
+  coletaBusy = true;
+  try {
+    const falhas = isUnitAdmin() ? await geocodeColetaPoints(sel) : sel.filter(p => !(typeof p.lat === 'number' && typeof p.lng === 'number'));
+    renderColeta();
+    const prontos = sel.filter(p => typeof p.lat === 'number' && typeof p.lng === 'number');
+    clearColetaPreview();
+    if (!prontos.length) { coletaMsg('⚠️ Nenhum ponto pôde ser localizado. Confira o endereço ou defina as coordenadas (botão 📍).', true); return; }
+    const t = getTacticalType('alvouni');
+    const size = tacticalIconSizeForZoom(mapRelevo.getZoom());
+    coletaPreviewLayer = L.layerGroup(prontos.map(p => L.marker([p.lat, p.lng], {
+      icon: L.divIcon({
+        className: 'tactical-marker-divicon coleta-preview-icon',
+        html: `<div style="position:relative; width:${size}px; height:${size}px;"><span class="cp-ring"></span><img src="${t.icon}" style="width:${size}px; height:${size}px; object-fit:contain; display:block;"></div>`,
+        iconSize: [size, size], iconAnchor: [size / 2, size], popupAnchor: [0, -size + 4]
+      })
+    }).bindPopup(coletaPopupHtml(p)))).addTo(mapRelevo);
+    closePontosTableModal();
+    mapRelevo.fitBounds(L.latLngBounds(prontos.map(p => [p.lat, p.lng])), { padding: [60, 60], maxZoom: 17 });
+    coletaMsg(`🗺️ ${prontos.length} ponto(s) plotado(s) no mapa (prévia).${falhas.length ? ` ${falhas.length} sem localização: confira o endereço.` : ''}`, falhas.length > 0);
+  } catch (err) {
+    coletaMsg('⚠️ ' + err.message, true);
+  } finally { coletaBusy = false; }
+}
+
+async function integrateColeta(onlyIds) {
+  if (coletaBusy) return;
+  const sel = coletaPoints.filter(p => p.status === 'pending' && (onlyIds ? onlyIds.includes(p.id) : coletaSelected.has(p.id)));
+  if (!sel.length) { alert('Marque ao menos um ponto que aguarda integração.'); return; }
+  if (!confirm(`Integrar ${sel.length} ponto(s) à tabela principal como “Alvo UNI”? Eles passam a aparecer nos mapas de toda a unidade.`)) return;
+  coletaBusy = true;
+  try {
+    const falhas = await geocodeColetaPoints(sel);
+    const prontos = sel.filter(p => typeof p.lat === 'number' && typeof p.lng === 'number');
+    if (!prontos.length) { coletaMsg('⚠️ Nenhum ponto pôde ser localizado. Confira o endereço ou defina as coordenadas (botão 📍).', true); return; }
+    const r = await coletaFetch('POST', '/integrate', { ids: prontos.map(p => p.id) });
+    clearColetaPreview();
+    map_closeAllPopups();
+    await loadColeta();
+    const fora = falhas.length + r.skipped.length;
+    coletaMsg(`✅ ${r.integrated.length} ponto(s) integrado(s) à tabela principal.${fora ? ` ${fora} ficaram de fora (sem localização ou já integrados).` : ''}`, fora > 0);
+  } catch (err) {
+    coletaMsg('⚠️ ' + err.message, true);
+  } finally { coletaBusy = false; }
+}
+function map_closeAllPopups() { [mapRelevo, mapNormal, mapEstrategia].forEach(m => { if (m) m.closePopup(); }); }
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initColetaPanels); else initColetaPanels();
+
 function openPontosTableModal() {
   renderTacticalMarkersTable();
+  setPontosSubtab(pontosSubtab, true);
   const filterInput = document.getElementById('pontosLocalidadeFilter');
   if (filterInput) filterInput.value = '';
   filterPontosTableByLocalidade();
@@ -9213,8 +9706,7 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
   // criar um ponto novo duplicado. Sem editId, é o cadastro normal de sempre.
   const editingPin = editId ? tacticalMarkers[editId] : null;
   tacticalPendingPin = { type: typeId, lat, lng, editId: editingPin ? editId : null };
-  tacticalPendingPhotoDataUrl = null;
-  tacticalPendingPhotoDataUrl2 = null;
+  tacticalPendingMedia = [null, null, null];
 
   document.getElementById('tacticalPinModalIcon').src = t.icon;
   document.getElementById('tacticalPinModalEyebrow').innerText = editingPin ? 'Completar Cadastro (Peça Travada)' : (t.ttlHours ? `Novo Ponto Tático · vale por ${t.ttlHours} h` : 'Novo Ponto Tático');
@@ -9231,22 +9723,12 @@ function openTacticalPinModal(typeId, lat, lng, editId) {
   tacticalEnderecoTouched = false;
   setEnderecoHint('');
   if (!(editingPin && editingPin.endereco)) buscarEnderecoDoPonto(false);
-  const photoPreview = document.getElementById('tacticalPinPhotoPreview');
-  if (editingPin && editingPin.photoUrl) {
-    photoPreview.src = editingPin.photoUrl;
-    photoPreview.style.display = 'block';
-  } else {
-    photoPreview.style.display = 'none';
-  }
-  document.getElementById('tacticalPinPhotoInput').value = '';
-  const photoPreview2 = document.getElementById('tacticalPinPhotoPreview2');
-  if (editingPin && editingPin.photoUrl2) {
-    photoPreview2.src = editingPin.photoUrl2;
-    photoPreview2.style.display = 'block';
-  } else {
-    photoPreview2.style.display = 'none';
-  }
-  document.getElementById('tacticalPinPhotoInput2').value = '';
+  const mediaOfPin = editingPin ? [editingPin.photoUrl, editingPin.photoUrl2, editingPin.photoUrl3] : [];
+  TACTICAL_MEDIA_IDS.forEach(([inputId, previewId], i) => {
+    const preview = document.getElementById(previewId);
+    if (mediaOfPin[i]) { preview.src = mediaOfPin[i]; preview.style.display = 'block'; } else { preview.style.display = 'none'; }
+    document.getElementById(inputId).value = '';
+  });
   document.getElementById('tacticalPinResponsavel').value = (editingPin && editingPin.responsavel) || '';
   document.getElementById('tacticalPinOperator').value = localStorage.getItem('geosniper_operator_name') || '';
 
@@ -9339,8 +9821,7 @@ function closeTacticalPinModal() {
   document.getElementById('tacticalPinModal').style.display = 'none';
   tacticalEnderecoSeq++;
   tacticalPendingPin = null;
-  tacticalPendingPhotoDataUrl = null;
-  tacticalPendingPhotoDataUrl2 = null;
+  tacticalPendingMedia = [null, null, null];
 }
 
 function compressDataUrl(dataUrl, maxDim, quality) {
@@ -9374,11 +9855,13 @@ function compressImageFile(file, maxDim, quality) {
   });
 }
 
+const TACTICAL_MEDIA_IDS = [['tacticalPinPhotoInput', 'tacticalPinPhotoPreview'], ['tacticalPinPhotoInput2', 'tacticalPinPhotoPreview2'], ['tacticalPinPhotoInput3', 'tacticalPinPhotoPreview3']];
+
 function applyTacticalPinPhoto(dataUrl, slot) {
-  // slot 1 = Foto 1 (a de sempre); slot 2 = Foto 2 (segunda foto do ponto).
-  const second = slot === 2;
-  if (second) tacticalPendingPhotoDataUrl2 = dataUrl; else tacticalPendingPhotoDataUrl = dataUrl;
-  const preview = document.getElementById(second ? 'tacticalPinPhotoPreview2' : 'tacticalPinPhotoPreview');
+  // slot 1, 2 ou 3 = Mídia 1, 2 ou 3 do ponto.
+  const i = Math.min(3, Math.max(1, slot || 1)) - 1;
+  tacticalPendingMedia[i] = dataUrl;
+  const preview = document.getElementById(TACTICAL_MEDIA_IDS[i][1]);
   preview.src = dataUrl;
   preview.style.display = 'block';
 }
@@ -9397,7 +9880,7 @@ function onTacticalPinPhotoSelected(input, slot) {
 }
 
 function triggerTacticalPinPhoto(slot) {
-  const inputId = slot === 2 ? 'tacticalPinPhotoInput2' : 'tacticalPinPhotoInput';
+  const inputId = TACTICAL_MEDIA_IDS[Math.min(3, Math.max(1, slot || 1)) - 1][0];
   // No app nativo, usamos o plugin @capacitor/camera pra abrir a câmera do
   // aparelho diretamente. O atributo HTML capture="environment" do <input
   // type=file> (mantido abaixo como fallback pro navegador) é conhecido por
@@ -9432,10 +9915,10 @@ function triggerTacticalPinPhoto(slot) {
   if (input) input.click();
 }
 
-// Envia a foto de um ponto já registrado: a Foto 1 pela rota de sempre e a Foto 2 pela rota própria (um servidor ainda
-// sem a atualização responde 404 à Foto 2 em vez de gravar por cima da Foto 1).
+// Envia a mídia de um ponto já registrado: a Mídia 1 pela rota de sempre; a 2 e a 3 por rotas próprias (um servidor ainda sem
+// a atualização responde 404 em vez de gravar por cima da Mídia 1).
 function uploadTacticalPhoto(markerId, dataUrl, slot) {
-  return fetch('https://api.geosniper.com.br/api/' + (slot === 2 ? 'upload-tactical-image-2' : 'upload-tactical-image'), {
+  return fetch('https://api.geosniper.com.br/api/' + (slot > 1 ? 'upload-tactical-image-' + slot : 'upload-tactical-image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-unit-code': getUnitCode() },
     credentials: 'include',
@@ -9463,8 +9946,7 @@ function saveTacticalPinEdit() {
   const endereco = document.getElementById('tacticalPinEndereco').value.trim();
   const observation = document.getElementById('tacticalPinObservation').value.trim();
   const responsavel = document.getElementById('tacticalPinResponsavel').value.trim();
-  const photoToUpload = tacticalPendingPhotoDataUrl;
-  const photoToUpload2 = tacticalPendingPhotoDataUrl2;
+  const media = tacticalPendingMedia.slice();
 
   fetch(`https://api.geosniper.com.br/api/admin/markers/${editId}`, {
     method: 'PUT',
@@ -9478,15 +9960,11 @@ function saveTacticalPinEdit() {
   }).then(res => res.json()).then((resp) => {
     if (!resp || !resp.success) { console.error('Não foi possível salvar o cadastro da peça.'); return; }
     Object.assign(pin, { label, observation, localidade, endereco, responsavel, operator });
-    const uploads = [];
-    if (photoToUpload) {
-      uploads.push(uploadTacticalPhoto(editId, photoToUpload, 1).then(() => { pin.photoUrl = photoToUpload; })
-        .catch(err => console.error('Erro ao enviar foto do ponto tático:', err)));
-    }
-    if (photoToUpload2) {
-      uploads.push(uploadTacticalPhoto(editId, photoToUpload2, 2).then(() => { pin.photoUrl2 = photoToUpload2; })
-        .catch(err => console.error('Erro ao enviar a foto 2 do ponto tático:', err)));
-    }
+    const uploads = media.map((dataUrl, i) => dataUrl
+      ? uploadTacticalPhoto(editId, dataUrl, i + 1)
+        .then(() => { pin[i === 0 ? 'photoUrl' : 'photoUrl' + (i + 1)] = dataUrl; })
+        .catch(err => console.error('Erro ao enviar a mídia ' + (i + 1) + ' do ponto tático:', err))
+      : null).filter(Boolean);
     Promise.all(uploads).then(() => refreshTacticalMarkersUI());
   }).catch(err => console.error('Erro ao salvar cadastro da peça:', err));
 
@@ -9521,23 +9999,19 @@ function saveTacticalPin() {
     operator
   };
 
-  const photoToUpload = tacticalPendingPhotoDataUrl;
-  const photoToUpload2 = tacticalPendingPhotoDataUrl2;
+  const media = tacticalPendingMedia.slice();
 
   if (tacticalSocket) {
     // O servidor confirma (ack) que o ponto já foi gravado no banco antes de
-    // enviarmos as fotos por chamadas separadas — sem essa confirmação, a foto
+    // enviarmos as mídias por chamadas separadas — sem essa confirmação, a foto
     // (via REST) podia chegar antes do ponto (via socket) existir e se perdia.
     tacticalSocket.emit('new-tactical-pin', pinData, (response) => {
       if (response && response.success) {
-        if (photoToUpload) {
-          uploadTacticalPhoto(id, photoToUpload, 1).catch(err => console.error('Erro ao enviar foto do ponto tático:', err));
-        }
-        if (photoToUpload2) {
-          uploadTacticalPhoto(id, photoToUpload2, 2).catch(err => console.error('Erro ao enviar a foto 2 do ponto tático:', err));
-        }
-      } else if (photoToUpload || photoToUpload2) {
-        console.error('Ponto tático não confirmado pelo servidor — foto não enviada.');
+        media.forEach((dataUrl, i) => {
+          if (dataUrl) uploadTacticalPhoto(id, dataUrl, i + 1).catch(err => console.error('Erro ao enviar a mídia ' + (i + 1) + ' do ponto tático:', err));
+        });
+      } else if (media.some(Boolean)) {
+        console.error('Ponto tático não confirmado pelo servidor — mídias não enviadas.');
       }
     });
   }
