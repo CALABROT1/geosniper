@@ -167,16 +167,28 @@
 
   // ---------- interface ----------
   var TAB_ID = 'tabRealidade';
-  var LS = { fov: 'geosniper_ar_fov', off: 'geosniper_ar_offset_deg', wall: 'geosniper_ar_parede_m', range: 'geosniper_ar_alcance_m', eye: 'geosniper_ar_olho_m' };
+  var LS = {
+    fov: 'geosniper_ar_fov', off: 'geosniper_ar_offset_deg', wall: 'geosniper_ar_parede_m', range: 'geosniper_ar_alcance_m', eye: 'geosniper_ar_olho_m',
+    elev: 'geosniper_ar_elevado', elevAng: 'geosniper_ar_elevado_ang', elevMax: 'geosniper_ar_elevado_max_m',
+    walk: 'geosniper_ar_kmh_pe', car: 'geosniper_ar_kmh_veiculo',
+    radar: 'geosniper_ar_radar', radarRange: 'geosniper_ar_radar_alcance', radarHead: 'geosniper_ar_radar_frente'
+  };
   var st = {
-    built: false, active: false, stream: null, raf: 0, timer: 0,
+    built: false, active: false, stream: null, raf: 0, timer: 0, frameN: 0,
     R: null, hasAbs: false, lastAbsAt: 0, lastOriAt: 0, yawFix: 0,
     fov: num(LS.fov, 67), off: num(LS.off, 0), wall: num(LS.wall, 15), range: num(LS.range, 3000), eye: num(LS.eye, 1.6),
+    elev: num(LS.elev, 1), elevAng: num(LS.elevAng, 45), elevMax: num(LS.elevMax, 5000),
+    walk: num(LS.walk, 5), car: num(LS.car, 40),
+    radarOpen: num(LS.radar, 0) === 1, radarMin: false, radarFull: false, radarRange: strv(LS.radarRange, 'auto'), radarUp: num(LS.radarHead, 1) === 1,
+    ctlMin: false, rd: null,
     filter: 'all', screenAngle: 0, hits: [], pose: null, selected: null, camError: ''
   };
 
   function num(key, def) {
     try { var v = parseFloat(localStorage.getItem(key)); return isNaN(v) ? def : v; } catch (e) { return def; }
+  }
+  function strv(key, def) {
+    try { var v = localStorage.getItem(key); return v == null ? def : v; } catch (e) { return def; }
   }
   function save(key, v) { try { localStorage.setItem(key, String(v)); } catch (e) {} }
   function $(id) { return document.getElementById(id); }
@@ -186,21 +198,49 @@
     '#tabRealidade{background:#05070a;}' +
     '#tabRealidade .ar-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0b0f14;}' +
     '#tabRealidade .ar-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:manipulation;}' +
-    '#tabRealidade .ar-top{position:absolute;left:0;right:0;top:54px;display:flex;gap:6px;padding:6px 8px;flex-wrap:wrap;align-items:center;pointer-events:none;}' +
-    '#tabRealidade .ar-top>*{pointer-events:auto;}' +
-    '#tabRealidade select,#tabRealidade .ar-btn{background:rgba(12,16,22,.82);color:#f2d168;border:1px solid rgba(242,209,104,.45);border-radius:8px;padding:7px 9px;font:700 12px sans-serif;max-width:46vw;}' +
+    '#tabRealidade select,#tabRealidade .ar-btn{background:rgba(12,16,22,.82);color:#f2d168;border:1px solid rgba(242,209,104,.45);border-radius:8px;padding:7px 9px;font:700 12px sans-serif;max-width:100%;}' +
     '#tabRealidade .ar-btn{cursor:pointer;}' +
     '#tabRealidade .ar-bottom{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#e8edf2;font:600 12px sans-serif;pointer-events:none;display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;}' +
-    '#tabRealidade .ar-panel{position:absolute;right:8px;top:104px;width:min(300px,86vw);background:rgba(12,16,22,.92);border:1px solid rgba(242,209,104,.4);border-radius:10px;padding:10px;color:#e8edf2;font:12px sans-serif;display:none;max-height:calc(100% - 160px);overflow:auto;}' +
+    '#tabRealidade .ar-win,#tabRealidade .ar-ctl{background:rgba(12,16,22,.86);border:1px solid rgba(242,209,104,.45);border-radius:10px;color:#e8edf2;font:11px sans-serif;pointer-events:auto;}' +
+    '#tabRealidade .ar-wh{display:flex;align-items:center;gap:4px;padding:4px 6px;background:rgba(242,209,104,.12);border-radius:9px 9px 0 0;color:#f2d168;font:700 11px sans-serif;}' +
+    '#tabRealidade .ar-wh .sp{flex:1;}' +
+    '#tabRealidade .ar-wh button{background:rgba(0,0,0,.4);color:#f2d168;border:1px solid rgba(242,209,104,.4);border-radius:6px;padding:2px 7px;font:700 11px sans-serif;cursor:pointer;}' +
+    '#tabRealidade .ar-wb{padding:6px;}' +
+    '#tabRealidade .ar-win.min .ar-wb,#tabRealidade .ar-ctl.min .ar-wb{display:none;}' +
+    '#tabRealidade .ar-win.min .ar-wh,#tabRealidade .ar-ctl.min .ar-wh{border-radius:9px;}' +
+    '#tabRealidade .ar-ctl{position:absolute;left:8px;top:54px;width:min(340px,calc(100% - 16px));max-height:calc(100% - 150px);overflow:auto;z-index:5;}' +
+    '#tabRealidade .ar-ctl.min{width:auto;overflow:visible;}' +
+    '#tabRealidade .ar-g2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}' +
+    '#tabRealidade .ar-g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px;}' +
+    '#tabRealidade .ar-g3 .ar-btn{padding:7px 4px;font-size:11px;}' +
+    '#tabRealidade .ar-panel{display:none;margin-top:8px;border-top:1px solid rgba(242,209,104,.3);padding-top:4px;font:12px sans-serif;max-height:46vh;overflow:auto;}' +
     '#tabRealidade .ar-panel label{display:block;margin:8px 0 3px;font-weight:700;color:#f2d168;}' +
+    '#tabRealidade .ar-panel select{width:100%;}' +
     '#tabRealidade .ar-panel input[type=range]{width:100%;}' +
     '#tabRealidade .ar-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}' +
-    '#tabRealidade .ar-card{position:absolute;left:8px;right:8px;bottom:36px;background:rgba(12,16,22,.92);border:1px solid rgba(242,209,104,.5);border-radius:10px;padding:10px 12px;color:#e8edf2;font:13px sans-serif;display:none;}' +
-    '#tabRealidade .ar-msg{position:absolute;left:12px;right:12px;bottom:46px;text-align:center;color:#f2d168;font:700 14px sans-serif;background:rgba(0,0,0,.55);padding:12px;border-radius:10px;display:none;}' +
-    '#tabRealidade .ar-start{position:absolute;right:12px;bottom:100px;padding:12px 18px;font-size:14px;display:none;}' +
+    '#tabRealidade .ar-card{position:absolute;left:8px;right:8px;bottom:36px;z-index:6;background:rgba(12,16,22,.92);border:1px solid rgba(242,209,104,.5);border-radius:10px;padding:10px 12px;color:#e8edf2;font:13px sans-serif;display:none;}' +
+    '#tabRealidade .ar-msg{position:absolute;left:12px;right:12px;top:38%;text-align:center;color:#f2d168;font:700 14px sans-serif;background:rgba(0,0,0,.55);padding:12px;border-radius:10px;display:none;z-index:4;}' +
+    '#tabRealidade .ar-start{position:absolute;left:50%;top:54%;transform:translateX(-50%);padding:12px 18px;font-size:14px;display:none;z-index:4;}' +
+    '#tabRealidade .ar-dock{position:absolute;left:8px;bottom:46px;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:6px;pointer-events:none;z-index:3;}' +
+    '#tabRealidade .ar-dock .ar-win{width:208px;}' +
+    '#tabRealidade .ar-dock.hide{display:none;}' +
+    '#tabRealidade #arRadarCv{display:block;width:min(188px,34vh,50vw);aspect-ratio:1;margin:0 auto;}' +
+    '#tabRealidade .ar-rdft{display:flex;gap:6px;align-items:center;justify-content:space-between;margin-top:4px;color:#9fb0c0;}' +
+    '#tabRealidade .ar-rdft select{padding:3px 5px;font-size:11px;border-radius:6px;}' +
+    '#tabRealidade #arInfoBody{max-height:min(17vh,112px);overflow:auto;padding:4px 6px;}' +
+    '#tabRealidade .ar-it{display:grid;grid-template-columns:14px 1fr auto;gap:4px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:10px;line-height:1.25;}' +
+    '#tabRealidade .ar-it b{color:#f2d168;}' +
+    '#tabRealidade .ar-it span.t{color:#9fe8a8;white-space:nowrap;text-align:right;}' +
+    '#tabRealidade.ar-rfull #arCanvas{visibility:hidden;}' +
+    '#tabRealidade.ar-rfull .ar-start,#tabRealidade.ar-rfull .ar-msg{display:none !important;}' +
+    '#tabRealidade.ar-rfull .ar-dock{left:0;right:0;top:0;bottom:0;padding:0 8px 40px;flex-direction:column;align-items:stretch;background:#03100a;z-index:3;}' +
+    '#tabRealidade.ar-rfull .ar-dock .ar-win{width:auto;}' +
+    '#tabRealidade.ar-rfull #arRadarWin{flex:1;min-height:0;overflow:hidden;}' +
+    '#tabRealidade.ar-rfull #arInfoWin{max-height:32%;overflow:auto;}' +
+    '@media (orientation:landscape){#tabRealidade .ar-dock{left:auto;right:8px;bottom:34px;flex-direction:row;align-items:flex-end;}#tabRealidade #arInfoBody{max-height:30vh;}#tabRealidade.ar-rfull .ar-dock{flex-direction:row;align-items:stretch;}#tabRealidade.ar-rfull #arInfoWin{max-height:none;width:240px;flex:none;}}' +
     'body.ar-full .tabs,body.ar-full #gpsAccuracyBadge{display:none !important;}' +
     'body.ar-full #tabRealidade{position:fixed;inset:0;height:100vh !important;min-height:0 !important;z-index:60;}' +
-    'body.ar-full #tabRealidade .ar-top{top:54px;}';
+    '';
 
   function build() {
     if (st.built) return;
@@ -212,21 +252,39 @@
     tab.innerHTML =
       '<video id="arVideo" class="ar-video" playsinline muted autoplay></video>' +
       '<canvas id="arCanvas" class="ar-canvas"></canvas>' +
-      '<div class="ar-top">' +
-      '<select id="arFiltro" title="O que exibir na realidade aumentada"></select>' +
+      '<div class="ar-ctl" id="arCtl">' +
+      '<div class="ar-wh"><b>🎛 Controles</b><span class="sp"></span><button id="arCtlMin" type="button" title="Minimizar / abrir">▾</button></div>' +
+      '<div class="ar-wb">' +
+      '<div class="ar-g2"><select id="arFiltro" title="O que exibir na realidade aumentada"></select>' +
       '<select id="arAlcance" title="Alcance">' +
-      [500, 1000, 2000, 3000, 5000, 20000].map(function (m) { return '<option value="' + m + '">Até ' + (m >= 1000 ? m / 1000 + ' km' : m + ' m') + '</option>'; }).join('') + '</select>' +
-      '<button class="ar-btn" id="arBtnAjustes" type="button">⚙ Ajustes</button>' +
-      '<button class="ar-btn" id="arBtnCheia" type="button">⛶ Tela cheia</button>' +
-      '</div>' +
+      [500, 1000, 2000, 3000, 5000, 20000].map(function (m) { return '<option value="' + m + '">Até ' + (m >= 1000 ? m / 1000 + ' km' : m + ' m') + '</option>'; }).join('') + '</select></div>' +
+      '<div class="ar-g3"><button class="ar-btn" id="arBtnAjustes" type="button">⚙ Ajustes</button>' +
+      '<button class="ar-btn" id="arBtnRadar" type="button">📡 Radar</button>' +
+      '<button class="ar-btn" id="arBtnCheia" type="button">⛶ Tela cheia</button></div>' +
       '<div class="ar-panel" id="arPanel">' +
       '<label>Campo de visão da câmera: <span id="arFovTxt"></span>°</label><input type="range" id="arFov" min="40" max="100" step="1">' +
       '<label>Desvio da bússola: <span id="arOffTxt"></span>°</label>' +
       '<div class="ar-row"><button class="ar-btn" data-off="-5" type="button">−5</button><button class="ar-btn" data-off="-1" type="button">−1</button><button class="ar-btn" data-off="1" type="button">+1</button><button class="ar-btn" data-off="5" type="button">+5</button><button class="ar-btn" data-off="0" type="button">Zerar</button></div>' +
       '<div class="ar-row"><button class="ar-btn" id="arAlinhar" type="button">🎯 Alinhar no ponto central</button></div>' +
       '<div style="margin-top:4px;color:#9fb0c0;">Mire o centro da tela num marcador que você enxerga no terreno e toque em Alinhar: o app corrige o desvio da bússola (inclui a declinação magnética, que no Brasil fica entre −14° e −24°).</div>' +
+      '<label>Marcador elevado (gêmeo no céu)</label><select id="arElev"><option value="1">Ligado</option><option value="0">Desligado</option></select>' +
+      '<label>Ângulo do marcador elevado</label><select id="arElevAng"><option value="20">20° acima do horizonte</option><option value="30">30°</option><option value="45">45°</option><option value="60">60°</option></select>' +
+      '<label>Limite do marcador elevado</label><select id="arElevMax"><option value="300">Até 300 m</option><option value="1000">Até 1 km</option><option value="2000">Até 2 km</option><option value="5000">Até 5 km</option><option value="20000">Até 20 km</option></select>' +
+      '<label>Velocidade a pé / de veículo (km/h)</label><div class="ar-g2"><select id="arWalk"><option value="4">🚶 4</option><option value="5">🚶 5</option><option value="6">🚶 6</option></select><select id="arCar"><option value="30">🚗 30</option><option value="40">🚗 40</option><option value="60">🚗 60</option><option value="80">🚗 80</option></select></div>' +
       '<label>Altura das paredes das áreas</label><select id="arParede"><option value="3">3 m</option><option value="8">8 m</option><option value="15">15 m</option><option value="30">30 m</option><option value="60">60 m</option></select>' +
       '<label>Altura dos seus olhos (m): <span id="arEyeTxt"></span></label><input type="range" id="arEye" min="0.5" max="3" step="0.1">' +
+      '</div>' +
+      '</div></div>' +
+      '<div class="ar-dock hide" id="arDock">' +
+      '<div class="ar-win" id="arRadarWin">' +
+      '<div class="ar-wh"><b>📡 Radar</b><span class="sp"></span><button id="arRdHead" type="button" title="Frente do operador para cima / Norte para cima">▲ frente</button><button id="arRdFull" type="button" title="Radar em tela cheia / voltar à câmera">⤢</button><button id="arRdMin" type="button" title="Minimizar">▾</button><button id="arRdClose" type="button" title="Fechar o radar">✕</button></div>' +
+      '<div class="ar-wb"><canvas id="arRadarCv"></canvas>' +
+      '<div class="ar-rdft"><span>Alcance</span><select id="arRdRange"><option value="auto">Automático</option><option value="200">200 m</option><option value="500">500 m</option><option value="1000">1 km</option><option value="2000">2 km</option><option value="5000">5 km</option><option value="10000">10 km</option><option value="20000">20 km</option></select></div></div>' +
+      '</div>' +
+      '<div class="ar-win" id="arInfoWin">' +
+      '<div class="ar-wh"><b>🎯 Alvos</b><span style="font-weight:400;color:#9fb0c0">linha reta</span><span class="sp"></span><button id="arInfMin" type="button" title="Minimizar">▾</button></div>' +
+      '<div id="arInfoBody" class="ar-wb"></div>' +
+      '</div>' +
       '</div>' +
       '<div class="ar-card" id="arCard"></div>' +
       '<div class="ar-msg" id="arMsg"></div>' +
@@ -238,6 +296,40 @@
     $('arParede').value = String(st.wall);
     $('arAlcance').value = String(st.range);
     $('arOffTxt').textContent = st.off.toFixed(0);
+    $('arElev').value = String(st.elev); $('arElevAng').value = String(st.elevAng); $('arElevMax').value = String(st.elevMax);
+    $('arWalk').value = String(st.walk); $('arCar').value = String(st.car);
+    $('arRdRange').value = st.radarRange;
+
+    $('arElev').addEventListener('change', function () { st.elev = +this.value; save(LS.elev, st.elev); });
+    $('arElevAng').addEventListener('change', function () { st.elevAng = +this.value; save(LS.elevAng, st.elevAng); });
+    $('arElevMax').addEventListener('change', function () { st.elevMax = +this.value; save(LS.elevMax, st.elevMax); });
+    $('arWalk').addEventListener('change', function () { st.walk = +this.value; save(LS.walk, st.walk); updateInfo(); });
+    $('arCar').addEventListener('change', function () { st.car = +this.value; save(LS.car, st.car); updateInfo(); });
+    $('arCtlMin').addEventListener('click', function () {
+      st.ctlMin = !st.ctlMin;
+      $('arCtl').classList.toggle('min', st.ctlMin);
+      this.textContent = st.ctlMin ? '▸' : '▾';
+    });
+    $('arBtnRadar').addEventListener('click', function () { setRadar(!st.radarOpen); });
+    $('arRdClose').addEventListener('click', function () { setRadar(false); });
+    $('arRdMin').addEventListener('click', function () {
+      st.radarMin = !st.radarMin;
+      $('arRadarWin').classList.toggle('min', st.radarMin);
+      this.textContent = st.radarMin ? '▸' : '▾';
+    });
+    $('arInfMin').addEventListener('click', function () {
+      var w = $('arInfoWin'), m = !w.classList.contains('min');
+      w.classList.toggle('min', m);
+      this.textContent = m ? '▸' : '▾';
+    });
+    $('arRdFull').addEventListener('click', function () { setRadarFull(!st.radarFull); });
+    $('arRdHead').addEventListener('click', function () {
+      st.radarUp = !st.radarUp; save(LS.radarHead, st.radarUp ? 1 : 0);
+      this.textContent = st.radarUp ? '▲ frente' : 'N ▲';
+    });
+    $('arRdRange').addEventListener('change', function () { st.radarRange = this.value; save(LS.radarRange, st.radarRange); });
+    $('arRdHead').textContent = st.radarUp ? '▲ frente' : 'N ▲';
+    setRadar(st.radarOpen);
 
     $('arFov').addEventListener('input', function () { st.fov = +this.value; $('arFovTxt').textContent = st.fov; save(LS.fov, st.fov); });
     $('arEye').addEventListener('input', function () { st.eye = +this.value; $('arEyeTxt').textContent = st.eye.toFixed(1); save(LS.eye, st.eye); });
@@ -271,12 +363,79 @@
     var t = $('arOffTxt'); if (t) t.textContent = st.off.toFixed(0);
   }
 
-  function toggleFull() {
-    document.body.classList.toggle('ar-full');
+  // Barra de status do celular: no app (Capacitor) o plugin nativo GeoImmersive a esconde; no navegador usa a API de tela cheia.
+  function immersive(on) {
+    try {
+      var C = window.Capacitor;
+      if (C && C.isNativePlatform && C.isNativePlatform() && C.registerPlugin) {
+        st.imm = st.imm || C.registerPlugin('GeoImmersive');
+        var p = st.imm.set({ enabled: !!on });
+        if (p && p.catch) p.catch(function () {});
+      } else if (on && document.documentElement.requestFullscreen) {
+        var q = document.documentElement.requestFullscreen();
+        if (q && q.catch) q.catch(function () {});
+      } else if (!on && document.fullscreenElement && document.exitFullscreen) {
+        var q2 = document.exitFullscreen();
+        if (q2 && q2.catch) q2.catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  function setFull(full) {
+    document.body.classList.toggle('ar-full', full);
     var b = $('arBtnCheia');
-    var full = document.body.classList.contains('ar-full');
     if (b) b.textContent = full ? '✕ Sair da tela cheia' : '⛶ Tela cheia';
+    immersive(full);
     onResize();
+    setTimeout(onResize, 300); // a barra some depois do clique: mede o tamanho de novo
+  }
+  function toggleFull() { setFull(!document.body.classList.contains('ar-full')); }
+
+  // ---------- radar ----------
+  function setRadar(open) {
+    st.radarOpen = !!open;
+    save(LS.radar, st.radarOpen ? 1 : 0);
+    var d = $('arDock'); if (d) d.classList.toggle('hide', !st.radarOpen);
+    var b = $('arBtnRadar'); if (b) b.style.background = st.radarOpen ? 'rgba(57,255,20,.2)' : '';
+    if (!st.radarOpen) setRadarFull(false);
+    else updateInfo();
+  }
+  function setRadarFull(full) {
+    st.radarFull = !!full && st.radarOpen;
+    var tab = $(TAB_ID); if (tab) tab.classList.toggle('ar-rfull', st.radarFull);
+    var b = $('arRdFull'); if (b) { b.textContent = st.radarFull ? '⤡' : '⤢'; b.title = st.radarFull ? 'Voltar à câmera' : 'Radar em tela cheia'; }
+    if (st.radarFull && st.radarMin) { st.radarMin = false; $('arRadarWin').classList.remove('min'); $('arRdMin').textContent = '▾'; }
+    layoutDock();
+  }
+  // No radar em tela cheia o painel de controles continua por cima: empurra o radar para baixo dele (retrato) ou para o lado (paisagem).
+  function layoutDock() {
+    var d = $('arDock'), c = $('arCtl');
+    if (!d || !c) return;
+    var land = st.W > st.H;
+    d.style.paddingTop = (st.radarFull && !land) ? (c.offsetTop + c.offsetHeight + 6) + 'px' : '';
+    d.style.paddingLeft = (st.radarFull && land) ? (c.offsetLeft + c.offsetWidth + 6) + 'px' : '';
+  }
+
+  function fmtTime(sec) {
+    if (sec < 90) return Math.max(1, Math.round(sec)) + ' s';
+    var m = sec / 60;
+    if (m < 90) return Math.round(m) + ' min';
+    var h = Math.floor(m / 60), mm = Math.round(m - h * 60);
+    return h + ' h' + (mm ? ' ' + (mm < 10 ? '0' : '') + mm : '');
+  }
+
+  // Lista de alvos: distância e tempo em linha reta, a pé e de veículo (estimativa: não considera ruas nem relevo).
+  function updateInfo() {
+    var body = $('arInfoBody'); if (!body || !st.radarOpen) return;
+    var rd = st.rd;
+    if (!rd) { body.innerHTML = '<span style="color:#9fb0c0">Aguardando o GPS…</span>'; return; }
+    if (!rd.items.length) { body.innerHTML = '<span style="color:#9fb0c0">Nenhum marcador no filtro e alcance atuais.</span>'; return; }
+    var wv = st.walk / 3.6, cv = st.car / 3.6;
+    body.innerHTML = rd.items.slice(0, 30).map(function (it, i) {
+      var b = bearingOf(it.e[0], it.e[1]);
+      return '<div class="ar-it"><b>' + (i + 1) + '</b><span>' + esc(markerName(it.m)) + '<br><span style="color:#9fb0c0">' + fmtDist(it.d) + ' · ' + Math.round(b) + '° ' + cardinal(b) + '</span></span>' +
+        '<span class="t">🚶 ' + fmtTime(it.d / wv) + '<br>🚗 ' + fmtTime(it.d / cv) + '</span></div>';
+    }).join('') + (rd.items.length > 30 ? '<div style="color:#9fb0c0;padding-top:3px">+ ' + (rd.items.length - 30) + ' mais distantes</div>' : '');
   }
 
   function onResize() {
@@ -434,8 +593,59 @@
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
 
+  // Dados filtrados que alimentam a câmera e o radar: marcadores e áreas dentro do alcance.
+  function collect(pos) {
+    var items = [], areas = [], inside = null;
+    markerList().forEach(function (m) {
+      if (!wantMarker(m)) return;
+      var e = enuFrom(pos.lat, pos.lng, m.lat, m.lng);
+      var d = Math.hypot(e[0], e[1]);
+      if (d > st.range) return;
+      items.push({ m: m, e: e, d: d });
+    });
+    items.sort(function (a, b) { return a.d - b.d; });
+    drawingList().forEach(function (x, idx) {
+      if (!wantArea(x.d)) return;
+      var pts = x.ring.pts.map(function (p) { return enuFrom(pos.lat, pos.lng, p[0], p[1]); });
+      var minD = Infinity;
+      pts.forEach(function (p) { minD = Math.min(minD, Math.hypot(p[0], p[1])); });
+      if (x.ring.closed && pointInPolygon(0, 0, pts)) { inside = inside || drawingName(x.d, idx); minD = 0; }
+      if (minD > st.range) return;
+      areas.push({ pts: pts, closed: x.ring.closed, rgb: hexToRgb(x.d.color) });
+    });
+    return { items: items, areas: areas, inside: inside };
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  }
+
+  function drawLabel(ctx, labelRects, cx, y, txt) {
+    ctx.font = '700 12px sans-serif';
+    var tw = ctx.measureText(txt).width + 12, th = 18;
+    var rx = cx - tw / 2, ry = y;
+    var clash = labelRects.some(function (r) { return rx < r.x + r.w && rx + tw > r.x && ry < r.y + r.h && ry + th > r.y; });
+    if (clash) return;
+    labelRects.push({ x: rx, y: ry, w: tw, h: th });
+    ctx.fillStyle = 'rgba(8,11,16,.78)'; ctx.fillRect(rx, ry, tw, th);
+    ctx.strokeStyle = 'rgba(242,209,104,.7)'; ctx.lineWidth = 1; ctx.strokeRect(rx, ry, tw, th);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, cx, ry + th / 2 + 0.5);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawIcon(ctx, type, x, y, size) {
+    var img = iconFor(type);
+    if (img.complete && img.naturalWidth) ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+    else { ctx.fillStyle = '#f2d168'; ctx.beginPath(); ctx.arc(x, y, size / 3, 0, 6.2832); ctx.fill(); }
+  }
+
   function frame() {
     st.raf = requestAnimationFrame(frame);
+    st.frameN++;
     var cv = $('arCanvas'); if (!cv) return;
     if (!st.W) onResize();
     var ctx = cv.getContext('2d');
@@ -450,8 +660,9 @@
     if (!pos) warn = '📡 Aguardando o GPS…';
     else if (!R || (!st.fakePose && performance.now() - st.lastOriAt > 3000)) warn = '🧭 Sem leitura do sensor de orientação. Mova o aparelho; se persistir, veja a permissão de sensores.';
     else if (st.camError) warn = st.camError;
+    if (st.radarFull && pos) warn = '';
     if (msg) { msg.style.display = warn ? 'block' : 'none'; msg.textContent = warn; }
-    if (!pos || !R) { if (info1) info1.textContent = ''; if (info2) info2.textContent = ''; st.hits = []; return; }
+    if (!pos) { if (info1) info1.textContent = ''; if (info2) info2.textContent = ''; st.hits = []; st.rd = null; if (st.radarOpen && st.frameN % 3 === 0) drawRadar(); return; }
 
     // Câmera
     var v = $('arVideo');
@@ -461,9 +672,21 @@
     var Lpx = Math.max(vw, vh) * scale;
     var cam = { cx: W / 2, cy: H / 2, f: (Lpx / 2) / Math.tan(st.fov * D2R / 2) };
     var axes = screenAxes(st.screenAngle);
-    var look = cameraLook(R);
+    var look = R ? cameraLook(R) : { heading: 0, pitch: 0 };
     var headTrue = (look.heading + st.off + 360) % 360;
     var NEAR = 0.8;
+
+    var data = collect(pos);
+    var items = data.items, inside = data.inside;
+    st.rd = { items: items, areas: data.areas, head: headTrue, hfov: 2 * Math.atan((W / 2) / cam.f) * R2D, pos: pos };
+    if (st.radarOpen && st.frameN % 3 === 0) drawRadar();
+    if (st.radarOpen && st.frameN % 45 === 0) { updateInfo(); if (st.radarFull) layoutDock(); }
+    if (!R || st.radarFull) {
+      st.hits = []; st.pose = R ? { heading: headTrue, rawHeading: look.heading, pitch: look.pitch } : null;
+      if (info1) info1.textContent = '';
+      if (info2) info2.textContent = '';
+      return;
+    }
 
     function toCam(e, n, up) {
       var rn = applyOffset(e, n, st.off);
@@ -471,7 +694,6 @@
     }
 
     var hits = [];
-    var inside = null;
 
     // Linha do horizonte (referência)
     (function () {
@@ -486,23 +708,15 @@
 
     // Paredes (áreas)
     var walls = [];
-    drawingList().forEach(function (x, idx) {
-      if (!wantArea(x.d)) return;
-      var color = hexToRgb(x.d.color);
-      var pts = x.ring.pts.map(function (p) { return enuFrom(pos.lat, pos.lng, p[0], p[1]); });
-      var minD = Infinity;
-      pts.forEach(function (p) { minD = Math.min(minD, Math.hypot(p[0], p[1])); });
-      if (x.ring.closed && pointInPolygon(0, 0, pts)) { inside = inside || drawingName(x.d, idx); minD = 0; }
-      if (minD > st.range) return;
-      var n = pts.length, last = x.ring.closed ? n : n - 1;
+    data.areas.forEach(function (ar) {
+      var pts = ar.pts, n = pts.length, last = ar.closed ? n : n - 1;
       for (var i = 0; i < last; i++) {
         var p1 = pts[i], p2 = pts[(i + 1) % n];
         var c1 = toCam(p1[0], p1[1], 0), c2 = toCam(p2[0], p2[1], 0);
         var c3 = toCam(p2[0], p2[1], st.wall), c4 = toCam(p1[0], p1[1], st.wall);
         var poly = clipNear([c1, c2, c3, c4], NEAR);
         if (poly.length < 3) continue;
-        var depth = (c1.z + c2.z) / 2;
-        walls.push({ poly: poly, depth: depth, color: color, bottom: [c1, c2] });
+        walls.push({ poly: poly, depth: (c1.z + c2.z) / 2, color: ar.rgb });
       }
     });
     walls.sort(function (a, b) { return b.depth - a.depth; });
@@ -520,50 +734,84 @@
       ctx.stroke();
     });
 
-    // Marcadores
-    var items = [];
-    markerList().forEach(function (m) {
-      if (!wantMarker(m)) return;
-      var e = enuFrom(pos.lat, pos.lng, m.lat, m.lng);
-      var d = Math.hypot(e[0], e[1]);
-      if (d > st.range) return;
-      items.push({ m: m, e: e, d: d });
-    });
-    items.sort(function (a, b) { return a.d - b.d; });
-
+    // Marcadores. Com o "marcador elevado" ligado, cada alvo ganha um gêmeo no céu (ângulo fixo acima do horizonte, na
+    // mesma direção do alvo) ligado por uma linha tracejada ao ponto real no chão, que fica mais transparente com a distância.
     var labelRects = [];
     var offscreen = [];
+    var twins = 0;
+    // o gêmeo nunca sobe acima da faixa de bússola nem fica escondido atrás da janela de controles
+    var ctlEl = $('arCtl');
+    var yTop = Math.max(62, Math.min(ctlEl ? ctlEl.offsetTop + ctlEl.offsetHeight + 2 : 62, H * 0.42));
+    var E = st.elevAng * D2R;
     items.forEach(function (it) {
       var ground = toCam(it.e[0], it.e[1], 0);
-      var head = toCam(it.e[0], it.e[1], 4);
-      var onScreen = false;
-      if (head.z > NEAR) {
-        var ph = camToPixel(head, cam), pg = camToPixel(ground, cam);
-        var size = Math.max(28, Math.min(56, 22 + 3000 / (it.d + 60)));
-        if (ph.x > -size && ph.x < W + size && ph.y > -size && ph.y < H + size) {
-          onScreen = true;
-          ctx.strokeStyle = 'rgba(242,209,104,.65)'; ctx.lineWidth = 1.2;
-          ctx.beginPath(); ctx.moveTo(ph.x, ph.y + size / 2); ctx.lineTo(pg.x, pg.y); ctx.stroke();
-          ctx.fillStyle = 'rgba(242,209,104,.9)'; ctx.beginPath(); ctx.arc(pg.x, pg.y, 3, 0, 6.2832); ctx.fill();
-          var img = iconFor(it.m.type);
-          if (img.complete && img.naturalWidth) ctx.drawImage(img, ph.x - size / 2, ph.y - size / 2, size, size);
-          else { ctx.fillStyle = '#f2d168'; ctx.beginPath(); ctx.arc(ph.x, ph.y, size / 3, 0, 6.2832); ctx.fill(); }
-          var txt = markerName(it.m) + ' · ' + fmtDist(it.d);
-          ctx.font = '700 12px sans-serif';
-          var tw = ctx.measureText(txt).width + 12, th = 18;
-          var rx = ph.x - tw / 2, ry = ph.y + size / 2 + 3;
-          var clash = labelRects.some(function (r) { return rx < r.x + r.w && rx + tw > r.x && ry < r.y + r.h && ry + th > r.y; });
-          if (!clash) {
-            labelRects.push({ x: rx, y: ry, w: tw, h: th });
-            ctx.fillStyle = 'rgba(8,11,16,.78)'; ctx.fillRect(rx, ry, tw, th);
-            ctx.strokeStyle = 'rgba(242,209,104,.7)'; ctx.lineWidth = 1; ctx.strokeRect(rx, ry, tw, th);
-            ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, ph.x, ry + th / 2 + 0.5);
-            ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      var pg = ground.z > NEAR ? camToPixel(ground, cam) : null;
+      var useTwin = st.elev && it.d <= st.elevMax && it.d > 0.5 && twins < 12;
+      var onScreen = false, farC = ground;
+
+      if (useTwin) {
+        twins++;
+        var ux = it.e[0] / it.d, uy = it.e[1] / it.d, R0 = 1000;
+        var rn = applyOffset(ux * Math.cos(E) * R0, uy * Math.cos(E) * R0, st.off);
+        var tw = toCamera(R, axes, [rn[0], rn[1], Math.sin(E) * R0]);
+        var size = Math.max(32, Math.min(56, 26 + 3000 / (it.d + 60)));
+        if (tw.z > 0) farC = tw;
+        var pt = tw.z > NEAR ? camToPixel(tw, cam) : null;
+        var clamped = false;
+        if (pt && pt.y < yTop + size / 2) { pt.y = yTop + size / 2; clamped = true; }
+        var twinVisible = !!pt && pt.x > -size && pt.x < W + size && pt.y < H + size;
+        var gsize = Math.max(22, Math.min(40, 16 + 2000 / (it.d + 60)));
+        var groundVisible = !!pg && pg.x > -gsize && pg.x < W + gsize && pg.y > -gsize && pg.y < H + gsize;
+        var ga = Math.max(0.35, Math.min(1, 1 - (it.d - 30) / 470 * 0.65));
+
+        // linha tracejada entre o gêmeo e o ponto real
+        if (pt && pg) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(57,255,20,.85)'; ctx.lineWidth = 1.6; ctx.setLineDash([6, 5]);
+          ctx.beginPath(); ctx.moveTo(pt.x, pt.y + size / 2); ctx.lineTo(pg.x, pg.y - gsize / 2); ctx.stroke();
+          ctx.restore();
+        }
+        // ponto real no chão: translúcido e borda verde fluorescente tracejada; 100% opaco quando perto
+        if (groundVisible) {
+          ctx.save();
+          ctx.globalAlpha = ga;
+          ctx.fillStyle = 'rgba(0,0,0,.35)'; roundRect(ctx, pg.x - gsize / 2 - 2, pg.y - gsize / 2 - 2, gsize + 4, gsize + 4, 6); ctx.fill();
+          drawIcon(ctx, it.m.type, pg.x, pg.y, gsize);
+          ctx.strokeStyle = '#39ff14'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+          roundRect(ctx, pg.x - gsize / 2 - 2, pg.y - gsize / 2 - 2, gsize + 4, gsize + 4, 6); ctx.stroke();
+          ctx.restore();
+          hits.push({ kind: 'm', id: it.m.id, x: pg.x - gsize / 2, y: pg.y - gsize / 2, w: gsize, h: gsize });
+        }
+        // gêmeo elevado (fundo: céu)
+        if (twinVisible) {
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 8;
+          drawIcon(ctx, it.m.type, pt.x, pt.y, size);
+          ctx.restore();
+          if (clamped) { ctx.fillStyle = 'rgba(57,255,20,.9)'; ctx.beginPath(); ctx.moveTo(pt.x, pt.y - size / 2 - 7); ctx.lineTo(pt.x - 6, pt.y - size / 2 - 1); ctx.lineTo(pt.x + 6, pt.y - size / 2 - 1); ctx.closePath(); ctx.fill(); }
+          drawLabel(ctx, labelRects, pt.x, pt.y + size / 2 + 3, markerName(it.m) + ' · ' + fmtDist(it.d));
+          hits.push({ kind: 'm', id: it.m.id, x: pt.x - size / 2, y: pt.y - size / 2, w: size, h: size + 24 });
+        }
+        onScreen = twinVisible || groundVisible;
+      } else {
+        // estilo simples: ícone 4 m acima do ponto, com linha até o chão
+        var head = toCam(it.e[0], it.e[1], 4);
+        if (head.z > 0) farC = head;
+        if (head.z > NEAR) {
+          var ph = camToPixel(head, cam), pg2 = camToPixel(ground, cam);
+          var sz = Math.max(28, Math.min(56, 22 + 3000 / (it.d + 60)));
+          if (ph.x > -sz && ph.x < W + sz && ph.y > -sz && ph.y < H + sz) {
+            onScreen = true;
+            ctx.strokeStyle = 'rgba(242,209,104,.65)'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(ph.x, ph.y + sz / 2); ctx.lineTo(pg2.x, pg2.y); ctx.stroke();
+            ctx.fillStyle = 'rgba(242,209,104,.9)'; ctx.beginPath(); ctx.arc(pg2.x, pg2.y, 3, 0, 6.2832); ctx.fill();
+            drawIcon(ctx, it.m.type, ph.x, ph.y, sz);
+            drawLabel(ctx, labelRects, ph.x, ph.y + sz / 2 + 3, markerName(it.m) + ' · ' + fmtDist(it.d));
+            hits.push({ kind: 'm', id: it.m.id, x: ph.x - sz / 2, y: ph.y - sz / 2, w: sz, h: sz + 24 });
           }
-          hits.push({ kind: 'm', id: it.m.id, x: ph.x - size / 2, y: ph.y - size / 2, w: size, h: size + 24 });
         }
       }
-      if (!onScreen) offscreen.push({ it: it, c: head.z > 0 ? head : ground });
+      if (!onScreen) offscreen.push({ it: it, c: farC });
     });
 
     // Setas de borda para o que está fora da tela
@@ -591,8 +839,8 @@
     drawCompass(ctx, W, cam.f, headTrue, items);
 
     if (inside) {
-      var bar = document.querySelector('#tabRealidade .ar-top');
-      var by = 54 + (bar ? bar.offsetHeight : 36) + 4, bw = Math.min(W - 16, 340);
+      var bar = $('arCtl');
+      var by = Math.min((bar ? bar.offsetTop + bar.offsetHeight : 90) + 4, H - 150), bw = Math.min(W - 16, 340);
       ctx.fillStyle = 'rgba(193,72,61,.88)'; ctx.fillRect(W / 2 - bw / 2, by, bw, 24);
       ctx.fillStyle = '#fff'; ctx.font = '800 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('⚠ VOCÊ ESTÁ DENTRO: ' + inside, W / 2, by + 12, bw - 12); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -603,6 +851,110 @@
     var accTxt = pos.acc != null ? '±' + Math.round(pos.acc) + ' m' : '—';
     if (info1) info1.textContent = '📡 GPS ' + accTxt + ' · 🧭 ' + Math.round(headTrue) + '° ' + cardinal(headTrue) + ' · ↕ ' + (look.pitch >= 0 ? '+' : '') + Math.round(look.pitch) + '°';
     if (info2) info2.textContent = items.length + ' ponto(s) · ' + walls.length + ' parede(s)' + (st.off ? ' · desvio ' + (st.off > 0 ? '+' : '') + st.off.toFixed(0) + '°' : '');
+  }
+
+  // ---------- radar 2D ----------
+  var RADAR_NICE = [100, 200, 500, 1000, 2000, 3000, 5000, 10000, 20000, 50000];
+  function radarRangeM(items) {
+    if (st.radarRange !== 'auto') return +st.radarRange;
+    var mx = 0;
+    items.forEach(function (it) { if (it.d > mx) mx = it.d; });
+    if (!mx) return 500;
+    for (var i = 0; i < RADAR_NICE.length; i++) if (RADAR_NICE[i] >= mx * 1.08) return RADAR_NICE[i];
+    return RADAR_NICE[RADAR_NICE.length - 1];
+  }
+
+  function drawRadar() {
+    var cv = $('arRadarCv'); if (!cv || !st.radarOpen || st.radarMin) return;
+    if (st.radarFull) {
+      var win = $('arRadarWin');
+      var avail = Math.min(win.clientWidth - 12, win.clientHeight - 66);
+      if (avail > 80) cv.style.width = avail + 'px';
+    } else cv.style.width = '';
+    var s = cv.clientWidth; if (s < 40) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (cv.width !== Math.round(s * dpr)) { cv.width = Math.round(s * dpr); cv.height = Math.round(s * dpr); }
+    var c = cv.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, s, s);
+    var cx = s / 2, cy = s / 2, rad = s / 2 - 13;
+    var rd = st.rd;
+
+    var bg = c.createRadialGradient(cx, cy, 0, cx, cy, rad);
+    bg.addColorStop(0, '#07351a'); bg.addColorStop(1, '#021208');
+    c.fillStyle = bg; c.beginPath(); c.arc(cx, cy, rad, 0, 6.2832); c.fill();
+
+    var range = rd ? radarRangeM(rd.items) : 500;
+    var ref = rd && st.radarUp ? rd.head : 0; // rumo que aponta para cima na tela
+    var k = rad / range;
+    function proj(e, n) {
+      var th = Math.atan2(e, n) - ref * D2R, dd = Math.hypot(e, n);
+      return { x: cx + Math.sin(th) * dd * k, y: cy - Math.cos(th) * dd * k, d: dd };
+    }
+
+    // anéis de distância e eixos
+    c.lineWidth = 1; c.strokeStyle = 'rgba(57,255,20,.5)';
+    for (var i = 1; i <= 4; i++) { c.beginPath(); c.arc(cx, cy, rad * i / 4, 0, 6.2832); c.stroke(); }
+    c.strokeStyle = 'rgba(57,255,20,.28)';
+    [0, 90].forEach(function (bd) {
+      var th = (bd - ref) * D2R, dx = Math.sin(th) * rad, dy = -Math.cos(th) * rad;
+      c.beginPath(); c.moveTo(cx - dx, cy - dy); c.lineTo(cx + dx, cy + dy); c.stroke();
+    });
+    c.save(); c.beginPath(); c.arc(cx, cy, rad, 0, 6.2832); c.clip();
+
+    // áreas (paredes) vistas de cima
+    if (rd) rd.areas.forEach(function (ar) {
+      var rgb = ar.rgb.join(',');
+      c.beginPath();
+      ar.pts.forEach(function (p, i) { var q = proj(p[0], p[1]); if (i) c.lineTo(q.x, q.y); else c.moveTo(q.x, q.y); });
+      if (ar.closed) { c.closePath(); c.fillStyle = 'rgba(' + rgb + ',.22)'; c.fill(); }
+      c.strokeStyle = 'rgba(' + rgb + ',.95)'; c.lineWidth = 1.6; c.stroke();
+    });
+
+    // cone da frente do operador (campo de visão da câmera) e linha de varredura
+    if (rd) {
+      var hd = (rd.head - ref - 90) * D2R, half = (rd.hfov / 2) * D2R;
+      c.fillStyle = 'rgba(57,255,20,.22)'; c.strokeStyle = 'rgba(57,255,20,.9)'; c.lineWidth = 1.4;
+      c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, rad, hd - half, hd + half); c.closePath(); c.fill(); c.stroke();
+    }
+    var sw = (performance.now() / 2600 % 1) * 6.2832;
+    c.strokeStyle = 'rgba(57,255,20,.35)'; c.lineWidth = 1.2;
+    c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(sw) * rad, cy + Math.sin(sw) * rad); c.stroke();
+    c.restore();
+
+    // alvos
+    if (rd) rd.items.slice(0, 40).forEach(function (it, i) {
+      var q = proj(it.e[0], it.e[1]);
+      var out = q.d > range;
+      var x = q.x, y = q.y;
+      if (out) { var th = Math.atan2(it.e[0], it.e[1]) - ref * D2R; x = cx + Math.sin(th) * rad; y = cy - Math.cos(th) * rad; }
+      c.save(); c.globalAlpha = out ? 0.5 : 1;
+      c.fillStyle = '#ff5a4a'; c.strokeStyle = '#fff'; c.lineWidth = 1;
+      c.beginPath(); c.arc(x, y, 3.6, 0, 6.2832); c.fill(); c.stroke();
+      c.font = '700 9px sans-serif'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.85)'; c.fillStyle = '#fff';
+      c.strokeText(String(i + 1), x + 5, y - 4); c.fillText(String(i + 1), x + 5, y - 4);
+      c.restore();
+    });
+
+    // operador no centro
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(cx, cy, 3, 0, 6.2832); c.fill();
+
+    // rótulos de distância em cada círculo e pontos cardeais
+    c.font = '700 9px sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+    for (var j = 1; j <= 4; j++) {
+      var lx = cx + Math.cos(-0.7854) * rad * j / 4 + 2, ly = cy + Math.sin(-0.7854) * rad * j / 4;
+      var lt = fmtDist(range * j / 4);
+      c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.85)'; c.strokeText(lt, lx, ly);
+      c.fillStyle = '#7dff5a'; c.fillText(lt, lx, ly);
+    }
+    c.textAlign = 'center';
+    [['N', 0, '#ff6b5a'], ['L', 90, '#9fe8a8'], ['S', 180, '#9fe8a8'], ['O', 270, '#9fe8a8']].forEach(function (cd) {
+      var th = (cd[1] - ref) * D2R;
+      c.fillStyle = cd[2]; c.font = '800 10px sans-serif';
+      c.fillText(cd[0], cx + Math.sin(th) * (rad + 8), cy - Math.cos(th) * (rad + 8));
+    });
+    c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    if (!rd) { c.fillStyle = '#9fe8a8'; c.font = '700 11px sans-serif'; c.textAlign = 'center'; c.fillText('Aguardando o GPS…', cx, cy + rad * 0.55); c.textAlign = 'left'; }
   }
 
   function drawCompass(ctx, W, f, heading, items) {
@@ -650,7 +1002,8 @@
     if (!m || !pos) return;
     var e = enuFrom(pos.lat, pos.lng, m.lat, m.lng);
     var d = Math.hypot(e[0], e[1]), b = bearingOf(e[0], e[1]);
-    var rows = ['<b style="color:#f2d168">' + esc(markerName(m)) + '</b> · ' + fmtDist(d) + ' · rumo ' + Math.round(b) + '° ' + cardinal(b)];
+    var rows = ['<b style="color:#f2d168">' + esc(markerName(m)) + '</b> · ' + fmtDist(d) + ' · rumo ' + Math.round(b) + '° ' + cardinal(b),
+      '🚶 ' + fmtTime(d / (st.walk / 3.6)) + ' · 🚗 ' + fmtTime(d / (st.car / 3.6)) + ' <span style="color:#9fb0c0">(em linha reta)</span>'];
     if (m.localidade) rows.push('📍 ' + esc(m.localidade));
     if (m.observation) rows.push('📝 ' + esc(m.observation));
     var who = [m.unitName, m.operator || m.responsavel].filter(Boolean).join(' · ');
@@ -699,8 +1052,8 @@
     window.removeEventListener('deviceorientationabsolute', onAbs, true);
     window.removeEventListener('deviceorientation', onRel, true);
     stopCamera();
-    document.body.classList.remove('ar-full');
-    var b = $('arBtnCheia'); if (b) b.textContent = '⛶ Tela cheia';
+    if (document.body.classList.contains('ar-full')) setFull(false);
+    setRadarFull(false);
   }
 
   root.GeoAR = {
